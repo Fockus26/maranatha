@@ -1,0 +1,273 @@
+import "server-only";
+import { isSupabaseConfigured, supabaseAdmin } from "@/lib/supabase/admin";
+import type {
+  PaymentCurrency,
+  PaymentFrequency,
+  PaymentMethodId,
+  PaymentPurpose,
+  PaymentStatus,
+  Result,
+} from "./schema";
+
+/**
+ * Acceso a la tabla `payments` (supabase/migrations/0001_payments.sql).
+ * Solo servidor. Toda función devuelve un `Result` — los errores esperados
+ * (duplicado, no encontrado) se modelan; lo inesperado se registra en el
+ * servidor y sale como `db_error` sin detalles internos.
+ */
+
+export interface PaymentRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  purpose: PaymentPurpose;
+  project_slug: string | null;
+  frequency: PaymentFrequency;
+  amount_usd: number;
+  amount_paid: number | null;
+  currency: PaymentCurrency;
+  exchange_rate: number | null;
+  method: PaymentMethodId;
+  status: PaymentStatus;
+  donor_name: string;
+  donor_email: string;
+  reference: string | null;
+  paid_at: string | null;
+  receipt_path: string | null;
+  provider_order_id: string | null;
+  provider_capture_id: string | null;
+  provider_subscription_id: string | null;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
+  notes: string | null;
+}
+
+export interface NewPayment {
+  purpose: PaymentPurpose;
+  project_slug?: string | null;
+  frequency: PaymentFrequency;
+  amount_usd: number;
+  amount_paid?: number | null;
+  currency: PaymentCurrency;
+  exchange_rate?: number | null;
+  method: PaymentMethodId;
+  donor_name: string;
+  donor_email: string;
+  reference?: string | null;
+  paid_at?: string | null;
+  receipt_path?: string | null;
+  provider_order_id?: string | null;
+  provider_subscription_id?: string | null;
+}
+
+export type RepoError =
+  | "not_configured"
+  | "duplicate_reference"
+  | "not_found"
+  | "invalid_state"
+  | "db_error";
+
+const UNIQUE_VIOLATION = "23505";
+
+function logDbError(where: string, error: unknown) {
+  console.error(`[payments] ${where}:`, error);
+}
+
+// Numeric de Postgres llega como string en PostgREST — se normaliza a number.
+function normalize(row: Record<string, unknown>): PaymentRow {
+  const toNum = (v: unknown) =>
+    v === null || v === undefined ? null : Number(v);
+  return {
+    ...(row as unknown as PaymentRow),
+    amount_usd: Number(row.amount_usd),
+    amount_paid: toNum(row.amount_paid),
+    exchange_rate: toNum(row.exchange_rate),
+  };
+}
+
+export async function insertPayment(
+  payment: NewPayment,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .insert(payment)
+    .select()
+    .single();
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION)
+      return { ok: false, error: "duplicate_reference" };
+    logDbError("insertPayment", error);
+    return { ok: false, error: "db_error" };
+  }
+  return { ok: true, data: normalize(data) };
+}
+
+export async function getPayment(
+  id: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .select()
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    logDbError("getPayment", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "not_found" };
+  return { ok: true, data: normalize(data) };
+}
+
+export async function getPaymentByOrderId(
+  orderId: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .select()
+    .eq("provider_order_id", orderId)
+    .maybeSingle();
+  if (error) {
+    logDbError("getPaymentByOrderId", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "not_found" };
+  return { ok: true, data: normalize(data) };
+}
+
+export async function updatePayment(
+  id: string,
+  patch: Partial<Omit<PaymentRow, "id" | "created_at" | "updated_at">>,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION)
+      return { ok: false, error: "duplicate_reference" };
+    logDbError("updatePayment", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "not_found" };
+  return { ok: true, data: normalize(data) };
+}
+
+/**
+ * Cambia el estado solo si el pago sigue `pending` — condición en el propio
+ * UPDATE, así dos confirmaciones simultáneas (webhook + retorno, o dos admins)
+ * no se pisan: la segunda no encuentra fila y recibe `invalid_state`.
+ */
+export async function transitionPayment(
+  id: string,
+  to: Exclude<PaymentStatus, "pending">,
+  extra: Partial<
+    Pick<
+      PaymentRow,
+      "confirmed_by" | "notes" | "provider_capture_id" | "amount_paid"
+    >
+  > = {},
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const patch: Record<string, unknown> = { status: to, ...extra };
+  if (to === "confirmed") patch.confirmed_at = new Date().toISOString();
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .update(patch)
+    .eq("id", id)
+    .eq("status", "pending")
+    .select()
+    .maybeSingle();
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION)
+      return { ok: false, error: "duplicate_reference" };
+    logDbError("transitionPayment", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "invalid_state" };
+  return { ok: true, data: normalize(data) };
+}
+
+export interface ListPaymentsFilter {
+  status?: PaymentStatus;
+  method?: PaymentMethodId;
+  limit?: number;
+}
+
+export async function listPayments(
+  filter: ListPaymentsFilter = {},
+): Promise<Result<PaymentRow[], RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  let query = supabaseAdmin()
+    .from("payments")
+    .select()
+    .order("created_at", { ascending: false })
+    .limit(filter.limit ?? 200);
+  if (filter.status) query = query.eq("status", filter.status);
+  if (filter.method) query = query.eq("method", filter.method);
+
+  const { data, error } = await query;
+  if (error) {
+    logDbError("listPayments", error);
+    return { ok: false, error: "db_error" };
+  }
+  return { ok: true, data: data.map(normalize) };
+}
+
+/** Recaudado confirmado por proyecto, en USD. Sin Supabase → mapa vacío. */
+export async function getRaisedBySlug(): Promise<Map<string, number>> {
+  const raised = new Map<string, number>();
+  if (!isSupabaseConfigured()) return raised;
+
+  const { data, error } = await supabaseAdmin()
+    .from("project_raised")
+    .select("project_slug, raised_usd");
+  if (error) {
+    logDbError("getRaisedBySlug", error);
+    return raised;
+  }
+  for (const row of data)
+    raised.set(row.project_slug as string, Number(row.raised_usd));
+  return raised;
+}
+
+export async function getSetting<T>(key: string): Promise<T | null> {
+  if (!isSupabaseConfigured()) return null;
+  const { data, error } = await supabaseAdmin()
+    .from("settings")
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+  if (error) {
+    logDbError("getSetting", error);
+    return null;
+  }
+  return (data?.value as T) ?? null;
+}
+
+export async function setSetting(
+  key: string,
+  value: unknown,
+): Promise<Result<null, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  const { error } = await supabaseAdmin()
+    .from("settings")
+    .upsert({ key, value, updated_at: new Date().toISOString() });
+  if (error) {
+    logDbError("setSetting", error);
+    return { ok: false, error: "db_error" };
+  }
+  return { ok: true, data: null };
+}
