@@ -1,15 +1,19 @@
 "use server";
 
 import { convertFromUsd, getExchangeRates } from "@/lib/payments/exchangeRates";
+import { PURPOSE_LABEL } from "@/lib/payments/labels";
 import {
   getEnabledMethod,
   getEnabledMethods,
   type PaymentMethodInfo,
 } from "@/lib/payments/methods";
+import { createOrder, isPaypalConfigured } from "@/lib/payments/paypal";
 import { deleteReceipt, uploadReceipt } from "@/lib/payments/receipts";
 import {
   countRecentPendingByEmail,
   insertPayment,
+  transitionPayment,
+  updatePayment,
 } from "@/lib/payments/repository";
 import {
   type Contribution,
@@ -19,6 +23,7 @@ import {
   type Result,
 } from "@/lib/payments/schema";
 import { getProjectBySlug } from "@/lib/projectsData";
+import { SITE_URL } from "@/lib/siteConfig";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
 /**
@@ -171,4 +176,89 @@ export async function reportManualPayment(
     return { ok: false, error: "server_error" };
   }
   return { ok: true, data: { id: inserted.data.id } };
+}
+
+// ─── PayPal (pasarela) ─────────────────────────────────────────────────────
+
+export type PaypalCheckoutError =
+  | "invalid_input"
+  | "invalid_project"
+  | "method_unavailable"
+  | "monthly_unavailable"
+  | "too_many_requests"
+  | "not_configured"
+  | "server_error";
+
+/** Máx. de checkouts de PayPal sin completar por correo por hora. */
+const MAX_PAYPAL_PENDING_PER_HOUR = 10;
+
+/**
+ * Crea el pago `pending` y la orden de PayPal, y devuelve el link al que el
+ * navegador tiene que redirigir. El monto sale de lo validado acá, no de lo
+ * que el cliente vaya a mandar después: la ruta de retorno y el webhook
+ * comparan la captura contra este registro.
+ */
+export async function startPaypalCheckout(
+  input: unknown,
+): Promise<Result<{ approveUrl: string }, PaypalCheckoutError>> {
+  const parsed = contributionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+  const contribution = parsed.data;
+  if (!validateProject(contribution))
+    return { ok: false, error: "invalid_project" };
+  // Suscripciones mensuales: unidad siguiente (PayPal Subscriptions API).
+  if (contribution.frequency === "monthly")
+    return { ok: false, error: "monthly_unavailable" };
+
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isPaypalConfigured() || !getEnabledMethod("paypal"))
+    return { ok: false, error: "method_unavailable" };
+
+  if (
+    (await countRecentPendingByEmail(contribution.email, "paypal")) >=
+    MAX_PAYPAL_PENDING_PER_HOUR
+  ) {
+    return { ok: false, error: "too_many_requests" };
+  }
+
+  const inserted = await insertPayment({
+    purpose: contribution.purpose,
+    project_slug: contribution.projectSlug ?? null,
+    frequency: "once",
+    amount_usd: contribution.amountUsd,
+    currency: "USD",
+    method: "paypal",
+    donor_name: contribution.name,
+    donor_email: contribution.email,
+  });
+  if (!inserted.ok) return { ok: false, error: "server_error" };
+  const payment = inserted.data;
+
+  const project = contribution.projectSlug
+    ? getProjectBySlug(contribution.projectSlug)
+    : undefined;
+  const description = project
+    ? `Aporte a "${project.title}" — Iglesia Maranatha`
+    : `${PURPOSE_LABEL[contribution.purpose]} — Iglesia Maranatha`;
+
+  try {
+    const { orderId, approveUrl } = await createOrder({
+      paymentId: payment.id,
+      amountUsd: payment.amount_usd,
+      description,
+      returnUrl: `${SITE_URL}/pago/paypal/retorno`,
+      cancelUrl: `${SITE_URL}/pago/paypal/cancelado`,
+    });
+    const linked = await updatePayment(payment.id, {
+      provider_order_id: orderId,
+    });
+    if (!linked.ok) throw new Error(`No se pudo guardar la orden ${orderId}`);
+    return { ok: true, data: { approveUrl } };
+  } catch (error) {
+    console.error("[paypal] startPaypalCheckout:", error);
+    await transitionPayment(payment.id, "cancelled", {
+      notes: "No se pudo crear la orden en PayPal.",
+    });
+    return { ok: false, error: "server_error" };
+  }
 }

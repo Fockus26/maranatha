@@ -39,7 +39,14 @@ export default async function DashboardPagosPage({
     : "pending";
 
   const [payments, stats, rates, fallback] = await Promise.all([
-    listPayments(filter === "all" ? {} : { status: filter }),
+    listPayments(
+      filter === "all"
+        ? {}
+        : filter === "pending"
+          ? // Los PayPal pendientes son checkouts sin completar: nada que verificar.
+            { status: "pending", excludeMethod: "paypal" }
+          : { status: filter },
+    ),
     getPaymentStats(),
     getExchangeRates(),
     getSetting<{ VES?: number; COP?: number }>("exchange_rates"),

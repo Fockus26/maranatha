@@ -17,8 +17,10 @@ import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import {
   type CheckoutMethod,
   getCheckoutOptions,
+  type PaypalCheckoutError,
   type ReportPaymentError,
   reportManualPayment,
+  startPaypalCheckout,
 } from "@/app/actions/payments";
 import { formatAmount } from "@/lib/payments/labels";
 import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
@@ -32,7 +34,8 @@ import { DonationFormCard } from "./DonationFormCard";
  *   se muestran los datos de la cuenta receptora y el monto en la moneda del
  *   método; el donante paga desde su app y reporta la referencia. Queda
  *   `pending` hasta que un admin lo verifica en `/dashboard/pagos`.
- * - PayPal (pasarela): redirige a PayPal — se habilita en la unidad de PayPal.
+ * - PayPal (pasarela): el servidor crea la orden y el navegador redirige a
+ *   PayPal; al volver, `/pago/paypal/retorno` captura y confirma.
  *
  * "Mensual" solo se ofrece con PayPal: los métodos manuales no pueden cobrar
  * de forma recurrente, así que el servidor ni siquiera los devuelve.
@@ -169,6 +172,94 @@ function MethodOption({
       >
         {method.label}
       </Typography>
+    </Box>
+  );
+}
+
+const PAYPAL_ERROR_TEXT: Record<PaypalCheckoutError, string> = {
+  invalid_input: "Revisa el monto y tus datos en el paso anterior.",
+  invalid_project: "Este proyecto ya no recibe aportes.",
+  method_unavailable:
+    "PayPal no está disponible en este momento. Prueba con otro método.",
+  monthly_unavailable:
+    "El aporte mensual con PayPal todavía no está disponible.",
+  too_many_requests:
+    "Iniciaste varios pagos seguidos. Prueba de nuevo en un rato.",
+  not_configured: "Los pagos todavía no están habilitados. Prueba más tarde.",
+  server_error:
+    "No pudimos conectar con PayPal. Prueba de nuevo en unos minutos.",
+};
+
+/**
+ * Pasarela (PayPal): el servidor crea la orden y devuelve el link de PayPal;
+ * el navegador redirige ahí. Tarjetas Visa/Mastercard (incluidas prepago)
+ * también pasan por acá, en la página de PayPal, sin crear cuenta.
+ */
+function PaypalPanel({
+  method,
+  contribution,
+}: {
+  method: CheckoutMethod;
+  contribution: PaymentStepContribution;
+}) {
+  const theme = useTheme();
+  const [redirecting, setRedirecting] = useState(false);
+  const [error, setError] = useState<PaypalCheckoutError | null>(null);
+
+  // Si el donante vuelve con "atrás" desde PayPal, el navegador restaura la
+  // página desde el bfcache con el botón aún en "Redirigiendo…".
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (event.persisted) setRedirecting(false);
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
+  async function handleClick() {
+    if (redirecting) return;
+    setRedirecting(true);
+    setError(null);
+    try {
+      const result = await startPaypalCheckout(contribution);
+      if (result.ok) {
+        // Se queda en "Redirigiendo…" hasta que el navegador sale de la página.
+        window.location.assign(result.data.approveUrl);
+        return;
+      }
+      setError(result.error);
+    } catch {
+      setError("server_error");
+    }
+    setRedirecting(false);
+  }
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Typography
+        sx={{
+          fontFamily: typography.fontFamily.body,
+          fontSize: "12px",
+          color: theme.palette.text.secondary,
+        }}
+      >
+        {method.hint} Te llevaremos a PayPal para completar el pago de forma
+        segura y volverás aquí al terminar.
+      </Typography>
+      {error && (
+        <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
+          {PAYPAL_ERROR_TEXT[error]}
+        </Alert>
+      )}
+      <Button
+        fullWidth
+        variant="contained"
+        color="secondary"
+        onClick={handleClick}
+        disabled={redirecting}
+      >
+        {redirecting ? "Redirigiendo a PayPal…" : "Continuar a PayPal"}
+      </Button>
     </Box>
   );
 }
@@ -688,6 +779,16 @@ export function PaymentStep({
             </Box>
           )}
         </>
+      )}
+
+      {selected && selected.kind === "gateway" && (
+        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
+          <PaypalPanel
+            key={selected.id}
+            method={selected}
+            contribution={contribution}
+          />
+        </Box>
       )}
 
       {selected && selected.kind === "manual" && (
