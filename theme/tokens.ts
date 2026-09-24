@@ -43,6 +43,14 @@ export const semantic = {
   // "Completado", alert de éxito) — `success` con blanco encima da 2.7:1.
   successFilled: "#0B7A54",
   error: "#EF4444",
+  // Variantes AA del rojo de error por modo (hallazgo a11y del paso de pago):
+  // `error` da 3.76:1 sobre blanco y 4.28:1 sobre el paper oscuro, bajo el
+  // 4.5:1 que exige texto de 14px (helpers y labels de campos inválidos).
+  // Claro: 5.6:1 sobre blanco / 5.2:1 sobre gray[50], y 5.6:1 con texto
+  // blanco encima. Oscuro: 5.8:1 sobre gray[800]; con texto encima va
+  // gray[900] (6.7:1) porque el blanco solo da 2.8:1.
+  errorOnLight: "#C62828",
+  errorOnDark: "#F87171",
   warning: "#F5A524",
   info: "#3B9EF5",
 } as const;
