@@ -62,7 +62,7 @@ export const contributionSchema = z
       .max(MAX_AMOUNT_USD)
       .transform((v) => Math.round(v * 100) / 100),
     name: z.string().trim().min(1).max(120),
-    email: z.string().trim().max(254).regex(EMAIL_RE),
+    email: z.string().trim().toLowerCase().max(254).regex(EMAIL_RE),
   })
   .refine((v) => (v.purpose === "proyecto") === Boolean(v.projectSlug), {
     message: "project_slug_mismatch",

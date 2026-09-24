@@ -75,7 +75,6 @@ export function ProjectContributionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amount]);
 
-  const [submitting, setSubmitting] = useState(false);
   const amountValid = amount > 0;
   const nameValid = name.trim().length > 0;
   const emailValid = isValidEmail(email);
@@ -84,9 +83,10 @@ export function ProjectContributionForm({
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
     setTouched(true);
-    if (!formValid || submitting) return;
-    // Guard contra doble/triple submit (fase QA — functional-qa).
-    setSubmitting(true);
+    if (!formValid) return;
+    // Sin guard de `submitting`: el submit solo avanza al paso de pago
+    // (sincrónico, sin red), y el formulario queda montado para que "Volver"
+    // conserve lo escrito — un bloqueo permanente lo dejaba inutilizable.
     onSubmit({ amount, name: name.trim(), email: email.trim() });
   }
 
@@ -191,7 +191,7 @@ export function ProjectContributionForm({
       </Box>
 
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4.5 }}>
-        <Button fullWidth type="submit" variant="contained" color="secondary" disabled={submitting}>
+        <Button fullWidth type="submit" variant="contained" color="secondary">
           Continuar al pago
         </Button>
       </Box>
