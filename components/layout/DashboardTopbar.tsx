@@ -14,6 +14,7 @@ const EASE = [0.2, 0.8, 0.2, 1] as const;
 const NAV_ITEMS = [
   { label: "Resumen", href: "/dashboard" },
   { label: "Proyectos", href: "/dashboard/proyectos" },
+  { label: "Pagos", href: "/dashboard/pagos" },
 ] as const;
 
 // Blanco fijo: igual que el sidebar que reemplaza (D024/D025), el topbar es
@@ -71,7 +72,22 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
             reducen en mobile para que el topbar (logo + nav + acciones) no
             desborde en viewports angostos (~360px) — la barra sigue siendo
             una sola fila, sin colapsar a un menú hamburguesa. */}
-        <Box component="nav" sx={{ display: "flex", gap: { xs: 0.5, sm: 0.75 }, minWidth: 0 }}>
+        {/* Con 3 ítems (se sumó "Pagos") la barra no entra completa a ~360px:
+            la navegación scrollea horizontalmente dentro de sí misma en vez
+            de desbordar la página (WCAG 1.4.10). Scrollbar oculto; el
+            recorte del último ítem ya indica que hay más. */}
+        <Box
+          component="nav"
+          aria-label="Secciones del panel"
+          sx={{
+            display: "flex",
+            gap: { xs: 0.5, sm: 0.75 },
+            minWidth: 0,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            "&::-webkit-scrollbar": { display: "none" },
+          }}
+        >
           {NAV_ITEMS.map((item) => {
             const isActive =
               pathname === item.href || (item.href !== "/dashboard" && (pathname?.startsWith(`${item.href}/`) ?? false));
@@ -134,13 +150,16 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
         {/* Divisor puramente decorativo — se oculta en mobile para ganar
             espacio en el topbar (fase 08). */}
         <Box sx={{ display: { xs: "none", sm: "block" }, width: "1px", height: 24, bgcolor: "rgba(255,255,255,0.15)" }} />
+        {/* Iniciales placeholder (decorativas): se ocultan en xs para dar
+            espacio a la navegación. */}
         <Box
+          aria-hidden="true"
           sx={{
+            display: { xs: "none", sm: "flex" },
             width: 32,
             height: 32,
             borderRadius: "999px",
             bgcolor: primary[600],
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             color: ON_DARK,
@@ -156,7 +175,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
           component="button"
           type="button"
           onClick={onLogout}
-          aria-label="Salir"
+          aria-label="Cerrar sesión"
           sx={{
             display: "flex",
             alignItems: "center",

@@ -124,9 +124,10 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
       </Box>
       <TextField
         placeholder={customLabel}
-        aria-label={customLabel}
         type="number"
-        inputMode="numeric"
+        // En el <input> (no en el contenedor): es el que necesita el nombre
+        // accesible. "decimal": se aceptan centavos.
+        slotProps={{ htmlInput: { "aria-label": customLabel, inputMode: "decimal", min: 0, step: "0.01" } }}
         fullWidth
         size="small"
         value={customAmount}

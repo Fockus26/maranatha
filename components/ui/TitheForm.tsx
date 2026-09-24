@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { typography } from "@/theme/tokens";
+import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
 import { AmountSelector } from "./AmountSelector";
 import { DonationFormCard } from "./DonationFormCard";
@@ -85,8 +86,8 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
 
-const TYPE_LABEL: Record<ContributionType, string> = { diezmo: "Diezmo", ofrenda: "Ofrenda" };
-const FREQUENCY_LABEL: Record<ContributionFrequency, string> = { once: "Única vez", monthly: "Mensual" };
+export const TYPE_LABEL: Record<ContributionType, string> = { diezmo: "Diezmo", ofrenda: "Ofrenda" };
+export const FREQUENCY_LABEL: Record<ContributionFrequency, string> = { once: "Única vez", monthly: "Mensual" };
 
 export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: TitheFormProps) {
   const theme = useTheme();
@@ -97,9 +98,9 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  const amountValid = amount > 0;
+  // Mismos límites que valida el servidor (lib/payments/schema.ts).
+  const amountValid = amount >= MIN_AMOUNT_USD && amount <= MAX_AMOUNT_USD;
   const nameValid = name.trim().length > 0;
   const emailValid = isValidEmail(email);
   const formValid = amountValid && nameValid && emailValid;
@@ -108,9 +109,10 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
     setTouched(true);
-    if (!formValid || submitting) return;
-    // Guard contra doble/triple submit (fase QA — functional-qa).
-    setSubmitting(true);
+    if (!formValid) return;
+    // Sin guard de `submitting`: el submit solo avanza al paso de pago
+    // (sincrónico, sin red), y el formulario queda montado para que "Volver"
+    // conserve lo escrito — un bloqueo permanente lo dejaba inutilizable.
     onSubmit({ type, amount, frequency, name: name.trim(), email: email.trim() });
   }
 
@@ -156,7 +158,7 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
           presets={presetAmounts}
           onChange={setAmount}
           error={touched && !amountValid}
-          helperText="Elegí un monto o ingresá uno propio."
+          helperText="Elegí un monto entre US$ 1 y US$ 10.000."
         />
       </Box>
 
@@ -215,7 +217,7 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
       </Box>
 
       <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, mt: 4.5, pt: 4.5 }}>
-        <Button fullWidth type="submit" variant="contained" color="secondary" disabled={submitting}>
+        <Button fullWidth type="submit" variant="contained" color="secondary">
           Continuar al pago
         </Button>
       </Box>

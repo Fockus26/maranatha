@@ -24,7 +24,10 @@ function getPaletteOptions(mode: PaletteMode): ThemeOptions["palette"] {
       contrastText: "#FFFFFF",
     },
     success: { main: semantic.success, contrastText: "#FFFFFF" },
-    error: { main: semantic.error, contrastText: "#FFFFFF" },
+    error: {
+      main: isLight ? semantic.errorOnLight : semantic.errorOnDark,
+      contrastText: isLight ? "#FFFFFF" : gray[900],
+    },
     warning: { main: semantic.warning, contrastText: gray[900] },
     info: { main: semantic.info, contrastText: "#FFFFFF" },
     background: {

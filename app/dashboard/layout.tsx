@@ -1,35 +1,21 @@
 import type { Metadata } from "next";
-import { DashboardProjectsProvider } from "@/lib/dashboardProjectsStore";
-import { DashboardProjectModalProvider } from "@/lib/dashboardProjectModalStore";
-import { DashboardProjectModal } from "@/components/ui/DashboardProjectModal";
 
 /**
  * El dashboard es privado (fase QA — SEO): no debe indexarse ni seguirse.
  * `robots.ts` además lo bloquea a nivel de crawl; esto cubre el caso de una
  * URL de dashboard que llegue por otro camino.
+ *
+ * Los providers del panel (proyectos y modal, D045/D059) viven en
+ * `(panel)/layout.tsx`, detrás del chequeo de admin: así el login no carga
+ * ni consulta nada del panel.
  */
 export const metadata: Metadata = {
   title: "Dashboard",
   robots: { index: false, follow: false },
 };
 
-/**
- * Layout de `/dashboard` (fase 07, D045) — provee el estado compartido de
- * proyectos (`DashboardProjectsProvider`) y, desde D059, también el del modal
- * de crear/editar proyecto (`DashboardProjectModalProvider`) a `/dashboard` y
- * `/dashboard/proyectos`. El modal (`DashboardProjectModal`) se monta acá una
- * sola vez — mismo criterio que `TitheModal` en `app/layout.tsx` (D049) — para
- * que el botón "Nuevo proyecto" de Resumen pueda abrirlo sin navegar primero
- * a Proyectos. El shell visual (`DashboardShell`, topbar, D024/D059) se monta
- * en cada página individualmente, ver nota en `DashboardShell.tsx`.
- */
-export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
-  return (
-    <DashboardProjectsProvider>
-      <DashboardProjectModalProvider>
-        {children}
-        <DashboardProjectModal />
-      </DashboardProjectModalProvider>
-    </DashboardProjectsProvider>
-  );
+export default function DashboardLayout({
+  children,
+}: LayoutProps<"/dashboard">) {
+  return children;
 }

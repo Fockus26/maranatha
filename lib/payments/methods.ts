@@ -1,4 +1,5 @@
 import "server-only";
+import { METHOD_LABEL } from "./labels";
 import type { PaymentCurrency, PaymentMethodId } from "./schema";
 
 /**
@@ -43,17 +44,21 @@ interface MethodDef extends Omit<PaymentMethodInfo, "details"> {
 const DEFS: MethodDef[] = [
   {
     id: "paypal",
-    label: "PayPal / Tarjeta",
+    label: METHOD_LABEL.paypal,
     kind: "gateway",
     currency: "USD",
     supportsMonthly: true,
     hint: "Paga con tu cuenta PayPal o con tarjeta Visa/Mastercard (incluye prepago) sin crear cuenta.",
     referenceHint: "",
-    fields: [{ env: "PAYPAL_CLIENT_ID", label: "" }],
+    // Credenciales: solo habilitan el método, nunca se muestran.
+    fields: [
+      { env: "PAYPAL_CLIENT_ID", label: "" },
+      { env: "PAYPAL_CLIENT_SECRET", label: "" },
+    ],
   },
   {
     id: "pagomovil",
-    label: "Pago Móvil",
+    label: METHOD_LABEL.pagomovil,
     kind: "manual",
     currency: "VES",
     supportsMonthly: false,
@@ -67,7 +72,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "zelle",
-    label: "Zelle",
+    label: METHOD_LABEL.zelle,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
@@ -80,7 +85,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "bancolombia",
-    label: "Bancolombia",
+    label: METHOD_LABEL.bancolombia,
     kind: "manual",
     currency: "COP",
     supportsMonthly: false,
@@ -110,7 +115,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "binance",
-    label: "Binance Pay",
+    label: METHOD_LABEL.binance,
     kind: "manual",
     currency: "USDT",
     supportsMonthly: false,
@@ -123,7 +128,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "zinli",
-    label: "Zinli",
+    label: METHOD_LABEL.zinli,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
@@ -136,7 +141,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "wally",
-    label: "Wally",
+    label: METHOD_LABEL.wally,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
@@ -161,7 +166,7 @@ function resolve(def: MethodDef): PaymentMethodInfo | null {
       if (field.optional) continue;
       return null;
     }
-    // PayPal: el client id solo habilita el método, no se muestra.
+    // Pasarela: las variables solo habilitan el método, no se muestran.
     if (def.kind === "gateway") continue;
     details.push({ label: field.label, value, copyable: field.copyable });
   }

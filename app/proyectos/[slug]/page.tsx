@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProjectBySlug, PROJECTS } from "@/lib/projectsData";
+import { getRaisedRecord, withRaised } from "@/lib/projectsRaised";
 import { SITE_URL } from "@/lib/siteConfig";
 import { ProjectDetailClient } from "./ProjectDetailClient";
 
@@ -51,5 +52,6 @@ export default async function ProyectoDetallePage({ params }: PageProps<"/proyec
     notFound();
   }
 
-  return <ProjectDetailClient project={project} />;
+  // Recaudado = base + pagos confirmados (se revalida al confirmar un pago).
+  return <ProjectDetailClient project={withRaised(project, await getRaisedRecord())} />;
 }
