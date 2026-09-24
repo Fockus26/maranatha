@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Box from "@mui/material/Box";
+import { signOut } from "@/app/actions/auth";
 import { DashboardTopbar } from "./DashboardTopbar";
 
 export interface DashboardShellProps {
@@ -34,7 +35,15 @@ export interface DashboardShellProps {
  * }
  * ```
  */
-export function DashboardShell({ onLogout, children }: DashboardShellProps) {
+// Por defecto el botón de salir del topbar cierra la sesión de Supabase
+// (Server Action que borra la cookie y redirige al login).
+function defaultLogout() {
+  React.startTransition(() => {
+    void signOut();
+  });
+}
+
+export function DashboardShell({ onLogout = defaultLogout, children }: DashboardShellProps) {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <DashboardTopbar onLogout={onLogout} />

@@ -20,11 +20,8 @@ import {
   type ReportPaymentError,
   reportManualPayment,
 } from "@/app/actions/payments";
-import type {
-  PaymentCurrency,
-  PaymentFrequency,
-  PaymentPurpose,
-} from "@/lib/payments/schema";
+import { formatAmount } from "@/lib/payments/labels";
+import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
 import { radius, typography } from "@/theme/tokens";
 import { DonationFormCard } from "./DonationFormCard";
 
@@ -79,22 +76,6 @@ const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
   server_error:
     "No pudimos registrar el reporte. Prueba de nuevo en unos minutos.",
 };
-
-function formatAmount(value: number, currency: PaymentCurrency) {
-  if (currency === "USDT") {
-    return `${new Intl.NumberFormat("es", { maximumFractionDigits: 2 }).format(value)} USDT`;
-  }
-  // es-VE devuelve "Bs.S" (símbolo de 2018-2021); el de uso actual es "Bs.".
-  if (currency === "VES") {
-    return `Bs. ${new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}`;
-  }
-  const locale = currency === "COP" ? "es-CO" : "es";
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: currency === "COP" ? 0 : 2,
-  }).format(value);
-}
 
 function todayIso() {
   const now = new Date();

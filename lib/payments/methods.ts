@@ -1,4 +1,5 @@
 import "server-only";
+import { METHOD_LABEL } from "./labels";
 import type { PaymentCurrency, PaymentMethodId } from "./schema";
 
 /**
@@ -43,7 +44,7 @@ interface MethodDef extends Omit<PaymentMethodInfo, "details"> {
 const DEFS: MethodDef[] = [
   {
     id: "paypal",
-    label: "PayPal / Tarjeta",
+    label: METHOD_LABEL.paypal,
     kind: "gateway",
     currency: "USD",
     supportsMonthly: true,
@@ -53,7 +54,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "pagomovil",
-    label: "Pago Móvil",
+    label: METHOD_LABEL.pagomovil,
     kind: "manual",
     currency: "VES",
     supportsMonthly: false,
@@ -67,7 +68,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "zelle",
-    label: "Zelle",
+    label: METHOD_LABEL.zelle,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
@@ -80,7 +81,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "bancolombia",
-    label: "Bancolombia",
+    label: METHOD_LABEL.bancolombia,
     kind: "manual",
     currency: "COP",
     supportsMonthly: false,
@@ -110,7 +111,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "binance",
-    label: "Binance Pay",
+    label: METHOD_LABEL.binance,
     kind: "manual",
     currency: "USDT",
     supportsMonthly: false,
@@ -123,7 +124,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "zinli",
-    label: "Zinli",
+    label: METHOD_LABEL.zinli,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
@@ -136,7 +137,7 @@ const DEFS: MethodDef[] = [
   },
   {
     id: "wally",
-    label: "Wally",
+    label: METHOD_LABEL.wally,
     kind: "manual",
     currency: "USD",
     supportsMonthly: false,
