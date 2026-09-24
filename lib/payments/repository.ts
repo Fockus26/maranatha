@@ -296,3 +296,48 @@ export async function setSetting(
   }
   return { ok: true, data: null };
 }
+
+export interface PaymentStats {
+  pendingCount: number;
+  confirmedThisMonthUsd: number;
+  confirmedThisMonthCount: number;
+}
+
+/** KPIs del panel de pagos. Mes calendario en UTC. */
+export async function getPaymentStats(): Promise<
+  Result<PaymentStats, RepoError>
+> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const now = new Date();
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  ).toISOString();
+
+  const [pending, confirmed] = await Promise.all([
+    supabaseAdmin()
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabaseAdmin()
+      .from("payments")
+      .select("amount_usd")
+      .eq("status", "confirmed")
+      .gte("confirmed_at", monthStart),
+  ]);
+  if (pending.error || confirmed.error) {
+    logDbError("getPaymentStats", pending.error ?? confirmed.error);
+    return { ok: false, error: "db_error" };
+  }
+  return {
+    ok: true,
+    data: {
+      pendingCount: pending.count ?? 0,
+      confirmedThisMonthUsd: confirmed.data.reduce(
+        (sum, row) => sum + Number(row.amount_usd),
+        0,
+      ),
+      confirmedThisMonthCount: confirmed.data.length,
+    },
+  };
+}
