@@ -237,3 +237,137 @@ export async function verifyWebhookSignature(
   );
   return result.verification_status === "SUCCESS";
 }
+
+// ─── Suscripciones (aportes mensuales) ──────────────────────────────────
+
+export interface PaypalSubscription {
+  id: string;
+  status: string;
+  plan_id?: string;
+  custom_id?: string;
+  links?: PaypalLink[];
+  billing_info?: {
+    last_payment?: {
+      amount?: { currency_code: string; value: string };
+      time?: string;
+    };
+  };
+}
+
+export interface PaypalSale {
+  id: string;
+  state: string;
+  amount: { total: string; currency: string };
+  billing_agreement_id?: string;
+  custom?: string;
+}
+
+/** Producto de catálogo (una vez por cuenta y entorno). */
+export async function createProduct(): Promise<string> {
+  const product = await paypalFetch<{ id: string }>("/v1/catalogs/products", {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Aportes mensuales — Iglesia Maranatha",
+      type: "SERVICE",
+    }),
+  });
+  return product.id;
+}
+
+/**
+ * Plan base mensual. El precio real de cada aporte se fija al crear la
+ * suscripción (override de `fixed_price`), así que alcanza con un solo plan
+ * para cualquier monto. `payment_failure_threshold: 3` suspende la
+ * suscripción tras 3 cobros fallidos seguidos.
+ */
+export async function createMonthlyPlan(productId: string): Promise<string> {
+  const plan = await paypalFetch<{ id: string }>("/v1/billing/plans", {
+    method: "POST",
+    body: JSON.stringify({
+      product_id: productId,
+      name: "Aporte mensual",
+      status: "ACTIVE",
+      billing_cycles: [
+        {
+          frequency: { interval_unit: "MONTH", interval_count: 1 },
+          tenure_type: "REGULAR",
+          sequence: 1,
+          total_cycles: 0,
+          pricing_scheme: {
+            fixed_price: { value: "1.00", currency_code: "USD" },
+          },
+        },
+      ],
+      payment_preferences: {
+        auto_bill_outstanding: true,
+        payment_failure_threshold: 3,
+      },
+    }),
+  });
+  return plan.id;
+}
+
+export async function createSubscription(input: {
+  paymentId: string;
+  planId: string;
+  amountUsd: number;
+  email: string;
+  returnUrl: string;
+  cancelUrl: string;
+}): Promise<{ subscriptionId: string; approveUrl: string }> {
+  const subscription = await paypalFetch<PaypalSubscription>(
+    "/v1/billing/subscriptions",
+    {
+      method: "POST",
+      requestId: input.paymentId,
+      body: JSON.stringify({
+        plan_id: input.planId,
+        custom_id: input.paymentId,
+        subscriber: { email_address: input.email },
+        plan: {
+          billing_cycles: [
+            {
+              sequence: 1,
+              pricing_scheme: {
+                fixed_price: {
+                  value: input.amountUsd.toFixed(2),
+                  currency_code: "USD",
+                },
+              },
+            },
+          ],
+        },
+        application_context: {
+          brand_name: "Iglesia Maranatha",
+          shipping_preference: "NO_SHIPPING",
+          user_action: "SUBSCRIBE_NOW",
+          return_url: input.returnUrl,
+          cancel_url: input.cancelUrl,
+        },
+      }),
+    },
+  );
+  const approveUrl = subscription.links?.find((l) => l.rel === "approve")?.href;
+  if (!approveUrl) {
+    throw new PaypalError("PayPal no devolvió link de aprobación", 502);
+  }
+  return { subscriptionId: subscription.id, approveUrl };
+}
+
+export function getSubscription(id: string): Promise<PaypalSubscription> {
+  return paypalFetch<PaypalSubscription>(
+    `/v1/billing/subscriptions/${encodeURIComponent(id)}`,
+    { method: "GET" },
+  );
+}
+
+export function getSale(id: string): Promise<PaypalSale> {
+  return paypalFetch<PaypalSale>(
+    `/v1/payments/sale/${encodeURIComponent(id)}`,
+    { method: "GET" },
+  );
+}
+
+export function paypalEnv(): "sandbox" | "live" {
+  return process.env.PAYPAL_ENV === "live" ? "live" : "sandbox";
+}

@@ -57,7 +57,13 @@ export interface NewPayment {
   paid_at?: string | null;
   receipt_path?: string | null;
   provider_order_id?: string | null;
+  provider_capture_id?: string | null;
   provider_subscription_id?: string | null;
+  /** Solo para cobros recurrentes que ya llegan confirmados por PayPal. */
+  status?: PaymentStatus;
+  confirmed_at?: string | null;
+  confirmed_by?: string | null;
+  notes?: string | null;
 }
 
 export type RepoError =
@@ -366,4 +372,70 @@ export async function getPaymentByCaptureId(
   }
   if (!data) return { ok: false, error: "not_found" };
   return { ok: true, data: normalize(data) };
+}
+
+// ─── Suscripciones ──────────────────────────────────────────────────────
+
+/** Fila original de la suscripción (la que se creó al iniciar el checkout). */
+export async function getSubscriptionSignup(
+  subscriptionId: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .select()
+    .eq("provider_subscription_id", subscriptionId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    logDbError("getSubscriptionSignup", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "not_found" };
+  return { ok: true, data: normalize(data) };
+}
+
+/**
+ * Asocia el primer cobro de una suscripción a su fila original — solo si esa
+ * fila todavía no tiene cobro asociado (condición dentro del UPDATE, así el
+ * retorno y el webhook no se pisan). La confirma si seguía pendiente.
+ */
+export async function attachFirstSale(
+  paymentId: string,
+  saleId: string,
+  amountPaid: number,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .update({
+      provider_capture_id: saleId,
+      amount_paid: amountPaid,
+      status: "confirmed",
+      confirmed_by: "paypal",
+    })
+    .eq("id", paymentId)
+    .is("provider_capture_id", null)
+    .in("status", ["pending", "confirmed"])
+    .select()
+    .maybeSingle();
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION)
+      return { ok: false, error: "duplicate_reference" };
+    logDbError("attachFirstSale", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "invalid_state" };
+  const row = normalize(data);
+  // El trigger no toca confirmed_at: se completa si recién se confirmó.
+  if (!row.confirmed_at) {
+    const stamped = await updatePayment(row.id, {
+      confirmed_at: new Date().toISOString(),
+    });
+    if (stamped.ok) return stamped;
+  }
+  return { ok: true, data: row };
 }
