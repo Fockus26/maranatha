@@ -181,8 +181,6 @@ const PAYPAL_ERROR_TEXT: Record<PaypalCheckoutError, string> = {
   invalid_project: "Este proyecto ya no recibe aportes.",
   method_unavailable:
     "PayPal no está disponible en este momento. Prueba con otro método.",
-  monthly_unavailable:
-    "El aporte mensual con PayPal todavía no está disponible.",
   too_many_requests:
     "Iniciaste varios pagos seguidos. Prueba de nuevo en un rato.",
   not_configured: "Los pagos todavía no están habilitados. Prueba más tarde.",
@@ -246,6 +244,13 @@ function PaypalPanel({
         {method.hint} Te llevaremos a PayPal para completar el pago de forma
         segura y volverás aquí al terminar.
       </Typography>
+      {contribution.frequency === "monthly" && (
+        <Alert severity="info" sx={{ fontSize: "12px" }}>
+          PayPal cobrará {formatAmount(contribution.amountUsd, "USD")} hoy y el
+          mismo día de cada mes. Puedes cancelarlo cuando quieras desde tu
+          cuenta PayPal (Configuración → Pagos automáticos).
+        </Alert>
+      )}
       {error && (
         <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
           {PAYPAL_ERROR_TEXT[error]}

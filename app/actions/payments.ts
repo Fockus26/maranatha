@@ -7,7 +7,12 @@ import {
   getEnabledMethods,
   type PaymentMethodInfo,
 } from "@/lib/payments/methods";
-import { createOrder, isPaypalConfigured } from "@/lib/payments/paypal";
+import {
+  createOrder,
+  createSubscription,
+  isPaypalConfigured,
+} from "@/lib/payments/paypal";
+import { ensureMonthlyPlan } from "@/lib/payments/paypalSubscriptions";
 import { deleteReceipt, uploadReceipt } from "@/lib/payments/receipts";
 import {
   countRecentPendingByEmail,
@@ -184,7 +189,6 @@ export type PaypalCheckoutError =
   | "invalid_input"
   | "invalid_project"
   | "method_unavailable"
-  | "monthly_unavailable"
   | "too_many_requests"
   | "not_configured"
   | "server_error";
@@ -193,8 +197,8 @@ export type PaypalCheckoutError =
 const MAX_PAYPAL_PENDING_PER_HOUR = 10;
 
 /**
- * Crea el pago `pending` y la orden de PayPal, y devuelve el link al que el
- * navegador tiene que redirigir. El monto sale de lo validado acá, no de lo
+ * Crea el pago `pending` y la orden de PayPal (o la suscripción, si es
+ * mensual), y devuelve el link al que el navegador tiene que redirigir. El monto sale de lo validado acá, no de lo
  * que el cliente vaya a mandar después: la ruta de retorno y el webhook
  * comparan la captura contra este registro.
  */
@@ -206,10 +210,6 @@ export async function startPaypalCheckout(
   const contribution = parsed.data;
   if (!validateProject(contribution))
     return { ok: false, error: "invalid_project" };
-  // Suscripciones mensuales: unidad siguiente (PayPal Subscriptions API).
-  if (contribution.frequency === "monthly")
-    return { ok: false, error: "monthly_unavailable" };
-
   if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
   if (!isPaypalConfigured() || !getEnabledMethod("paypal"))
     return { ok: false, error: "method_unavailable" };
@@ -224,7 +224,7 @@ export async function startPaypalCheckout(
   const inserted = await insertPayment({
     purpose: contribution.purpose,
     project_slug: contribution.projectSlug ?? null,
-    frequency: "once",
+    frequency: contribution.frequency,
     amount_usd: contribution.amountUsd,
     currency: "USD",
     method: "paypal",
@@ -240,6 +240,32 @@ export async function startPaypalCheckout(
   const description = project
     ? `Aporte a "${project.title}" — Iglesia Maranatha`
     : `${PURPOSE_LABEL[contribution.purpose]} — Iglesia Maranatha`;
+
+  if (contribution.frequency === "monthly") {
+    try {
+      const planId = await ensureMonthlyPlan();
+      const { subscriptionId, approveUrl } = await createSubscription({
+        paymentId: payment.id,
+        planId,
+        amountUsd: payment.amount_usd,
+        email: contribution.email,
+        returnUrl: `${SITE_URL}/pago/paypal/suscripcion/retorno`,
+        cancelUrl: `${SITE_URL}/pago/paypal/suscripcion/cancelado`,
+      });
+      const linked = await updatePayment(payment.id, {
+        provider_subscription_id: subscriptionId,
+      });
+      if (!linked.ok)
+        throw new Error(`No se pudo guardar la suscripción ${subscriptionId}`);
+      return { ok: true, data: { approveUrl } };
+    } catch (error) {
+      console.error("[paypal] startPaypalCheckout (mensual):", error);
+      await transitionPayment(payment.id, "cancelled", {
+        notes: "No se pudo crear la suscripción en PayPal.",
+      });
+      return { ok: false, error: "server_error" };
+    }
+  }
 
   try {
     const { orderId, approveUrl } = await createOrder({

@@ -646,7 +646,7 @@ export function DashboardPayments({
                     sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}
                   >
                     {STATUS_LABEL[row.status]} por {row.reviewedBy ?? "—"}
-                    {row.notes ? ` · Motivo: ${row.notes}` : ""}
+                    {row.notes ? ` · Nota: ${row.notes}` : ""}
                   </Typography>
                 )}
 

@@ -31,6 +31,12 @@ const CONTENT: Record<
     title: "¡Gracias por tu aporte!",
     body: "Recibimos tu pago. PayPal te enviará el comprobante a tu correo.",
   },
+  suscrito: {
+    icon: CheckCircleOutlineRoundedIcon,
+    color: "success.main",
+    title: "¡Tu aporte mensual quedó activo!",
+    body: "PayPal hará el cobro cada mes y te enviará un comprobante por correo. Puedes cancelarlo cuando quieras desde tu cuenta PayPal (Configuración → Pagos automáticos).",
+  },
   pendiente: {
     icon: HourglassEmptyRoundedIcon,
     color: "warning.main",

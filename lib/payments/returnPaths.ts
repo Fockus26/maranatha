@@ -4,6 +4,7 @@ import type { PaymentRow } from "./repository";
 
 export type CheckoutOutcome =
   | "confirmado"
+  | "suscrito"
   | "pendiente"
   | "cancelado"
   | "error";
