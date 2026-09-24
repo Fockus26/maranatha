@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/DashboardPayments";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getExchangeRates } from "@/lib/payments/exchangeRates";
+import { isPaypalConfigured } from "@/lib/payments/paypal";
 import {
   getPaymentStats,
   getSetting,
@@ -87,6 +88,7 @@ export default async function DashboardPagosPage({
         stats={stats.ok ? stats.data : null}
         rates={{ VES: rates.VES, COP: rates.COP }}
         fallbackRates={fallback ?? {}}
+        webhookMissing={isPaypalConfigured() && !process.env.PAYPAL_WEBHOOK_ID}
       />
     </DashboardShell>
   );

@@ -84,6 +84,8 @@ export interface DashboardPaymentsProps {
   } | null;
   rates: { VES: number | null; COP: number | null };
   fallbackRates: { VES?: number; COP?: number };
+  /** PayPal activo pero sin PAYPAL_WEBHOOK_ID: los cobros mensuales no llegan. */
+  webhookMissing?: boolean;
 }
 
 const FILTER_LABEL: Record<PaymentFilter, string> = {
@@ -121,6 +123,23 @@ function formatDate(iso: string, withTime = false) {
     year: "numeric",
     ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   }).format(date);
+}
+
+/**
+ * Monto esperado en la moneda del método (USD × tasa registrada) cuando lo
+ * reportado se aleja más de un 2% — el donante declara el monto en USD y lo
+ * pagado por separado, y el admin aprueba el monto en USD: una diferencia
+ * grande puede ser un error o un intento de inflar lo recaudado.
+ */
+function expectedIfMismatch(row: DashboardPaymentRow): number | null {
+  if (row.amountPaid == null) return null;
+  const rate =
+    row.currency === "USD" || row.currency === "USDT" ? 1 : row.exchangeRate;
+  if (!rate) return null;
+  const expected = row.amountUsd * rate;
+  return Math.abs(row.amountPaid - expected) / expected > 0.02
+    ? expected
+    : null;
 }
 
 function StatusBadge({ status }: { status: PaymentStatus }) {
@@ -355,6 +374,7 @@ export function DashboardPayments({
   stats,
   rates,
   fallbackRates,
+  webhookMissing = false,
 }: DashboardPaymentsProps) {
   const theme = useTheme();
   const [pending, startTransition] = useTransition();
@@ -513,6 +533,14 @@ export function DashboardPayments({
           })}
         </Box>
 
+        {webhookMissing && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            PayPal está activo pero falta configurar su webhook
+            (PAYPAL_WEBHOOK_ID): los cobros mensuales después del primero y los
+            reembolsos no se van a registrar.
+          </Alert>
+        )}
+
         {loadError ? (
           <Alert severity="error" role="alert">
             No se pudieron cargar los pagos. Revisa la conexión con Supabase.
@@ -634,6 +662,23 @@ export function DashboardPayments({
                           Tasa {formatAmount(row.exchangeRate, row.currency)}
                         </Box>
                       )}
+                    {expectedIfMismatch(row) != null && (
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "block",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "error.main",
+                        }}
+                      >
+                        ⚠ No coincide: se esperaba ≈{" "}
+                        {formatAmount(
+                          expectedIfMismatch(row) ?? 0,
+                          row.currency,
+                        )}
+                      </Box>
+                    )}
                   </Field>
                   <Field label="Referencia">{row.reference ?? "—"}</Field>
                   <Field label="Fecha del pago">
@@ -729,6 +774,25 @@ export function DashboardPayments({
                 ? formatAmount(approving.amountPaid, approving.currency)
                 : formatUsd(approving.amountUsd)}
               ? Se sumarán {formatUsd(approving.amountUsd)} a lo recaudado.
+              {expectedIfMismatch(approving) != null && (
+                <Box
+                  component="span"
+                  sx={{
+                    display: "block",
+                    mt: 1.5,
+                    color: "error.main",
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠ Lo pagado no coincide con el monto declarado (se esperaba ≈{" "}
+                  {formatAmount(
+                    expectedIfMismatch(approving) ?? 0,
+                    approving.currency,
+                  )}
+                  ). Si no corresponde, recházalo con el motivo para que el
+                  donante lo reporte de nuevo.
+                </Box>
+              )}
             </>
           ) : (
             ""

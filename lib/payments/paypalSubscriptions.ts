@@ -93,10 +93,13 @@ export async function settleSubscriptionReturn(
     Math.abs(Number(last.value) - payment.amount_usd) < 0.005;
 
   if (subscription.status === "ACTIVE" && firstChargeDone) {
-    const confirmed = await transitionPayment(payment.id, "confirmed", {
-      confirmed_by: "paypal",
-      amount_paid: Number(last.value),
-    });
+    // Incluye `cancelled`: pudo cancelar y luego aprobar volviendo atrás.
+    const confirmed = await transitionPayment(
+      payment.id,
+      "confirmed",
+      { confirmed_by: "paypal", amount_paid: Number(last.value) },
+      ["pending", "cancelled"],
+    );
     if (confirmed.ok) {
       revalidate(confirmed.data);
       return { status: "active", payment: confirmed.data };

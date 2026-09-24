@@ -13,6 +13,7 @@ import {
   isPaypalConfigured,
 } from "@/lib/payments/paypal";
 import { ensureMonthlyPlan } from "@/lib/payments/paypalSubscriptions";
+import { hitRateLimit } from "@/lib/payments/rateLimit";
 import { deleteReceipt, uploadReceipt } from "@/lib/payments/receipts";
 import {
   countRecentPendingByEmail,
@@ -83,6 +84,8 @@ export type ReportPaymentError =
 
 /** Máx. de reportes pendientes por correo por hora. */
 const MAX_PENDING_PER_HOUR = 5;
+/** Máx. de reportes por IP por hora (cubre alias de correo y concurrencia). */
+const MAX_REPORTS_PER_IP_HOUR = 10;
 
 function validateProject(contribution: Contribution): boolean {
   if (contribution.purpose !== "proyecto") return true;
@@ -132,9 +135,11 @@ export async function reportManualPayment(
   if (!method || method.kind !== "manual")
     return { ok: false, error: "method_unavailable" };
 
+  // Dos frenos: por IP (atómico, aguanta concurrencia) y por correo.
   if (
+    !(await hitRateLimit("report", MAX_REPORTS_PER_IP_HOUR, 3600)) ||
     (await countRecentPendingByEmail(contribution.data.email)) >=
-    MAX_PENDING_PER_HOUR
+      MAX_PENDING_PER_HOUR
   ) {
     return { ok: false, error: "too_many_requests" };
   }
@@ -195,6 +200,8 @@ export type PaypalCheckoutError =
 
 /** Máx. de checkouts de PayPal sin completar por correo por hora. */
 const MAX_PAYPAL_PENDING_PER_HOUR = 10;
+/** Máx. de checkouts de PayPal por IP por hora. */
+const MAX_PAYPAL_PER_IP_HOUR = 20;
 
 /**
  * Crea el pago `pending` y la orden de PayPal (o la suscripción, si es
@@ -215,8 +222,9 @@ export async function startPaypalCheckout(
     return { ok: false, error: "method_unavailable" };
 
   if (
+    !(await hitRateLimit("paypal", MAX_PAYPAL_PER_IP_HOUR, 3600)) ||
     (await countRecentPendingByEmail(contribution.email, "paypal")) >=
-    MAX_PAYPAL_PENDING_PER_HOUR
+      MAX_PAYPAL_PENDING_PER_HOUR
   ) {
     return { ok: false, error: "too_many_requests" };
   }

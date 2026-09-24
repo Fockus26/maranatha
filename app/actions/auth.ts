@@ -27,6 +27,7 @@ const signInSchema = z.object({
 export type SignInError =
   | "invalid_input"
   | "invalid_credentials"
+  | "too_many_attempts"
   | "server_error";
 export type SignInState = Result<null, SignInError> | null;
 
@@ -50,6 +51,9 @@ export async function signIn(
 
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
+    // 429: rate limit de Supabase Auth. Ojo: Supabase lo aplica a la IP del
+    // servidor Next, así que puede afectar a todos los admins a la vez.
+    if (error.status === 429) return { ok: false, error: "too_many_attempts" };
     // 400 = credenciales inválidas / correo sin confirmar; el resto es infraestructura.
     if (error.status && error.status >= 500) {
       console.error("[auth] signIn:", error);

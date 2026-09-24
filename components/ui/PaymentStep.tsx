@@ -27,6 +27,9 @@ import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
 import { radius, typography } from "@/theme/tokens";
 import { DonationFormCard } from "./DonationFormCard";
 
+/** Igual a `MAX_RECEIPT_BYTES` de lib/payments/receipts.ts (solo servidor). */
+const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
+
 /**
  * Paso 2 del aporte: el donante elige método de pago.
  *
@@ -566,7 +569,19 @@ function ManualPaymentPanel({
             tabIndex={-1}
             aria-hidden="true"
             accept="image/jpeg,image/png,image/webp,application/pdf"
-            onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              // Mismo límite que el servidor; más grande, el servidor ni
+              // siquiera recibe la petición y el error sería engañoso.
+              if (file && file.size > MAX_RECEIPT_BYTES) {
+                setReceipt(null);
+                setError("invalid_receipt");
+                e.target.value = "";
+                return;
+              }
+              setError(null);
+              setReceipt(file);
+            }}
           />
           {receipt && (
             <Typography
@@ -642,7 +657,9 @@ export function PaymentStep({
           setLoadError(
             result.error === "not_configured"
               ? "Los pagos todavía no están habilitados."
-              : "No pudimos cargar los métodos de pago.",
+              : result.error === "invalid_input"
+                ? "El monto debe estar entre US$ 1 y US$ 10.000. Vuelve atrás y corrígelo."
+                : "No pudimos cargar los métodos de pago.",
           );
       })
       .catch(() => {

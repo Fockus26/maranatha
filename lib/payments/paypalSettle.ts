@@ -6,6 +6,7 @@ import {
   type PaymentRow,
   transitionPayment,
 } from "./repository";
+import type { PaymentStatus } from "./schema";
 
 /**
  * Aplica a nuestra base el resultado de una orden de PayPal ya capturada.
@@ -41,7 +42,11 @@ export async function settlePaypalOrder(
   const payment = found.data;
 
   if (payment.status === "confirmed") return { status: "confirmed", payment };
-  if (payment.status !== "pending") return { status: "failed", payment };
+  // `cancelled` también se concilia: el donante pudo cancelar, volver con
+  // "atrás" y aprobar igual. Si PayPal cobró, el dinero real manda.
+  if (payment.status !== "pending" && payment.status !== "cancelled")
+    return { status: "failed", payment };
+  const from: PaymentStatus[] = ["pending", "cancelled"];
 
   const { capture, customId } = firstCapture(order);
   if (!capture) return { status: "pending", payment };
@@ -58,20 +63,35 @@ export async function settlePaypalOrder(
       customId,
       amount: capture.amount,
     });
-    const rejected = await transitionPayment(payment.id, "rejected", {
-      notes: "La captura de PayPal no coincide con el pago registrado.",
-      provider_capture_id: capture.id,
-    });
+    const rejected = await transitionPayment(
+      payment.id,
+      "rejected",
+      {
+        notes: "La captura de PayPal no coincide con el pago registrado.",
+        provider_capture_id: capture.id,
+      },
+      from,
+    );
     if (rejected.ok) revalidate(rejected.data);
     return { status: "failed", payment };
   }
 
-  if (capture.status === "COMPLETED") {
-    const confirmed = await transitionPayment(payment.id, "confirmed", {
-      confirmed_by: "paypal",
-      provider_capture_id: capture.id,
-      amount_paid: Number(capture.amount.value),
-    });
+  // PARTIALLY_REFUNDED: se cobró y luego se devolvió una parte — el pago
+  // existió (el reembolso parcial se anota aparte, ver webhook).
+  if (
+    capture.status === "COMPLETED" ||
+    capture.status === "PARTIALLY_REFUNDED"
+  ) {
+    const confirmed = await transitionPayment(
+      payment.id,
+      "confirmed",
+      {
+        confirmed_by: "paypal",
+        provider_capture_id: capture.id,
+        amount_paid: Number(capture.amount.value),
+      },
+      from,
+    );
     if (confirmed.ok) {
       revalidate(confirmed.data);
       return { status: "confirmed", payment: confirmed.data };
@@ -86,12 +106,17 @@ export async function settlePaypalOrder(
   // PENDING: PayPal retiene el cobro (revisión, eCheck). Llega por webhook.
   if (capture.status === "PENDING") return { status: "pending", payment };
 
-  // DECLINED / FAILED
-  const rejected = await transitionPayment(payment.id, "rejected", {
-    confirmed_by: "paypal",
-    notes: `PayPal: captura ${capture.status}`,
-    provider_capture_id: capture.id,
-  });
+  // DECLINED / FAILED / REFUNDED (reembolso total antes de conciliar)
+  const rejected = await transitionPayment(
+    payment.id,
+    "rejected",
+    {
+      confirmed_by: "paypal",
+      notes: `PayPal: captura ${capture.status}`,
+      provider_capture_id: capture.id,
+    },
+    from,
+  );
   if (rejected.ok) revalidate(rejected.data);
   return { status: "failed", payment };
 }
