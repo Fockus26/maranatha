@@ -11,7 +11,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
 import { keyframes } from "@mui/material/styles";
 import { useInView } from "framer-motion";
-import { TitheForm, type TitheFormValues } from "./TitheForm";
+import { FREQUENCY_LABEL, TYPE_LABEL, TitheForm, type ContributionType, type TitheFormValues } from "./TitheForm";
+import { PaymentStep, type PaymentStepContribution } from "./PaymentStep";
 import { useTitheModal } from "@/lib/titheModalStore";
 import { gray, semantic } from "@/theme/tokens";
 
@@ -103,17 +104,37 @@ function AnimatedFamiliesCounter({ active }: { active: boolean }) {
 export function TitheModal() {
   const { open, closeTithe } = useTitheModal();
   const [confirmed, setConfirmed] = useState(false);
+  // Paso 2 (método de pago). `null` = el donante sigue en el formulario.
+  const [contribution, setContribution] = useState<PaymentStepContribution | null>(null);
 
   function handleSubmit(values: TitheFormValues) {
-    // Placeholder: no hay proveedor de pago integrado todavía (fuera de alcance
-    // de esta fase) — mismo criterio que tenía la sección Tithe.tsx original (D018).
-    console.log("Tithe form submitted (placeholder):", values);
-    // Fase QA (functional-qa, Alto): antes no había ningún feedback y el
-    // modal quedaba abierto con los datos dentro — parecía roto. Se cierra
-    // el modal y se confirma con un Snackbar, mismo patrón que el flujo
-    // "Aportar" a proyecto (ProjectDetailClient). PENDIENTE de decisión de
-    // César: copy definitivo y si debería haber un paso "pago próximamente".
+    setContribution({
+      purpose: values.type,
+      frequency: values.frequency,
+      amountUsd: values.amount,
+      name: values.name,
+      email: values.email,
+    });
+  }
+
+  const stepOneRef = useRef<HTMLDivElement>(null);
+
+  // Al volver, el botón "Volver" desaparece: el foco va al submit del paso 1
+  // (que es desde donde el usuario había avanzado) en vez de caer al <body>.
+  function handleBack() {
+    setContribution(null);
+    requestAnimationFrame(() => {
+      stepOneRef.current?.querySelector<HTMLElement>('button[type="submit"]')?.focus();
+    });
+  }
+
+  function handleClose() {
     closeTithe();
+    setContribution(null);
+  }
+
+  function handleReported() {
+    handleClose();
     setConfirmed(true);
   }
 
@@ -121,7 +142,7 @@ export function TitheModal() {
     <>
     <Dialog
       open={open}
-      onClose={closeTithe}
+      onClose={handleClose}
       fullScreen
       aria-labelledby="tithe-modal-title"
       slotProps={{
@@ -174,7 +195,7 @@ export function TitheModal() {
       />
 
       <IconButton
-        onClick={closeTithe}
+        onClick={handleClose}
         aria-label="Cerrar"
         sx={{
           position: "absolute",
@@ -289,7 +310,20 @@ export function TitheModal() {
           </Box>
 
           <Box sx={{ flexShrink: 0, width: "100%", maxWidth: 440 }}>
-            <TitheForm width={440} onSubmit={handleSubmit} />
+            {/* El formulario queda montado (oculto) durante el paso 2 para que
+                "Volver" conserve monto, tipo y datos ya ingresados. */}
+            <Box ref={stepOneRef} sx={{ display: contribution ? "none" : "block" }}>
+              <TitheForm width={440} onSubmit={handleSubmit} />
+            </Box>
+            {contribution && (
+              <PaymentStep
+                width={440}
+                contribution={contribution}
+                summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                onBack={handleBack}
+                onReported={handleReported}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -312,7 +346,7 @@ export function TitheModal() {
           "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
         }}
       >
-        ¡Gracias! Recibimos tus datos y te contactaremos para completar el aporte.
+        ¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las próximas horas.
       </Alert>
     </Snackbar>
     </>
