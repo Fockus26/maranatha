@@ -57,14 +57,16 @@ function withDerived(project: DashboardProject): DashboardProjectWithStatus {
   return { ...project, status: statusOf(project), deadlineLabel: formatDeadlineLabel(project.deadline) };
 }
 
-function seedProjects(): DashboardProject[] {
+// `raisedBySlug`: pagos confirmados por proyecto (Supabase), sumados al
+// monto base del array estático — los lee el layout del dashboard en el servidor.
+function seedProjects(raisedBySlug: Record<string, number>): DashboardProject[] {
   return PROJECTS.map((project) => ({
     id: project.slug,
     title: project.title,
     description: project.description,
     imageUrl: project.imageUrl,
     goalAmount: project.goalAmount,
-    currentAmount: project.currentAmount,
+    currentAmount: project.currentAmount + (raisedBySlug[project.slug] ?? 0),
     deadline: project.deadline,
     budget: project.budget.map((line) => ({ id: newId(), label: line.label, amount: line.amount })),
     encargados: project.encargados.map((encargado) => ({
@@ -97,8 +99,14 @@ interface DashboardProjectsContextValue {
 
 const DashboardProjectsContext = createContext<DashboardProjectsContextValue | null>(null);
 
-export function DashboardProjectsProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<DashboardProject[]>(() => seedProjects());
+export function DashboardProjectsProvider({
+  children,
+  raisedBySlug = {},
+}: {
+  children: ReactNode;
+  raisedBySlug?: Record<string, number>;
+}) {
+  const [projects, setProjects] = useState<DashboardProject[]>(() => seedProjects(raisedBySlug));
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
