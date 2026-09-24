@@ -650,7 +650,8 @@ export function DashboardPayments({
                   </Typography>
                 )}
 
-                {(row.hasReceipt || row.status === "pending") && (
+                {(row.hasReceipt ||
+                  (row.status === "pending" && row.method !== "paypal")) && (
                   <Box
                     sx={{
                       display: "flex",
@@ -674,7 +675,7 @@ export function DashboardPayments({
                         Ver comprobante
                       </Button>
                     )}
-                    {row.status === "pending" && (
+                    {row.status === "pending" && row.method !== "paypal" && (
                       <>
                         <Box sx={{ flex: 1 }} />
                         <Button

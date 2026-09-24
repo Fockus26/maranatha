@@ -202,6 +202,8 @@ export async function transitionPayment(
 export interface ListPaymentsFilter {
   status?: PaymentStatus;
   method?: PaymentMethodId;
+  /** Excluye un método (ej. checkouts de PayPal sin completar en "pendientes"). */
+  excludeMethod?: PaymentMethodId;
   limit?: number;
 }
 
@@ -217,6 +219,7 @@ export async function listPayments(
     .limit(filter.limit ?? 200);
   if (filter.status) query = query.eq("status", filter.status);
   if (filter.method) query = query.eq("method", filter.method);
+  if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
 
   const { data, error } = await query;
   if (error) {
@@ -227,23 +230,26 @@ export async function listPayments(
 }
 
 /**
- * Reportes manuales pendientes de un mismo correo en la última hora — freno
- * básico contra spam del formulario público (no hay Redis para un rate limit
+ * Pagos pendientes (manuales, o checkouts de PayPal sin completar) de un
+ * mismo correo en la última hora — freno básico contra spam del formulario público (no hay Redis para un rate limit
  * por IP). Si falla la consulta se devuelve 0: no se bloquea a un donante
  * real por un error de infraestructura.
  */
 export async function countRecentPendingByEmail(
   email: string,
+  kind: "manual" | "paypal" = "manual",
 ): Promise<number> {
   if (!isSupabaseConfigured()) return 0;
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count, error } = await supabaseAdmin()
+  const base = supabaseAdmin()
     .from("payments")
     .select("id", { count: "exact", head: true })
     .eq("donor_email", email.toLowerCase())
     .eq("status", "pending")
-    .neq("method", "paypal")
     .gte("created_at", since);
+  const { count, error } = await (kind === "manual"
+    ? base.neq("method", "paypal")
+    : base.eq("method", "paypal"));
   if (error) {
     logDbError("countRecentPendingByEmail", error);
     return 0;
@@ -318,7 +324,9 @@ export async function getPaymentStats(): Promise<
     supabaseAdmin()
       .from("payments")
       .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
+      .eq("status", "pending")
+      // Un PayPal "pending" es un checkout sin completar, no algo a verificar.
+      .neq("method", "paypal"),
     supabaseAdmin()
       .from("payments")
       .select("amount_usd")
@@ -340,4 +348,22 @@ export async function getPaymentStats(): Promise<
       confirmedThisMonthCount: confirmed.data.length,
     },
   };
+}
+
+export async function getPaymentByCaptureId(
+  captureId: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .select()
+    .eq("provider_capture_id", captureId)
+    .maybeSingle();
+  if (error) {
+    logDbError("getPaymentByCaptureId", error);
+    return { ok: false, error: "db_error" };
+  }
+  if (!data) return { ok: false, error: "not_found" };
+  return { ok: true, data: normalize(data) };
 }

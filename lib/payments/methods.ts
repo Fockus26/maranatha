@@ -50,7 +50,11 @@ const DEFS: MethodDef[] = [
     supportsMonthly: true,
     hint: "Paga con tu cuenta PayPal o con tarjeta Visa/Mastercard (incluye prepago) sin crear cuenta.",
     referenceHint: "",
-    fields: [{ env: "PAYPAL_CLIENT_ID", label: "" }],
+    // Credenciales: solo habilitan el método, nunca se muestran.
+    fields: [
+      { env: "PAYPAL_CLIENT_ID", label: "" },
+      { env: "PAYPAL_CLIENT_SECRET", label: "" },
+    ],
   },
   {
     id: "pagomovil",
@@ -162,7 +166,7 @@ function resolve(def: MethodDef): PaymentMethodInfo | null {
       if (field.optional) continue;
       return null;
     }
-    // PayPal: el client id solo habilita el método, no se muestra.
+    // Pasarela: las variables solo habilitan el método, no se muestran.
     if (def.kind === "gateway") continue;
     details.push({ label: field.label, value, copyable: field.copyable });
   }
