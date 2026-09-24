@@ -49,19 +49,53 @@ export type PaymentCurrency = (typeof PAYMENT_CURRENCIES)[number];
 export const MIN_AMOUNT_USD = 1;
 export const MAX_AMOUNT_USD = 10000;
 
+/**
+ * Monto decimal "de persona": número o string con hasta 2 decimales. Evita
+ * que `Number()` acepte formas raras ("0x10" → 16, "1e3", "0.001" que la base
+ * redondea a 0.00).
+ */
+const decimalAmount = z.preprocess(
+  (v) =>
+    typeof v === "string"
+      ? /^\d{1,10}(\.\d{1,2})?$/.test(v.trim())
+        ? Number(v)
+        : Number.NaN
+      : v,
+  z.number().finite(),
+);
+
+// Control, ancho cero y overrides bidireccionales: permiten falsear lo que
+// ve el admin (ej. un nombre "vacío" o con el texto invertido) o rompen el
+// insert (NUL en Postgres).
+const UNSAFE_CHARS =
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: justamente se buscan caracteres de control para rechazarlos.
+  /[\u0000-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/;
+
+const safeText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(max)
+    .refine((v) => !UNSAFE_CHARS.test(v), { message: "unsafe_chars" });
+
 /** Lo que el paso 1 (formulario de aporte) entrega al paso de pago. */
 export const contributionSchema = z
   .object({
     purpose: z.enum(PAYMENT_PURPOSES),
     projectSlug: z.string().trim().min(1).max(120).optional(),
     frequency: z.enum(PAYMENT_FREQUENCIES),
-    amountUsd: z.coerce
-      .number()
-      .finite()
-      .min(MIN_AMOUNT_USD)
-      .max(MAX_AMOUNT_USD)
-      .transform((v) => Math.round(v * 100) / 100),
-    name: z.string().trim().min(1).max(120),
+    amountUsd: decimalAmount.pipe(
+      z
+        .number()
+        .min(MIN_AMOUNT_USD)
+        .max(MAX_AMOUNT_USD)
+        .transform((v) => Math.round(v * 100) / 100),
+    ),
+    // Al menos una letra o número: descarta nombres hechos solo de símbolos.
+    name: safeText(120).refine((v) => /[\p{L}\p{N}]/u.test(v), {
+      message: "name_without_letters",
+    }),
     email: z.string().trim().toLowerCase().max(254).regex(EMAIL_RE),
   })
   .refine((v) => (v.purpose === "proyecto") === Boolean(v.projectSlug), {
@@ -85,7 +119,7 @@ export const manualReportSchema = z.object({
     .max(64)
     .regex(/^[A-Za-z0-9@._\- ]+$/),
   paidAt: z.iso.date(),
-  amountPaid: z.coerce.number().finite().positive().max(1_000_000_000),
+  amountPaid: decimalAmount.pipe(z.number().min(0.01).max(1_000_000_000)),
 });
 
 export type ManualReport = z.infer<typeof manualReportSchema>;

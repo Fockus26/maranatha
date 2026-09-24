@@ -14,6 +14,8 @@ import { radius, typography } from "@/theme/tokens";
 const ERROR_TEXT: Record<SignInError, string> = {
   invalid_input: "Ingresa un correo válido y tu contraseña.",
   invalid_credentials: "Correo o contraseña incorrectos.",
+  too_many_attempts:
+    "Demasiados intentos de inicio de sesión. Espera unos minutos y vuelve a intentarlo.",
   server_error: "No pudimos iniciar sesión. Prueba de nuevo en unos minutos.",
 };
 

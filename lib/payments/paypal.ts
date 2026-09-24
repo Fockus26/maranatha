@@ -192,6 +192,15 @@ export async function captureOrder(orderId: string): Promise<PaypalOrder> {
   }
 }
 
+export function getCapture(
+  captureId: string,
+): Promise<{ id: string; status: string }> {
+  return paypalFetch<{ id: string; status: string }>(
+    `/v2/payments/captures/${encodeURIComponent(captureId)}`,
+    { method: "GET" },
+  );
+}
+
 /** Primer capture de la orden (las nuestras tienen una sola unidad). */
 export function firstCapture(order: PaypalOrder): {
   capture: PaypalCapture | null;

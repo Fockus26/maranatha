@@ -169,9 +169,10 @@ export async function updatePayment(
 }
 
 /**
- * Cambia el estado solo si el pago sigue `pending` — condición en el propio
- * UPDATE, así dos confirmaciones simultáneas (webhook + retorno, o dos admins)
- * no se pisan: la segunda no encuentra fila y recibe `invalid_state`.
+ * Cambia el estado solo si el pago está en uno de los estados de origen
+ * permitidos (por defecto, solo `pending`) — condición en el propio UPDATE,
+ * así dos confirmaciones simultáneas (webhook + retorno, o dos admins) no se
+ * pisan: la segunda no encuentra fila y recibe `invalid_state`.
  */
 export async function transitionPayment(
   id: string,
@@ -182,6 +183,7 @@ export async function transitionPayment(
       "confirmed_by" | "notes" | "provider_capture_id" | "amount_paid"
     >
   > = {},
+  from: PaymentStatus[] = ["pending"],
 ): Promise<Result<PaymentRow, RepoError>> {
   if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
 
@@ -192,7 +194,7 @@ export async function transitionPayment(
     .from("payments")
     .update(patch)
     .eq("id", id)
-    .eq("status", "pending")
+    .in("status", from)
     .select()
     .maybeSingle();
   if (error) {
@@ -315,43 +317,32 @@ export interface PaymentStats {
   confirmedThisMonthCount: number;
 }
 
-/** KPIs del panel de pagos. Mes calendario en UTC. */
+/**
+ * KPIs del panel de pagos: mes calendario en hora de Venezuela, sumado en la
+ * base (función `payment_month_stats`, migración 0003).
+ */
 export async function getPaymentStats(): Promise<
   Result<PaymentStats, RepoError>
 > {
   if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
 
-  const now = new Date();
-  const monthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  ).toISOString();
-
-  const [pending, confirmed] = await Promise.all([
-    supabaseAdmin()
-      .from("payments")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending")
-      // Un PayPal "pending" es un checkout sin completar, no algo a verificar.
-      .neq("method", "paypal"),
-    supabaseAdmin()
-      .from("payments")
-      .select("amount_usd")
-      .eq("status", "confirmed")
-      .gte("confirmed_at", monthStart),
-  ]);
-  if (pending.error || confirmed.error) {
-    logDbError("getPaymentStats", pending.error ?? confirmed.error);
+  const { data, error } = await supabaseAdmin()
+    .rpc("payment_month_stats")
+    .single<{
+      pending_count: number;
+      confirmed_usd: number | string;
+      confirmed_count: number;
+    }>();
+  if (error || !data) {
+    logDbError("getPaymentStats", error);
     return { ok: false, error: "db_error" };
   }
   return {
     ok: true,
     data: {
-      pendingCount: pending.count ?? 0,
-      confirmedThisMonthUsd: confirmed.data.reduce(
-        (sum, row) => sum + Number(row.amount_usd),
-        0,
-      ),
-      confirmedThisMonthCount: confirmed.data.length,
+      pendingCount: Number(data.pending_count),
+      confirmedThisMonthUsd: Number(data.confirmed_usd),
+      confirmedThisMonthCount: Number(data.confirmed_count),
     },
   };
 }
@@ -419,7 +410,7 @@ export async function attachFirstSale(
     })
     .eq("id", paymentId)
     .is("provider_capture_id", null)
-    .in("status", ["pending", "confirmed"])
+    .in("status", ["pending", "confirmed", "cancelled"])
     .select()
     .maybeSingle();
   if (error) {

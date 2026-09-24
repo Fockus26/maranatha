@@ -1,4 +1,8 @@
+import { DashboardProjectModal } from "@/components/ui/DashboardProjectModal";
 import { requireAdmin } from "@/lib/auth/admin";
+import { DashboardProjectModalProvider } from "@/lib/dashboardProjectModalStore";
+import { DashboardProjectsProvider } from "@/lib/dashboardProjectsStore";
+import { getRaisedRecord } from "@/lib/projectsRaised";
 
 /**
  * Grupo de rutas del panel privado (no cambia las URLs: `/dashboard`,
@@ -9,10 +13,24 @@ import { requireAdmin } from "@/lib/auth/admin";
  * que este chequeo no alcanza solo — las páginas que leen datos privados y
  * todas las Server Actions de admin vuelven a verificar (`requireAdmin` /
  * `getAdminStrict`). El proxy agrega un tercer filtro optimista por request.
+ *
+ * Provee además el estado compartido de proyectos
+ * (`DashboardProjectsProvider`, sembrado con lo recaudado real) y el del
+ * modal de crear/editar proyecto (`DashboardProjectModalProvider`, D059),
+ * montado una sola vez para que "Nuevo proyecto" de Resumen lo abra sin
+ * navegar a Proyectos.
  */
 export default async function DashboardPanelLayout({
   children,
 }: LayoutProps<"/dashboard">) {
   await requireAdmin();
-  return children;
+  const raisedBySlug = await getRaisedRecord();
+  return (
+    <DashboardProjectsProvider raisedBySlug={raisedBySlug}>
+      <DashboardProjectModalProvider>
+        {children}
+        <DashboardProjectModal />
+      </DashboardProjectModalProvider>
+    </DashboardProjectsProvider>
+  );
 }

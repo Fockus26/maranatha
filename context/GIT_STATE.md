@@ -17,3 +17,4 @@
 | `feat/payments-paypal` | `feat/payments` | 4 · PayPal pago único (orden, retorno, webhook) | mergeada |
 | `feat/payments-paypal-monthly` | `feat/payments` | 5 · Aportes mensuales con PayPal Subscriptions | mergeada |
 | `feat/payments-project-raised` | `feat/payments` | 6 · Recaudado real en proyectos | mergeada |
+| `fix/payments-qa` | `feat/payments` | Hallazgos de QA funcional (rate limit, A1, webhook, reembolsos, validaciones) | mergeada |
