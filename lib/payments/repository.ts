@@ -226,6 +226,31 @@ export async function listPayments(
   return { ok: true, data: data.map(normalize) };
 }
 
+/**
+ * Reportes manuales pendientes de un mismo correo en la última hora — freno
+ * básico contra spam del formulario público (no hay Redis para un rate limit
+ * por IP). Si falla la consulta se devuelve 0: no se bloquea a un donante
+ * real por un error de infraestructura.
+ */
+export async function countRecentPendingByEmail(
+  email: string,
+): Promise<number> {
+  if (!isSupabaseConfigured()) return 0;
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count, error } = await supabaseAdmin()
+    .from("payments")
+    .select("id", { count: "exact", head: true })
+    .eq("donor_email", email.toLowerCase())
+    .eq("status", "pending")
+    .neq("method", "paypal")
+    .gte("created_at", since);
+  if (error) {
+    logDbError("countRecentPendingByEmail", error);
+    return 0;
+  }
+  return count ?? 0;
+}
+
 /** Recaudado confirmado por proyecto, en USD. Sin Supabase → mapa vacío. */
 export async function getRaisedBySlug(): Promise<Map<string, number>> {
   const raised = new Map<string, number>();
