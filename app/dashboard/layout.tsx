@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DashboardProjectsProvider } from "@/lib/dashboardProjectsStore";
 import { DashboardProjectModalProvider } from "@/lib/dashboardProjectModalStore";
 import { DashboardProjectModal } from "@/components/ui/DashboardProjectModal";
+import { getRaisedRecord } from "@/lib/projectsRaised";
 
 /**
  * El dashboard es privado (fase QA — SEO): no debe indexarse ni seguirse.
@@ -23,9 +24,11 @@ export const metadata: Metadata = {
  * a Proyectos. El shell visual (`DashboardShell`, topbar, D024/D059) se monta
  * en cada página individualmente, ver nota en `DashboardShell.tsx`.
  */
-export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
+export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
+  // Recaudado real (base + pagos confirmados) para los KPIs de Resumen.
+  const raisedBySlug = await getRaisedRecord();
   return (
-    <DashboardProjectsProvider>
+    <DashboardProjectsProvider raisedBySlug={raisedBySlug}>
       <DashboardProjectModalProvider>
         {children}
         <DashboardProjectModal />
