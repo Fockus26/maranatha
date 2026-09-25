@@ -1,4 +1,3 @@
-import Box from "@mui/material/Box";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DashboardLoginForm } from "@/components/ui/DashboardLoginForm";
@@ -17,21 +16,6 @@ export const metadata: Metadata = {
 export default async function DashboardLoginPage() {
   if (await getAdmin()) redirect("/dashboard");
 
-  return (
-    <Box
-      component="main"
-      id="main-content"
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: 2,
-        py: 6,
-        bgcolor: "background.default",
-      }}
-    >
-      <DashboardLoginForm />
-    </Box>
-  );
+  // El formulario trae su propio layout de página completa (opción C).
+  return <DashboardLoginForm />;
 }

@@ -179,6 +179,18 @@ export function getTheme(mode: PaletteMode) {
       body2: { [LARGE_SCREEN_QUERY]: { fontSize: "18px" } },
     },
     components: {
+      MuiInputLabel: {
+        styleOverrides: {
+          // Label flotante del campo enfocado: en oscuro `primary.main`
+          // (`#5B6B9E`) da 3.1:1 sobre el paper — se usa `primary[300]`
+          // (5.4:1). Los estados de error conservan su rojo.
+          root: {
+            ...(mode === "dark" && {
+              "&.Mui-focused:not(.Mui-error)": { color: primary[300] },
+            }),
+          },
+        },
+      },
       MuiCard: {
         styleOverrides: {
           root: { borderRadius: radius.lg, boxShadow: shadow.sm },

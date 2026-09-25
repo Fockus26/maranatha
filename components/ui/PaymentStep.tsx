@@ -13,7 +13,15 @@ import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import {
   type CheckoutMethod,
   getCheckoutOptions,
@@ -24,7 +32,9 @@ import {
 } from "@/app/actions/payments";
 import { formatAmount } from "@/lib/payments/labels";
 import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { radius, typography } from "@/theme/tokens";
+import { DateField } from "./DateField";
 import { DonationFormCard } from "./DonationFormCard";
 
 /** Igual a `MAX_RECEIPT_BYTES` de lib/payments/receipts.ts (solo servidor). */
@@ -62,10 +72,6 @@ export interface PaymentStepProps {
   onReported: () => void;
 }
 
-const FIELD_SX = {
-  "& .MuiInputLabel-root": { fontSize: typography.size.small },
-  "& .MuiInputBase-input": { fontSize: typography.size.small },
-} as const;
 
 const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
   invalid_input:
@@ -119,6 +125,44 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   );
 }
 
+/**
+ * Anima el cambio de alto cuando el contenido cambia (al elegir otro método
+ * el panel crece o se achica). Mide el contenido con ResizeObserver y anima
+ * la altura del contenedor; con `prefers-reduced-motion` el cambio es
+ * instantáneo.
+ */
+function AnimatedHeight({ children }: { children: ReactNode }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | "auto">("auto");
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setHeight(entry.contentRect.height);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      animate={{ height }}
+      initial={false}
+      transition={{ duration: reduceMotion ? 0 : 0.32, ease: [0.2, 0.8, 0.2, 1] }}
+      // `clip` en vez de `hidden`: recorta solo durante la animación sin
+      // crear un contenedor de scroll; el margen negativo + padding deja
+      // lugar a los anillos de foco de los campos para que no se corten.
+      // `content-box`: la altura animada es la del contenido; el padding va
+      // aparte (con border-box el padding se comía 8px y cortaba el botón).
+      style={{ overflow: "clip", margin: -4, padding: 4, boxSizing: "content-box" }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </motion.div>
+  );
+}
+
 function MethodOption({
   method,
   checked,
@@ -165,6 +209,16 @@ function MethodOption({
         checked={checked}
         onChange={onSelect}
         sx={{ accentColor: theme.palette.secondary.main, m: 0 }}
+      />
+      {/* Logos servidos desde /public (sin terceros). Decorativos: el
+          nombre del método ya está en el texto y en el aria-label. */}
+      <Box
+        component="img"
+        src={`/payment-methods/${method.id}.svg`}
+        alt=""
+        width={20}
+        height={20}
+        sx={{ flexShrink: 0, display: "block" }}
       />
       <Typography
         sx={{
@@ -476,8 +530,11 @@ function ManualPaymentPanel({
           sx={{
             position: "absolute",
             left: "-10000px",
-            width: 1,
-            height: 1,
+            // En `sx`, width/height ≤ 1 son porcentajes (1 = 100%): con
+            // números el honeypot medía todo el alto del modal y estiraba el
+            // scroll ~650px con espacio vacío. Van como string en px.
+            width: "1px",
+            height: "1px",
             overflow: "hidden",
           }}
         >
@@ -490,114 +547,119 @@ function ManualPaymentPanel({
           />
         </Box>
 
-        <TextField
-          name="reference"
-          label="Referencia"
-          fullWidth
-          size="small"
-          required
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          error={touched && !referenceValid}
-          helperText={
-            touched && !referenceValid
-              ? "Ingresa la referencia (solo letras, números, guiones o puntos)."
-              : method.referenceHint
-          }
-          sx={FIELD_SX}
-        />
-        <Box sx={{ display: "grid", gap: 3 }}>
+        {/* Referencia + comprobante en la misma fila (el botón conserva el
+            alto del campo; su texto completo queda en aria-label). */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: 1.5,
+            alignItems: "start",
+          }}
+        >
           <TextField
-            name="paidAt"
-            label="Fecha del pago"
-            type="date"
+            name="reference"
+            label="Referencia"
+            fullWidth
             size="small"
             required
-            value={paidAt}
-            onChange={(e) => setPaidAt(e.target.value)}
-            error={touched && !dateValid}
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            error={touched && !referenceValid}
             helperText={
-              touched && !dateValid ? "Elige una fecha válida." : undefined
+              touched && !referenceValid
+                ? "Ingresa la referencia (solo letras, números, guiones o puntos)."
+                : method.referenceHint
             }
-            slotProps={{
-              inputLabel: { shrink: true },
-              htmlInput: { max: todayIso() },
-            }}
-            sx={FIELD_SX}
+            sx={SMALL_FIELD_SX}
           />
-          <TextField
-            name="amountPaid"
-            label={`Monto pagado (${method.currency === "VES" ? "Bs" : method.currency})`}
-            type="number"
-            size="small"
-            required
-            value={amountPaid}
-            onChange={(e) => setAmountPaid(e.target.value)}
-            error={touched && !amountValid}
-            helperText={
-              touched && !amountValid
-                ? "Ingresa el monto que pagaste."
-                : undefined
-            }
-            slotProps={{
-              htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
-            }}
-            sx={FIELD_SX}
-          />
-        </Box>
-
-        <Box>
           <Button
             onClick={() => fileInputRef.current?.click()}
+            aria-label={
+              receipt
+                ? `Cambiar comprobante (${receipt.name})`
+                : "Adjuntar comprobante (opcional)"
+            }
             aria-describedby={receipt ? `${fileInputId}-name` : undefined}
             variant="outlined"
             color="inherit"
-            size="small"
             startIcon={<AttachFileRoundedIcon fontSize="small" />}
-            sx={{ textTransform: "none", fontSize: "12px" }}
-          >
-            {receipt
-              ? "Cambiar comprobante"
-              : "Adjuntar comprobante (opcional)"}
-          </Button>
-          {/* El input real queda fuera del orden de tabulación y del árbol
-              accesible: el botón de arriba es el único control visible. */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            tabIndex={-1}
-            aria-hidden="true"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            onChange={(e) => {
-              const file = e.target.files?.[0] ?? null;
-              // Mismo límite que el servidor; más grande, el servidor ni
-              // siquiera recibe la petición y el error sería engañoso.
-              if (file && file.size > MAX_RECEIPT_BYTES) {
-                setReceipt(null);
-                setError("invalid_receipt");
-                e.target.value = "";
-                return;
-              }
-              setError(null);
-              setReceipt(file);
+            sx={{
+              height: 40,
+              textTransform: "none",
+              fontSize: "12px",
+              whiteSpace: "nowrap",
             }}
-          />
-          {receipt && (
-            <Typography
-              id={`${fileInputId}-name`}
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: "11px",
-                color: theme.palette.text.secondary,
-                mt: 1,
-                overflowWrap: "anywhere",
-              }}
-            >
-              {receipt.name}
-            </Typography>
-          )}
+          >
+            {receipt ? "Cambiar" : "Comprobante"}
+          </Button>
         </Box>
+        {/* El input real queda fuera del orden de tabulación y del árbol
+            accesible: el botón de arriba es el único control visible. */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          tabIndex={-1}
+          aria-hidden="true"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            // Mismo límite que el servidor; más grande, el servidor ni
+            // siquiera recibe la petición y el error sería engañoso.
+            if (file && file.size > MAX_RECEIPT_BYTES) {
+              setReceipt(null);
+              setError("invalid_receipt");
+              e.target.value = "";
+              return;
+            }
+            setError(null);
+            setReceipt(file);
+          }}
+        />
+        {receipt && (
+          <Typography
+            id={`${fileInputId}-name`}
+            sx={{
+              fontFamily: typography.fontFamily.body,
+              fontSize: "11px",
+              color: theme.palette.text.secondary,
+              mt: -1.5,
+              overflowWrap: "anywhere",
+            }}
+          >
+            Comprobante: {receipt.name}
+          </Typography>
+        )}
+
+        {/* Mismo calendario que el formulario de proyectos; no se puede
+            elegir una fecha futura. */}
+        <input type="hidden" name="paidAt" value={paidAt} />
+        <DateField
+          label="Fecha del pago"
+          value={paidAt}
+          onChange={setPaidAt}
+          max={todayIso()}
+          error={touched && !dateValid}
+          helperText="Elige una fecha válida."
+        />
+        <TextField
+          name="amountPaid"
+          label={`Monto pagado (${method.currency === "VES" ? "Bs" : method.currency})`}
+          type="number"
+          size="small"
+          required
+          value={amountPaid}
+          onChange={(e) => setAmountPaid(e.target.value)}
+          error={touched && !amountValid}
+          helperText={
+            touched && !amountValid ? "Ingresa el monto que pagaste." : undefined
+          }
+          slotProps={{
+            htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
+          }}
+          sx={SMALL_FIELD_SX}
+        />
 
         {error && (
           <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
@@ -803,6 +865,7 @@ export function PaymentStep({
         </>
       )}
 
+      <AnimatedHeight>
       {selected && selected.kind === "gateway" && (
         <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
           <PaypalPanel
@@ -824,6 +887,7 @@ export function PaymentStep({
           />
         </Box>
       )}
+      </AnimatedHeight>
     </DonationFormCard>
   );
 }

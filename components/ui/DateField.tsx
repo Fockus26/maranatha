@@ -21,6 +21,8 @@ export interface DateFieldProps {
    * tratamiento (borde rojo + texto bajo el campo) que el resto de los
    * `TextField` del sitio. */
   helperText?: string;
+  /** Fecha máxima elegible ("YYYY-MM-DD"); los días posteriores se deshabilitan. */
+  max?: string;
 }
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -78,7 +80,7 @@ function buildMonthGrid(viewDate: Date): Date[] {
  * `YYYY-MM-DD`, igual que antes — no cambia nada para quien consume
  * `DashboardProjectForm`.
  */
-export function DateField({ label, value, onChange, error, helperText }: DateFieldProps) {
+export function DateField({ label, value, onChange, error, helperText, max }: DateFieldProps) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const selected = parseValue(value);
@@ -103,6 +105,9 @@ export function DateField({ label, value, onChange, error, helperText }: DateFie
   }
 
   const today = new Date();
+  const maxDate = max ? parseValue(max) : null;
+  const isAfterMax = (day: Date) => Boolean(maxDate && day > maxDate && !isSameDay(day, maxDate));
+  const nextMonthStart = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
   const days = buildMonthGrid(viewDate);
   const currentMonth = viewDate.getMonth();
   const monthLabel = MONTH_FORMATTER.format(viewDate);
@@ -229,7 +234,13 @@ export function DateField({ label, value, onChange, error, helperText }: DateFie
               >
                 {monthLabel}
               </Box>
-              <IconButton type="button" size="small" onClick={() => shiftMonth(1)} aria-label="Mes siguiente">
+              <IconButton
+                type="button"
+                size="small"
+                onClick={() => shiftMonth(1)}
+                aria-label="Mes siguiente"
+                disabled={isAfterMax(nextMonthStart)}
+              >
                 <ChevronRightRoundedIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -250,12 +261,14 @@ export function DateField({ label, value, onChange, error, helperText }: DateFie
                 const inCurrentMonth = day.getMonth() === currentMonth;
                 const isSelected = selected ? isSameDay(day, selected) : false;
                 const isToday = isSameDay(day, today);
+                const disabled = isAfterMax(day);
                 return (
                   <Box
                     key={day.toISOString()}
                     component="button"
                     type="button"
                     onClick={() => selectDay(day)}
+                    disabled={disabled}
                     aria-label={FULL_DATE_FORMATTER.format(day)}
                     aria-pressed={isSelected}
                     aria-current={isToday ? "date" : undefined}
@@ -270,17 +283,17 @@ export function DateField({ label, value, onChange, error, helperText }: DateFie
                         : inCurrentMonth
                           ? theme.palette.text.primary
                           : theme.palette.text.secondary,
-                      opacity: inCurrentMonth ? 1 : 0.4,
+                      opacity: disabled ? 0.25 : inCurrentMonth ? 1 : 0.4,
                       fontSize: "12px",
                       fontFamily: typography.fontFamily.body,
                       fontWeight: isToday && !isSelected ? 700 : 500,
-                      cursor: "pointer",
+                      cursor: disabled ? "not-allowed" : "pointer",
                       outline: isToday && !isSelected ? `1px solid ${theme.palette.divider}` : "none",
                       outlineOffset: -1,
                       transition: theme.transitions.create(["background-color", "color"], {
                         duration: theme.transitions.duration.shortest,
                       }),
-                      "&:hover": {
+                      "&:hover:not(:disabled)": {
                         backgroundColor: isSelected ? theme.palette.secondary.main : theme.palette.action.hover,
                       },
                     }}

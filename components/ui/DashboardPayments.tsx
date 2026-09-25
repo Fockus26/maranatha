@@ -2,6 +2,7 @@
 
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CurrencyExchangeRoundedIcon from "@mui/icons-material/CurrencyExchangeRounded";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import Alert from "@mui/material/Alert";
@@ -38,6 +39,7 @@ import type {
   PaymentPurpose,
   PaymentStatus,
 } from "@/lib/payments/schema";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { radius, semantic, typography } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
@@ -51,6 +53,8 @@ import { EmptyState } from "./EmptyState";
  */
 
 export type PaymentFilter = PaymentStatus | "all";
+
+export type RatePair = { VES: number | null; COP: number | null };
 
 export interface DashboardPaymentRow {
   id: string;
@@ -82,10 +86,10 @@ export interface DashboardPaymentsProps {
     confirmedThisMonthUsd: number;
     confirmedThisMonthCount: number;
   } | null;
-  rates: { VES: number | null; COP: number | null };
-  fallbackRates: { VES?: number; COP?: number };
-  /** PayPal activo pero sin PAYPAL_WEBHOOK_ID: los cobros mensuales no llegan. */
-  webhookMissing?: boolean;
+  /** Tasas de DolarApi (null si no respondió). */
+  liveRates: RatePair;
+  /** Tasas de respaldo guardadas por el admin. */
+  fallbackRates: RatePair;
 }
 
 const FILTER_LABEL: Record<PaymentFilter, string> = {
@@ -99,6 +103,7 @@ const FILTER_ORDER: PaymentFilter[] = [
   "pending",
   "confirmed",
   "rejected",
+  "cancelled",
   "all",
 ];
 
@@ -244,6 +249,7 @@ function RejectDialog({
         </DialogContentText>
         <TextField
           label="Motivo (opcional)"
+          sx={SMALL_FIELD_SX}
           fullWidth
           size="small"
           multiline
@@ -270,23 +276,40 @@ function RejectDialog({
   );
 }
 
-function FallbackRatesForm({
-  rates,
+/**
+ * Tasas de cambio: muestra cuál está en uso para cada moneda (DolarApi o el
+ * respaldo) y permite guardar el respaldo. Tras guardar se ve de inmediato la
+ * tasa de respaldo que se aplicará si DolarApi no responde.
+ */
+function RatesDialog({
+  open,
+  onClose,
+  liveRates,
   fallbackRates,
   onResult,
 }: {
-  rates: DashboardPaymentsProps["rates"];
-  fallbackRates: DashboardPaymentsProps["fallbackRates"];
+  open: boolean;
+  onClose: () => void;
+  liveRates: RatePair;
+  fallbackRates: RatePair;
   onResult: (message: string, ok: boolean) => void;
 }) {
   const theme = useTheme();
   const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState<RatePair | null>(null);
+  // Tras guardar, lo guardado manda hasta que el servidor re-renderice.
+  const fallback = saved ?? fallbackRates;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const next: RatePair = {
+      VES: data.get("VES") ? Number(data.get("VES")) : null,
+      COP: data.get("COP") ? Number(data.get("COP")) : null,
+    };
     startTransition(async () => {
       const result = await saveFallbackRates(data);
+      if (result.ok) setSaved(next);
       onResult(
         result.ok
           ? "Tasas de respaldo guardadas."
@@ -296,74 +319,150 @@ function FallbackRatesForm({
     });
   }
 
+  const currencies: { currency: "VES" | "COP"; label: string }[] = [
+    { currency: "VES", label: "Bolívares (Pago Móvil)" },
+    { currency: "COP", label: "Pesos colombianos (Bancolombia)" },
+  ];
+
   return (
-    <Box
-      component="section"
-      aria-labelledby="fallback-rates-title"
-      sx={{
-        mt: 6,
-        p: 3,
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: `${radius.md}px`,
-        maxWidth: 640,
-      }}
+    <Dialog
+      open={open}
+      onClose={pending ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+      aria-labelledby="rates-dialog-title"
+      slotProps={{ paper: { elevation: 0 } }}
     >
-      <Typography
-        id="fallback-rates-title"
-        component="h2"
-        sx={{ fontWeight: 700, fontSize: 16, mb: 0.5 }}
+      <DialogTitle
+        id="rates-dialog-title"
+        sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}
       >
         Tasas de cambio
-      </Typography>
-      <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 2 }}>
-        Tasa en uso hoy: BCV{" "}
-        {rates.VES ? formatAmount(rates.VES, "VES") : "sin dato"} · COP{" "}
-        {rates.COP ? formatAmount(rates.COP, "COP") : "sin dato"} por USD. Las
-        de respaldo solo se usan si la fuente automática (DolarApi) no responde.
-      </Typography>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
-          alignItems: "flex-start",
-        }}
-      >
-        <TextField
-          name="VES"
-          label="Respaldo Bs. por USD"
-          type="number"
-          size="small"
-          defaultValue={fallbackRates.VES ?? ""}
-          slotProps={{
-            htmlInput: { min: 0, step: "0.0001", inputMode: "decimal" },
+      </DialogTitle>
+      <DialogContent sx={{ px: 3.5 }}>
+        <DialogContentText sx={{ fontSize: 13, mb: 3 }}>
+          Se usan para mostrarle al donante cuánto pagar en bolívares o pesos.
+          Primero se consulta DolarApi (tasa BCV y la cotización en Colombia);
+          la tasa de respaldo solo se usa si DolarApi no responde.
+        </DialogContentText>
+
+        <Box
+          component="dl"
+          sx={{
+            m: 0,
+            mb: 3,
+            display: "grid",
+            gap: 1.5,
+            p: 2,
+            borderRadius: `${radius.sm}px`,
+            border: `1px solid ${theme.palette.divider}`,
           }}
-          sx={{ width: { xs: "100%", sm: 190 } }}
-        />
-        <TextField
-          name="COP"
-          label="Respaldo COP por USD"
-          type="number"
-          size="small"
-          defaultValue={fallbackRates.COP ?? ""}
-          slotProps={{
-            htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
+        >
+          {currencies.map(({ currency, label }) => {
+            const live = liveRates[currency];
+            const inUse = live ?? fallback[currency];
+            return (
+              <Box
+                key={currency}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Typography component="dt" sx={{ fontSize: 13 }}>
+                  {label}
+                </Typography>
+                <Typography
+                  component="dd"
+                  sx={{
+                    m: 0,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textAlign: "right",
+                  }}
+                >
+                  {inUse ? formatAmount(inUse, currency) : "Sin tasa"} por USD
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "block",
+                      fontSize: 11,
+                      fontWeight: 400,
+                      color: "text.secondary",
+                    }}
+                  >
+                    {live
+                      ? "En uso: DolarApi"
+                      : fallback[currency]
+                        ? "En uso: respaldo (DolarApi no responde)"
+                        : "Sin DolarApi ni respaldo: se muestra el monto en USD"}
+                  </Box>
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+
+        <Box
+          component="form"
+          id="rates-form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            gap: 2,
           }}
-          sx={{ width: { xs: "100%", sm: 190 } }}
-        />
+        >
+          <TextField
+            name="VES"
+            label="Respaldo Bs. por USD"
+            type="number"
+            size="small"
+            defaultValue={fallbackRates.VES ?? ""}
+            slotProps={{
+              htmlInput: { min: 0, step: "0.0001", inputMode: "decimal" },
+            }}
+            sx={SMALL_FIELD_SX}
+          />
+          <TextField
+            name="COP"
+            label="Respaldo COP por USD"
+            type="number"
+            size="small"
+            defaultValue={fallbackRates.COP ?? ""}
+            slotProps={{
+              htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
+            }}
+            sx={SMALL_FIELD_SX}
+          />
+        </Box>
+        <Typography
+          role="status"
+          sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}
+        >
+          Respaldo guardado:{" "}
+          {fallback.VES ? formatAmount(fallback.VES, "VES") : "sin Bs."} ·{" "}
+          {fallback.COP ? formatAmount(fallback.COP, "COP") : "sin COP"} por
+          USD.
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3.5, pb: 3, pt: 2, gap: 1 }}>
+        <Button onClick={onClose} color="inherit" disabled={pending}>
+          Cerrar
+        </Button>
         <Button
           type="submit"
-          variant="outlined"
-          color="inherit"
+          form="rates-form"
+          variant="contained"
+          color="secondary"
           disabled={pending}
-          sx={{ height: 40 }}
         >
-          {pending ? "Guardando…" : "Guardar"}
+          {pending ? "Guardando…" : "Guardar respaldo"}
         </Button>
-      </Box>
-    </Box>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -372,11 +471,11 @@ export function DashboardPayments({
   rows,
   loadError,
   stats,
-  rates,
+  liveRates,
   fallbackRates,
-  webhookMissing = false,
 }: DashboardPaymentsProps) {
   const theme = useTheme();
+  const [ratesOpen, setRatesOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [approving, setApproving] = useState<DashboardPaymentRow | null>(null);
   const [rejecting, setRejecting] = useState<DashboardPaymentRow | null>(null);
@@ -468,25 +567,45 @@ export function DashboardPayments({
           mx: "auto",
         }}
       >
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: typography.fontFamily.heading,
-              fontWeight: 800,
-              fontSize: 26,
-              color: theme.palette.text.primary,
-              mb: 0.5,
-            }}
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 2,
+            flexWrap: "wrap",
+          }}
+        >
+          <Box sx={{ minWidth: 0, flex: "1 1 320px" }}>
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: typography.fontFamily.heading,
+                fontWeight: 800,
+                fontSize: 26,
+                color: theme.palette.text.primary,
+                mb: 0.5,
+              }}
+            >
+              Pagos
+            </Typography>
+            <Typography
+              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+            >
+              Verifica cada reporte contra tu banco o app antes de confirmarlo.
+              Solo los pagos confirmados suman a lo recaudado.
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            color="inherit"
+            size="small"
+            startIcon={<CurrencyExchangeRoundedIcon fontSize="small" />}
+            onClick={() => setRatesOpen(true)}
           >
-            Pagos
-          </Typography>
-          <Typography
-            sx={{ fontSize: 13, color: theme.palette.text.secondary }}
-          >
-            Verifica cada reporte contra tu banco o app antes de confirmarlo.
-            Solo los pagos confirmados suman a lo recaudado.
-          </Typography>
+            Tasas de cambio
+          </Button>
         </Box>
 
         <Box
@@ -532,14 +651,6 @@ export function DashboardPayments({
             );
           })}
         </Box>
-
-        {webhookMissing && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            PayPal está activo pero falta configurar su webhook
-            (PAYPAL_WEBHOOK_ID): los cobros mensuales después del primero y los
-            reembolsos no se van a registrar.
-          </Alert>
-        )}
 
         {loadError ? (
           <Alert severity="error" role="alert">
@@ -615,6 +726,14 @@ export function DashboardPayments({
                       {row.frequency === "monthly" ? " · Mensual" : ""} ·
                       Reportado {formatDate(row.createdAt, true)}
                     </Typography>
+                    {row.method === "paypal" && row.status === "pending" && (
+                      <Typography
+                        sx={{ fontSize: 12, color: "text.secondary", mt: 0.5 }}
+                      >
+                        Esperando que el donante complete el pago en PayPal. Se
+                        confirma solo; no hace falta verificarlo.
+                      </Typography>
+                    )}
                   </Box>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                     <Typography
@@ -753,13 +872,15 @@ export function DashboardPayments({
             ))}
           </Box>
         )}
-
-        <FallbackRatesForm
-          rates={rates}
-          fallbackRates={fallbackRates}
-          onResult={notify}
-        />
       </Box>
+
+      <RatesDialog
+        open={ratesOpen}
+        onClose={() => setRatesOpen(false)}
+        liveRates={liveRates}
+        fallbackRates={fallbackRates}
+        onResult={notify}
+      />
 
       <ConfirmDialog
         open={Boolean(approving)}

@@ -1,15 +1,12 @@
 "use client";
 
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Skeleton from "@mui/material/Skeleton";
-import { keyframes } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import { DASHBOARD_CONTENT_SX } from "@/components/layout/DashboardShell";
+import { patternLayerSx } from "@/theme/patterns";
 import { primary } from "@/theme/tokens";
 
-const patternPan = keyframes`
-  0% { background-position: 0 0; }
-  100% { background-position: 160px 160px; }
-`;
 
 export interface DashboardStat {
   label: string;
@@ -37,28 +34,29 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
         position: "relative",
         overflow: "hidden",
         bgcolor: primary[900],
-        px: { xs: 3, md: 5 },
         py: { xs: 3.5, md: 4.5 },
       }}
     >
+      <Box aria-hidden="true" sx={patternLayerSx()} />
       <Box
         sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "repeating-linear-gradient(135deg, rgba(245,246,250,0.05) 0px, rgba(245,246,250,0.05) 1px, transparent 1px, transparent 40px)",
-          animation: `${patternPan} 24s linear infinite`,
-          "@media (prefers-reduced-motion: reduce)": { animation: "none" },
+          ...DASHBOARD_CONTENT_SX,
+          position: "relative",
+          display: "flex",
+          flexWrap: "wrap",
+          rowGap: 3,
         }}
-      />
-      <Box sx={{ position: "relative", display: "flex", flexWrap: "wrap", rowGap: 3 }}>
+      >
         {stats.map((stat, index) => (
           <Box
             key={stat.label}
             sx={{
               flex: "1 1 200px",
               pl: index > 0 ? { xs: 0, sm: 4 } : 0,
-              borderLeft: index > 0 ? { xs: "none", sm: "1px solid rgba(255,255,255,0.15)" } : "none",
+              borderLeft:
+                index > 0
+                  ? { xs: "none", sm: "1px solid rgba(255,255,255,0.15)" }
+                  : "none",
             }}
           >
             <Typography
@@ -77,7 +75,10 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
               <Skeleton
                 variant="text"
                 width={90}
-                sx={{ fontSize: { xs: 26, md: 34 }, bgcolor: "rgba(245,246,250,0.12)" }}
+                sx={{
+                  fontSize: { xs: 26, md: 34 },
+                  bgcolor: "rgba(245,246,250,0.12)",
+                }}
               />
             ) : (
               <Typography

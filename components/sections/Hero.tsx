@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
@@ -71,13 +71,11 @@ export function Hero() {
   // movimiento ni mientras esté pausado con el control de abajo.
   const autoplayActive = !reduceMotion && !paused;
 
-  useEffect(() => {
-    if (!autoplayActive) return;
-    const timer = setTimeout(() => {
-      setIndex((current) => (current + 1) % total);
-    }, AUTOPLAY_MS);
-    return () => clearTimeout(timer);
-  }, [index, total, autoplayActive]);
+  // El avance lo dispara el fin de la animación de la barra activa (ver
+  // `onAnimationEnd` abajo), no un setTimeout: así pausar congela la barra
+  // donde está (`animation-play-state: paused`) y reanudar sigue desde ahí,
+  // siempre sincronizada con el cambio de slide. Antes, al pausar, la barra
+  // se llenaba de golpe al 100%.
 
   const goTo = (next: number) => setIndex(((next % total) + total) % total);
   const slide = SLIDES[index];
@@ -155,8 +153,12 @@ export function Hero() {
         onClick={() => goTo(index - 1)}
         aria-label="Slide anterior"
         sx={{
+          display: { xs: "none", md: "inline-flex" },
           position: "absolute",
-          left: { xs: 8, md: 24 },
+          // Por encima del Container del contenido (también relativo y posterior
+          // en el DOM), que tapaba la mitad interna del botón y no recibía el clic.
+          zIndex: 2,
+          left: 24,
           top: "50%",
           transform: "translateY(-50%)",
           color: gray[50],
@@ -173,8 +175,12 @@ export function Hero() {
         onClick={() => goTo(index + 1)}
         aria-label="Siguiente slide"
         sx={{
+          display: { xs: "none", md: "inline-flex" },
           position: "absolute",
-          right: { xs: 8, md: 24 },
+          // Por encima del Container del contenido (también relativo y posterior
+          // en el DOM), que tapaba la mitad interna del botón y no recibía el clic.
+          zIndex: 2,
+          right: 24,
           top: "50%",
           transform: "translateY(-50%)",
           color: gray[50],
@@ -188,7 +194,13 @@ export function Hero() {
         <ChevronRightRoundedIcon />
       </IconButton>
 
-      <Container maxWidth="lg" sx={{ position: "relative", pt: { xs: 14, md: 10 }, pb: { xs: 8, md: 10 } }}>
+      {/* `px: 22` (spacing de 4px → 88px) en desktop: canal a cada lado para las flechas (24px +
+          40px de botón + aire). Antes el texto empezaba debajo de la flecha
+          izquierda en pantallas < ~1280px y el clic a veces caía en el texto. */}
+      <Container
+        maxWidth="lg"
+        sx={{ position: "relative", px: { md: 22 }, pt: { xs: 14, md: 10 }, pb: { xs: 8, md: 10 } }}
+      >
         {/* En pantallas grandes el bloque se ensancha para acompañar el
             headline más grande (64px) — antes quedaba encajado en 580px y el
             título se recortaba a 3 líneas apretadas. */}
@@ -226,11 +238,14 @@ export function Hero() {
                       width: i < index ? "100%" : "0%",
                       bgcolor: i < index ? alpha(gray[50], 0.55) : secondary[400],
                       ...(i === index &&
-                        autoplayActive && {
+                        !reduceMotion && {
                           animation: `${progressAnim} ${AUTOPLAY_MS}ms linear forwards`,
+                          animationPlayState: paused ? "paused" : "running",
                         }),
-                      ...(i === index && !autoplayActive && { width: "100%" }),
+                      // Reducir movimiento: sin autoplay; la barra activa queda llena.
+                      ...(i === index && reduceMotion && { width: "100%" }),
                     }}
+                    onAnimationEnd={i === index ? () => goTo(index + 1) : undefined}
                   />
                 </Box>
               ))}
