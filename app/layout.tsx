@@ -6,7 +6,7 @@ import ThemeRegistry from "../theme/ThemeRegistry";
 import { Analytics } from "@vercel/analytics/next";
 import { TitheModalProvider } from "@/lib/titheModalStore";
 import { TitheModal } from "@/components/ui/TitheModal";
-import { SITE_URL, SITE_NAME, SITE_TITLE_DEFAULT, SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/siteConfig";
+import { SITE_URL, SITE_INDEXABLE, SITE_NAME, SITE_TITLE_DEFAULT, SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/siteConfig";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE_DEFAULT,
     description: SITE_DESCRIPTION,
   },
-  robots: { index: true, follow: true },
+  robots: { index: SITE_INDEXABLE, follow: SITE_INDEXABLE },
   alternates: { canonical: "/" },
 };
 
