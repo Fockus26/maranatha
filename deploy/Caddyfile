@@ -1,0 +1,19 @@
+# Proxy HTTPS delante de Next. Caddy saca y renueva los certificados de
+# Let's Encrypt solo; los dominios tienen que apuntar (registro A) a la IP
+# del VPS antes de levantarlo.
+
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+# ADMIN_HOST es opcional: vacío, el dashboard queda en /dashboard.
+{$SITE_DOMAIN} {$ADMIN_HOST} {
+	encode zstd gzip
+
+	# Comprobantes de pago: hasta 4 MB + multipart (ver next.config.ts).
+	request_body {
+		max_size 6MB
+	}
+
+	reverse_proxy web:3000
+}

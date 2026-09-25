@@ -1,0 +1,32 @@
+# Producción en el VPS. Vive en /opt/maranatha junto al Caddyfile y un `.env`
+# que se crea a mano en el servidor (ver deploy/README.md). El workflow
+# `deploy-vps.yml` copia este archivo y el Caddyfile en cada deploy.
+
+services:
+  web:
+    image: ghcr.io/fockus26/maranatha:${IMAGE_TAG:-latest}
+    env_file: .env
+    restart: unless-stopped
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Falta SITE_DOMAIN en .env}
+      ADMIN_HOST: ${ADMIN_HOST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

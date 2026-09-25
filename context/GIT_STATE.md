@@ -18,3 +18,11 @@
 | `feat/payments-paypal-monthly` | `feat/payments` | 5 · Aportes mensuales con PayPal Subscriptions | mergeada |
 | `feat/payments-project-raised` | `feat/payments` | 6 · Recaudado real en proyectos | mergeada |
 | `fix/payments-qa` | `feat/payments` | Hallazgos de QA funcional (rate limit, A1, webhook, reembolsos, validaciones) | mergeada |
+| `chore/deploy-setup` | `main` | Deploy doble: Vercel (staging) + VPS Docker (producción) | mergeada |
+
+## Ramas de deploy (permanentes)
+Mismo código que `main`; solo se avanzan, nunca se commitea directo en ellas. Ver `deploy/README.md`.
+| Rama | Publica en | Cómo avanzarla |
+|---|---|---|
+| `vercel` | Vercel (pruebas) | `git push origin main:vercel` |
+| `vps` | VPS Hetzner (producción) | `git push origin vercel:vps` |
