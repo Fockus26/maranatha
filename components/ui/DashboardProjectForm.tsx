@@ -11,6 +11,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { AnimatePresence, motion } from "framer-motion";
 import { radius, typography } from "@/theme/tokens";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { ImageUploadField } from "./ImageUploadField";
 import { DateField } from "./DateField";
 
@@ -84,8 +85,10 @@ function sectionLabelSx(theme: Theme) {
 // medía 14px, dejando el hueco de más. Poner `fontSize` a nivel raíz del
 // `TextField` (hereda por CSS a input, label Y notch) resuelve ambos a la
 // vez.
+// Campos chicos (14px, label y hueco del borde a la misma escala) — mismo
+// estilo que los formularios de aporte y login (theme/fieldStyles.ts).
 function fieldSx() {
-  return { fontSize: "14px" };
+  return SMALL_FIELD_SX;
 }
 
 // Quita las flechas nativas de incremento/decremento de los inputs
@@ -183,6 +186,7 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4.5 }}>
         <TextField
+          size="small"
           label="Título del proyecto"
           fullWidth
           value={title}
@@ -193,6 +197,7 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
         />
 
         <TextField
+          size="small"
           label="Descripción"
           fullWidth
           multiline
@@ -216,6 +221,7 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
             debajo de `sm`, sin cambiar nada en tablet/desktop. */}
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
           <TextField
+          size="small"
             label="Monto meta"
             type="number"
             fullWidth
@@ -241,6 +247,7 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
           formulario que lo genera. El campo vuelve a ocupar todo el ancho.
         */}
         <TextField
+          size="small"
           label="Monto recaudado"
           type="number"
           fullWidth

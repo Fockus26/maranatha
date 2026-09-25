@@ -8,6 +8,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { motion } from "framer-motion";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { primary, secondary } from "@/theme/tokens";
+import { DASHBOARD_CONTENT_SX } from "./DashboardShell";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -49,14 +50,20 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
         top: 0,
         zIndex: (theme) => theme.zIndex.appBar,
         bgcolor: primary[900],
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 72,
-        px: { xs: 2, sm: 3, md: 5 },
         borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
+      {/* El fondo navy ocupa todo el ancho; el contenido se alinea con el de
+          las páginas (`DASHBOARD_CONTENT_SX`: 1400px centrado, mismo padding). */}
+      <Box
+        sx={{
+          ...DASHBOARD_CONTENT_SX,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 72,
+        }}
+      >
       <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, sm: 3, md: 5 }, minWidth: 0 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexShrink: 0 }}>
           <Box sx={{ width: 18, height: 18, borderRadius: "4px", bgcolor: "secondary.main" }} />
@@ -189,6 +196,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
         >
           <LogoutRoundedIcon sx={{ fontSize: 20 }} />
         </Box>
+      </Box>
       </Box>
     </Box>
   );

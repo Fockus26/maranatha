@@ -6,13 +6,8 @@ import {
   type PaymentFilter,
 } from "@/components/ui/DashboardPayments";
 import { requireAdmin } from "@/lib/auth/admin";
-import { getExchangeRates } from "@/lib/payments/exchangeRates";
-import { isPaypalConfigured } from "@/lib/payments/paypal";
-import {
-  getPaymentStats,
-  getSetting,
-  listPayments,
-} from "@/lib/payments/repository";
+import { getExchangeRateSources } from "@/lib/payments/exchangeRates";
+import { getPaymentStats, listPayments } from "@/lib/payments/repository";
 import { PROJECTS } from "@/lib/projectsData";
 
 export const metadata: Metadata = {
@@ -20,7 +15,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const FILTERS: PaymentFilter[] = ["pending", "confirmed", "rejected", "all"];
+const FILTERS: PaymentFilter[] = [
+  "pending",
+  "confirmed",
+  "rejected",
+  "cancelled",
+  "all",
+];
 
 /**
  * Panel de pagos (`/dashboard/pagos`): reportes manuales pendientes de
@@ -39,18 +40,10 @@ export default async function DashboardPagosPage({
     ? (requested as PaymentFilter)
     : "pending";
 
-  const [payments, stats, rates, fallback] = await Promise.all([
-    listPayments(
-      filter === "all"
-        ? {}
-        : filter === "pending"
-          ? // Los PayPal pendientes son checkouts sin completar: nada que verificar.
-            { status: "pending", excludeMethod: "paypal" }
-          : { status: filter },
-    ),
+  const [payments, stats, rates] = await Promise.all([
+    listPayments(filter === "all" ? {} : { status: filter }),
     getPaymentStats(),
-    getExchangeRates(),
-    getSetting<{ VES?: number; COP?: number }>("exchange_rates"),
+    getExchangeRateSources(),
   ]);
 
   const titles = new Map(PROJECTS.map((p) => [p.slug, p.title]));
@@ -86,9 +79,8 @@ export default async function DashboardPagosPage({
         rows={rows}
         loadError={!payments.ok}
         stats={stats.ok ? stats.data : null}
-        rates={{ VES: rates.VES, COP: rates.COP }}
-        fallbackRates={fallback ?? {}}
-        webhookMissing={isPaypalConfigured() && !process.env.PAYPAL_WEBHOOK_ID}
+        liveRates={rates.live}
+        fallbackRates={rates.fallback}
       />
     </DashboardShell>
   );

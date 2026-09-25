@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import TextField from "@mui/material/TextField";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -74,14 +76,16 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
       {tab === "upload" ? (
         <>
           <input ref={inputRef} type="file" accept="image/*" hidden onChange={handleFileChange} />
+          {/* Mismo estilo que "Comprobante" del paso de pago (PaymentStep). */}
           <Button
             type="button"
             variant="outlined"
-            color="primary"
+            color="inherit"
+            startIcon={<AttachFileRoundedIcon fontSize="small" />}
             onClick={() => inputRef.current?.click()}
-            sx={{ height: 40, fontSize: "14px" }}
+            sx={{ height: 40, textTransform: "none", fontSize: "12px" }}
           >
-            Elegir imagen
+            {value ? "Cambiar imagen" : "Elegir imagen"}
           </Button>
         </>
       ) : (
@@ -90,9 +94,10 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
           aria-label={`${label} — URL`}
           type="url"
           fullWidth
+          size="small"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          sx={{ fontSize: "14px", "& .MuiInputBase-root": { height: 40 } }}
+          sx={{ ...SMALL_FIELD_SX, "& .MuiInputBase-root": { fontSize: "14px", height: 40 } }}
         />
       )}
     </Box>

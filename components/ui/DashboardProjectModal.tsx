@@ -103,7 +103,10 @@ export function DashboardProjectModal() {
       >
         <CloseRoundedIcon fontSize="small" />
       </IconButton>
-      <DialogContent sx={{ p: { xs: 3, sm: 5 }, pt: { xs: 6, sm: 6.5 }, maxWidth: 640, mx: "auto", width: "100%" }}>
+      {/* Sin maxWidth: el contenido ocupa todo el ancho del modal (antes
+          quedaba en 640px centrado, con franjas vacías a los lados y la
+          barra de scroll a mitad del modal). */}
+      <DialogContent sx={{ p: { xs: 3, sm: 5 }, pt: { xs: 6, sm: 6.5 }, width: "100%" }}>
         <DashboardProjectForm
           key={editingId ?? "new"}
           bare

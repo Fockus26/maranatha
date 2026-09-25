@@ -46,17 +46,31 @@ async function fetchRate(currency: "VES" | "COP"): Promise<number | null> {
   }
 }
 
-export async function getExchangeRates(): Promise<ExchangeRates> {
+type Pair = Record<"VES" | "COP", number | null>;
+
+/** Tasas de DolarApi y de respaldo por separado (para mostrarlas al admin). */
+export async function getExchangeRateSources(): Promise<{
+  live: Pair;
+  fallback: Pair;
+}> {
   const [ves, cop, manual] = await Promise.all([
     fetchRate("VES"),
     fetchRate("COP"),
     getSetting<Partial<Record<"VES" | "COP", number>>>("exchange_rates"),
   ]);
   return {
+    live: { VES: ves, COP: cop },
+    fallback: { VES: manual?.VES ?? null, COP: manual?.COP ?? null },
+  };
+}
+
+export async function getExchangeRates(): Promise<ExchangeRates> {
+  const { live, fallback } = await getExchangeRateSources();
+  return {
     USD: 1,
     USDT: 1,
-    VES: ves ?? manual?.VES ?? null,
-    COP: cop ?? manual?.COP ?? null,
+    VES: live.VES ?? fallback.VES,
+    COP: live.COP ?? fallback.COP,
   };
 }
 

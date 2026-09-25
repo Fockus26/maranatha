@@ -5,6 +5,18 @@ import Box from "@mui/material/Box";
 import { signOut } from "@/app/actions/auth";
 import { DashboardTopbar } from "./DashboardTopbar";
 
+/**
+ * Contenedor horizontal único del dashboard: topbar, banda de KPIs y
+ * contenido de cada página comparten ancho máximo y padding, así sus bordes
+ * quedan alineados (antes el topbar y la banda iban de borde a borde).
+ */
+export const DASHBOARD_CONTENT_SX = {
+  width: "100%",
+  maxWidth: 1400,
+  mx: "auto",
+  px: { xs: 3, md: 5 },
+} as const;
+
 export interface DashboardShellProps {
   onLogout?: () => void;
   children: React.ReactNode;

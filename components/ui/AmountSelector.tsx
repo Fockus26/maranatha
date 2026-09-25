@@ -78,7 +78,13 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
                 // "seleccionado" en el resto del sitio (tabs de Proyectos,
                 // D051; píldora activa del navbar, D054) — más claro y
                 // consistente.
-                color: active ? secondary[700] : theme.palette.text.primary,
+                // Modo oscuro: `secondary[700]` sobre el paper oscuro se veía apagado;
+                // ahí se usa el naranja claro (~8:1 sobre gray[800]).
+                color: active
+                  ? theme.palette.mode === "dark"
+                    ? secondary[300]
+                    : secondary[700]
+                  : theme.palette.text.primary,
               }}
             >
               {/*

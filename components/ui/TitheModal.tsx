@@ -9,11 +9,11 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
-import { keyframes } from "@mui/material/styles";
 import { useInView } from "framer-motion";
 import { FREQUENCY_LABEL, TYPE_LABEL, TitheForm, type ContributionType, type TitheFormValues } from "./TitheForm";
 import { PaymentStep, type PaymentStepContribution } from "./PaymentStep";
 import { useTitheModal } from "@/lib/titheModalStore";
+import { patternLayerSx } from "@/theme/patterns";
 import { gray, semantic } from "@/theme/tokens";
 
 /**
@@ -52,10 +52,6 @@ import { gray, semantic } from "@/theme/tokens";
  *   el naranja de marca) — mismo motivo: se veían demasiado apagados.
  */
 
-const patternPan = keyframes`
-  0% { background-position: 0 0; }
-  100% { background-position: 160px 160px; }
-`;
 
 const FAMILIES_SUPPORTING = 132;
 
@@ -172,9 +168,16 @@ export function TitheModal() {
             // clase nativa) es el que scrollea internamente
             // (`overflowY: "auto"`) cuando el contenido no entra, sin
             // ninguna clase adicional que le achique el ancho.
+            //
+            // Tercera revisión: el Paper ya no es el que scrollea. Cuando el
+            // paso de pago superaba el alto de la pantalla, el fondo animado
+            // (absoluto dentro del Paper) solo cubría la primera "pantalla" y
+            // el resto quedaba sin patrón. Ahora el Paper es un marco fijo
+            // (`overflow: hidden`) con el fondo, y el scroll vive en una capa
+            // interna (ver abajo).
             width: "100%",
             height: "100%",
-            overflowY: "auto",
+            overflow: "hidden",
             backgroundColor: "#060A1D",
             borderRadius: 0,
             m: 0,
@@ -182,17 +185,9 @@ export function TitheModal() {
         },
       }}
     >
-      {/* Patrón geométrico en pan continuo — mismo "efecto wow" de D048 */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "repeating-linear-gradient(135deg, rgba(245,246,250,0.05) 0px, rgba(245,246,250,0.05) 1px, transparent 1px, transparent 40px)",
-          animation: `${patternPan} 24s linear infinite`,
-          "@media (prefers-reduced-motion: reduce)": { animation: "none" },
-        }}
-      />
+      {/* Patrón geométrico en pan continuo — mismo "efecto wow" de D048,
+          ahora sin salto al reiniciar el bucle (ver theme/patterns.ts). */}
+      <Box aria-hidden="true" sx={patternLayerSx()} />
 
       <IconButton
         onClick={handleClose}
@@ -201,7 +196,7 @@ export function TitheModal() {
           position: "absolute",
           top: 12,
           right: 12,
-          zIndex: 1,
+          zIndex: 2,
           color: "#F5F6FA",
           backgroundColor: "rgba(245,246,250,0.1)",
           "&:hover": { backgroundColor: "rgba(245,246,250,0.18)" },
@@ -210,9 +205,12 @@ export function TitheModal() {
         <CloseRoundedIcon fontSize="small" />
       </IconButton>
 
+      {/* Capa que scrollea, por encima del fondo fijo. */}
+      <Box sx={{ position: "absolute", inset: 0, zIndex: 1, overflowY: "auto" }}>
       <Box
         sx={{
           position: "relative",
+          boxSizing: "border-box",
           minHeight: "100%",
           display: "flex",
           flexDirection: "column",
@@ -326,6 +324,7 @@ export function TitheModal() {
             )}
           </Box>
         </Box>
+      </Box>
       </Box>
     </Dialog>
 

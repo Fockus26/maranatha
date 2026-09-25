@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { AnimatePresence, animate, motion } from "framer-motion";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { typography } from "@/theme/tokens";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
@@ -16,15 +17,6 @@ import { SegmentedToggle } from "./SegmentedToggle";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
-// Tamaño de label/placeholder de los TextField del formulario — antes usaban
-// el tamaño default de MUI (16px en reposo), que el cliente encontró
-// "muy grande" para un input de una sola línea. `typography.size.small`
-// (14px) es el mismo tamaño que ya usa el resto de texto secundario del
-// formulario (labels de sección, texto bajo el monto).
-const FIELD_LABEL_SX = {
-  "& .MuiInputLabel-root": { fontSize: typography.size.small },
-  "& .MuiInputBase-input": { fontSize: typography.size.small },
-} as const;
 
 /**
  * Anima el número mostrado hacia `target` (estilo "contador") en vez de
@@ -201,7 +193,7 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
           onChange={(e) => setName(e.target.value)}
           error={touched && !nameValid}
           helperText={touched && !nameValid ? "Ingresá tu nombre completo." : undefined}
-          sx={FIELD_LABEL_SX}
+          sx={SMALL_FIELD_SX}
         />
         <TextField
           label="Correo electrónico"
@@ -212,7 +204,7 @@ export function TitheForm({ presetAmounts = [25, 50, 100], width, onSubmit }: Ti
           onChange={(e) => setEmail(e.target.value)}
           error={touched && !emailValid}
           helperText={touched && !emailValid ? "Ingresá un correo electrónico válido." : undefined}
-          sx={FIELD_LABEL_SX}
+          sx={SMALL_FIELD_SX}
         />
       </Box>
 

@@ -6,6 +6,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { radius, typography } from "@/theme/tokens";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
@@ -175,6 +176,7 @@ export function ProjectContributionForm({
           label="Nombre completo"
           fullWidth
           size="small"
+          sx={SMALL_FIELD_SX}
           value={name}
           onChange={(e) => setName(e.target.value)}
           error={touched && !nameValid}
@@ -185,6 +187,7 @@ export function ProjectContributionForm({
           type="email"
           fullWidth
           size="small"
+          sx={SMALL_FIELD_SX}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           error={touched && !emailValid}
