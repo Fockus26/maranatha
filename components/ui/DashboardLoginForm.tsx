@@ -5,14 +5,14 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { type SignInError, type SignInState, signIn } from "@/app/actions/auth";
 import { isValidEmail } from "@/lib/validation";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
+import { patternLayerSx } from "@/theme/patterns";
 import { radius, typography } from "@/theme/tokens";
 
 const ERROR_TEXT: Record<SignInError, string> = {
@@ -49,7 +49,9 @@ function erroredField(
 /**
  * Login del dashboard — opción C ("minimal editorial") del comparativo de
  * /design: sin tarjeta, alineado a la izquierda, con acceso para volver al
- * sitio.
+ * sitio. En desktop se amplía (título grande, campos de tamaño normal,
+ * centrado en vertical) y la mitad derecha lleva el patrón diagonal del sitio
+ * desvaneciéndose hacia el formulario, para que la pantalla no quede vacía.
  *
  * Envía con un Server Action (`useActionState`). Correo y contraseña son
  * controlados: React 19 resetea los campos no controlados de un `<form
@@ -70,6 +72,8 @@ export function DashboardLoginForm() {
   return (
     <Box
       sx={{
+        position: "relative",
+        overflow: "hidden",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -79,13 +83,23 @@ export function DashboardLoginForm() {
       }}
     >
       <Box
+        aria-hidden="true"
+        sx={{
+          ...patternLayerSx(alpha(theme.palette.text.primary, 0.07)),
+          display: { xs: "none", md: "block" },
+          left: "45%",
+          maskImage: "linear-gradient(to right, transparent, black 45%)",
+        }}
+      />
+      <Box
         component="header"
         sx={{
+          position: "relative",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           gap: 2,
-          mb: { xs: 8, md: 12 },
+          mb: { xs: 8, md: 0 },
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
@@ -122,13 +136,26 @@ export function DashboardLoginForm() {
       <Box
         component="main"
         id="main-content"
-        sx={{ width: "100%", maxWidth: 360 }}
+        sx={{
+          position: "relative",
+          flex: { md: 1 },
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: { xs: 360, md: 440 },
+          py: { md: 6 },
+        }}
       >
         <Box
           component="form"
           action={formAction}
           noValidate
-          sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: 2.5, md: 3 },
+          }}
         >
           <Box
             sx={{
@@ -155,14 +182,24 @@ export function DashboardLoginForm() {
             sx={{
               fontFamily: typography.fontFamily.heading,
               fontWeight: 800,
-              fontSize: { xs: 26, md: 30 },
-              lineHeight: 1.15,
+              fontSize: {
+                xs: typography.size.h2.mobile,
+                md: typography.size.h1.desktop,
+              },
+              lineHeight: typography.lineHeight.h1,
             }}
           >
             Bienvenido de nuevo
           </Typography>
           <Typography
-            sx={{ fontSize: 14, color: theme.palette.text.secondary, mt: -1 }}
+            sx={{
+              fontSize: {
+                xs: typography.size.small,
+                md: typography.size.bodyLarge,
+              },
+              color: theme.palette.text.secondary,
+              mt: { xs: -1, md: -1.5 },
+            }}
           >
             Ingresa para gestionar proyectos y verificar pagos.
           </Typography>
@@ -176,7 +213,6 @@ export function DashboardLoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
-            size="small"
             error={field === "email"}
             slotProps={{
               htmlInput: {
@@ -184,7 +220,6 @@ export function DashboardLoginForm() {
                   field === "email" ? "login-error" : undefined,
               },
             }}
-            sx={SMALL_FIELD_SX}
           />
           <TextField
             name="password"
@@ -195,7 +230,6 @@ export function DashboardLoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
-            size="small"
             error={field === "password"}
             slotProps={{
               htmlInput: {
@@ -203,7 +237,6 @@ export function DashboardLoginForm() {
                   field === "password" ? "login-error" : undefined,
               },
             }}
-            sx={SMALL_FIELD_SX}
           />
 
           {error && (
@@ -222,7 +255,8 @@ export function DashboardLoginForm() {
             variant="contained"
             color="secondary"
             disabled={pending}
-            sx={{ alignSelf: "flex-start", px: 4 }}
+            size="large"
+            sx={{ alignSelf: "flex-start", px: 5 }}
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </Button>
