@@ -10,7 +10,12 @@
     "format": "biome format --write",
     "a11y": "node scripts/a11y-check.ts",
     "lighthouse": "node scripts/lighthouse.ts",
-    "lighthouse:mobile": "node scripts/lighthouse.ts --mobile"
+    "lighthouse:mobile": "node scripts/lighthouse.ts --mobile",
+    "test": "bun test ./tests/unit --dots --pass-with-no-tests",
+    "test:related": "bun scripts/test-related.ts",
+    "shots:publish": "bash scripts/publish-pr-shots.sh .pr-shots",
+    "typecheck": "next typegen && tsc --noEmit",
+    "shots": "node scripts/pr-screenshots.ts .pr-shots.json"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -31,7 +36,10 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "2.4.2",
+    "@changesets/cli": "^3.0.3",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.4.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

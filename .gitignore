@@ -46,3 +46,14 @@ next-env.d.ts
 
 # lighthouse reports
 /.lighthouse/
+
+# capturas para PR (web-agent-kit)
+.pr-shots/
+.pr-shots.json
+
+# context local (web-agent-kit): tablero, inventarios, bitácora y planes
+/context/CURRENT_PHASE.md
+/context/CONTENT_CHECKLIST.md
+/context/*_INVENTORY.md
+/context/PHASE_LOG/
+/context/plans/
