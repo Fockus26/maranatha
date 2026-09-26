@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import IconButton from "@mui/material/IconButton";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Dialog from "@mui/material/Dialog";
+import IconButton from "@mui/material/IconButton";
 import { alpha, useTheme } from "@mui/material/styles";
-import { YoutubeEmbedCard } from "@/components/ui/YoutubeEmbedCard";
+import Typography from "@mui/material/Typography";
+import { useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
+import { YoutubeEmbedCard } from "@/components/ui/YoutubeEmbedCard";
 import { YOUTUBE_CHANNEL_URL } from "@/lib/siteConfig";
 import type { SermonVideo } from "@/lib/youtube";
 
@@ -22,9 +22,24 @@ import type { SermonVideo } from "@/lib/youtube";
  */
 
 const FALLBACK_SERMONS: SermonVideo[] = [
-  { videoId: "sermon-placeholder-1", title: "El poder de la fe en tiempos de incertidumbre", publishedAt: "18 de agosto de 2026", publishedIso: "2026-08-18" },
-  { videoId: "sermon-placeholder-2", title: "Servir con propósito: una vida entregada a los demás", publishedAt: "11 de agosto de 2026", publishedIso: "2026-08-11" },
-  { videoId: "sermon-placeholder-3", title: "Gracia y comunidad: caminar juntos en fe", publishedAt: "4 de agosto de 2026", publishedIso: "2026-08-04" },
+  {
+    videoId: "sermon-placeholder-1",
+    title: "El poder de la fe en tiempos de incertidumbre",
+    publishedAt: "18 de agosto de 2026",
+    publishedIso: "2026-08-18",
+  },
+  {
+    videoId: "sermon-placeholder-2",
+    title: "Servir con propósito: una vida entregada a los demás",
+    publishedAt: "11 de agosto de 2026",
+    publishedIso: "2026-08-11",
+  },
+  {
+    videoId: "sermon-placeholder-3",
+    title: "Gracia y comunidad: caminar juntos en fe",
+    publishedAt: "4 de agosto de 2026",
+    publishedIso: "2026-08-04",
+  },
 ];
 
 export function Sermons({ videos }: { videos?: SermonVideo[] }) {
@@ -87,7 +102,8 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
                 color: "text.secondary",
               }}
             >
-              Revive nuestros últimos servicios y prédicas directamente desde nuestro canal de YouTube.
+              Revive nuestros últimos servicios y prédicas directamente desde
+              nuestro canal de YouTube.
             </Typography>
           </Box>
         </Reveal>
@@ -96,7 +112,11 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(3, 1fr)",
+              },
               gap: "24px",
               mb: { xs: 5, md: 6 },
             }}
@@ -123,7 +143,12 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
             ))}
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: { xs: "center", md: "flex-start" } }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: { xs: "center", md: "flex-start" },
+            }}
+          >
             {/* Mismo tratamiento que "Ver proyecto" (ProjectCard/ProjectSidebar)
                 y "Seguir" (SocialLinkCard): neutro en reposo, acento al
                 interactuar. Antes el acento era navy (D050-siguiente), pero
@@ -161,7 +186,9 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
         onClose={() => setActiveVideoId(null)}
         maxWidth="md"
         fullWidth
-        aria-label={activeSermon ? `Video: ${activeSermon.title}` : "Reproductor de video"}
+        aria-label={
+          activeSermon ? `Video: ${activeSermon.title}` : "Reproductor de video"
+        }
         slotProps={{
           paper: {
             sx: { backgroundColor: "background.paper", borderRadius: "12px" },
@@ -183,13 +210,27 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
           </IconButton>
 
           {activeVideoId && (
-            <Box sx={{ position: "relative", aspectRatio: "16 / 9", backgroundColor: "#000" }}>
+            <Box
+              sx={{
+                position: "relative",
+                aspectRatio: "16 / 9",
+                backgroundColor: "#000",
+              }}
+            >
               <iframe
                 src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1`}
-                title={activeSermon ? `Prédica: ${activeSermon.title}` : "Prédica"}
+                title={
+                  activeSermon ? `Prédica: ${activeSermon.title}` : "Prédica"
+                }
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: 0,
+                }}
               />
             </Box>
           )}

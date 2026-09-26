@@ -3,7 +3,12 @@
  * página. El email de contacto sigue siendo placeholder (ver
  * CONTENT_CHECKLIST.md); las redes ya son las reales.
  */
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_SOCIAL_LINKS } from "./siteConfig";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_SOCIAL_LINKS,
+  SITE_URL,
+} from "./siteConfig";
 import type { SermonVideo } from "./youtube";
 
 /** Organización — se usa en Home. `@type: Church` es subtipo de PlaceOfWorship. */
@@ -35,8 +40,12 @@ export function webSiteJsonLd(): Record<string, unknown> {
 }
 
 /** Lista de videos de la sección Prédicas (visible en Home). */
-export function sermonsJsonLd(videos: SermonVideo[]): Record<string, unknown> | null {
-  const real = videos.filter((v) => !v.videoId.startsWith("sermon-placeholder"));
+export function sermonsJsonLd(
+  videos: SermonVideo[],
+): Record<string, unknown> | null {
+  const real = videos.filter(
+    (v) => !v.videoId.startsWith("sermon-placeholder"),
+  );
   if (real.length === 0) return null;
   return {
     "@context": "https://schema.org",
@@ -58,7 +67,9 @@ export function sermonsJsonLd(videos: SermonVideo[]): Record<string, unknown> | 
 }
 
 /** Migas de pan. `items`: [{ name, path }] en orden, empezando por Inicio. */
-export function breadcrumbJsonLd(items: { name: string; path: string }[]): Record<string, unknown> {
+export function breadcrumbJsonLd(
+  items: { name: string; path: string }[],
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

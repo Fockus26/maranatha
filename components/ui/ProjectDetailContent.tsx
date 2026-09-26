@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import Image from "next/image";
 import { radius, typography } from "@/theme/tokens";
 
 export interface BudgetLine {
@@ -19,10 +19,19 @@ export interface ProjectDetailContentProps {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("es", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-export function ProjectDetailContent({ title, description, imageUrl, budget }: ProjectDetailContentProps) {
+export function ProjectDetailContent({
+  title,
+  description,
+  imageUrl,
+  budget,
+}: ProjectDetailContentProps) {
   const theme = useTheme();
 
   return (
@@ -49,7 +58,16 @@ export function ProjectDetailContent({ title, description, imageUrl, budget }: P
         )}
       </Box>
 
-      <Typography component="h1" sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 700, fontSize: "22px", color: theme.palette.text.primary, mb: 2 }}>
+      <Typography
+        component="h1"
+        sx={{
+          fontFamily: typography.fontFamily.heading,
+          fontWeight: 700,
+          fontSize: "22px",
+          color: theme.palette.text.primary,
+          mb: 2,
+        }}
+      >
         {title}
       </Typography>
 
@@ -65,8 +83,23 @@ export function ProjectDetailContent({ title, description, imageUrl, budget }: P
         {description}
       </Typography>
 
-      <Box sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: `${radius.md}px`, backgroundColor: theme.palette.background.paper, p: 3.5 }}>
-        <Typography sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 600, fontSize: "13px", color: theme.palette.text.primary, mb: 2 }}>
+      <Box
+        sx={{
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: `${radius.md}px`,
+          backgroundColor: theme.palette.background.paper,
+          p: 3.5,
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: typography.fontFamily.heading,
+            fontWeight: 600,
+            fontSize: "13px",
+            color: theme.palette.text.primary,
+            mb: 2,
+          }}
+        >
           Presupuesto
         </Typography>
 
@@ -79,7 +112,10 @@ export function ProjectDetailContent({ title, description, imageUrl, budget }: P
               fontSize: "12px",
               color: theme.palette.text.secondary,
               py: 1.25,
-              borderBottom: index < budget.length - 1 ? `1px solid ${theme.palette.divider}` : "none",
+              borderBottom:
+                index < budget.length - 1
+                  ? `1px solid ${theme.palette.divider}`
+                  : "none",
             }}
           >
             <span>{line.label}</span>

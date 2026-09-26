@@ -66,7 +66,8 @@ export async function signIn(
   }
 
   // Fuera de la lista: no se intenta ni se revela nada más.
-  if (!isAdminEmail(parsed.data.email)) return { ok: false, error: "no_access" };
+  if (!isAdminEmail(parsed.data.email))
+    return { ok: false, error: "no_access" };
 
   let supabase: Awaited<ReturnType<typeof supabaseSession>>;
   try {

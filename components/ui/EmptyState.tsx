@@ -1,10 +1,10 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import type { SvgIconComponent } from "@mui/icons-material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import { typography as typographyTokens } from "@/theme/tokens";
 
 /**
@@ -30,11 +30,20 @@ export interface EmptyStateProps {
   compact?: boolean;
 }
 
-export function EmptyState({ icon: Icon, title, description, ctaLabel, onCtaClick, compact }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  ctaLabel,
+  onCtaClick,
+  compact,
+}: EmptyStateProps) {
   const theme = useTheme();
 
   return (
-    <Box sx={{ textAlign: "center", py: compact ? 3 : { xs: 6, md: 8 }, px: 3 }}>
+    <Box
+      sx={{ textAlign: "center", py: compact ? 3 : { xs: 6, md: 8 }, px: 3 }}
+    >
       <Box
         sx={{
           display: "inline-flex",
@@ -75,7 +84,13 @@ export function EmptyState({ icon: Icon, title, description, ctaLabel, onCtaClic
         </Typography>
       )}
       {ctaLabel && onCtaClick && (
-        <Button variant="outlined" color="primary" size={compact ? "small" : "medium"} onClick={onCtaClick} sx={{ mt: compact ? 2 : 3 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          size={compact ? "small" : "medium"}
+          onClick={onCtaClick}
+          sx={{ mt: compact ? 2 : 3 }}
+        >
           {ctaLabel}
         </Button>
       )}

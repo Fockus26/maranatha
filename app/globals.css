@@ -138,7 +138,10 @@ body,
 .MuiTableCell-root,
 .MuiInputBase-root,
 [data-color-mode] {
-  transition: background-color 280ms ease, color 280ms ease, border-color 280ms ease;
+  transition:
+    background-color 280ms ease,
+    color 280ms ease,
+    border-color 280ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

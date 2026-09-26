@@ -8,7 +8,11 @@ export interface SermonVideo {
 }
 
 const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${YOUTUBE_CHANNEL_ID}`;
-const DATE_FMT = new Intl.DateTimeFormat("es-VE", { day: "numeric", month: "long", year: "numeric" });
+const DATE_FMT = new Intl.DateTimeFormat("es-VE", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
 function decode(s: string): string {
   return s

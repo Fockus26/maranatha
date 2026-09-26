@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import Link from "next/link";
-import { Box, Container, IconButton } from "@mui/material";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import { Box, Container, IconButton } from "@mui/material";
+import Link from "next/link";
 
 // Fase 10 (QA): antes solo tenía 3 de las 5 anclas de Home — se completa
 // con Prédicas y Redes para que coincida con `HOME_ANCHOR_ITEMS`
@@ -22,13 +22,19 @@ const NAV_LINKS = [
 
 // Fase 10 (QA): se quita "Nosotros" → `/nosotros` — esa ruta no existe en
 // el árbol de páginas (`app/`), era un link roto (404).
-const RESOURCE_LINKS = [
-  { label: "Proyectos", href: "/proyectos" },
-] as const;
+const RESOURCE_LINKS = [{ label: "Proyectos", href: "/proyectos" }] as const;
 
 const SOCIAL_LINKS = [
-  { label: "Instagram", href: "https://www.instagram.com/maranathasancristobal/", icon: InstagramIcon },
-  { label: "YouTube", href: "https://www.youtube.com/channel/UCT2A5hFBhTJ5T0CykeCKX7w", icon: YouTubeIcon },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/maranathasancristobal/",
+    icon: InstagramIcon,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/channel/UCT2A5hFBhTJ5T0CykeCKX7w",
+    icon: YouTubeIcon,
+  },
 ] as const;
 
 function FooterColumn({
@@ -39,7 +45,11 @@ function FooterColumn({
   links: readonly { label: string; href: string }[];
 }) {
   return (
-    <Box component="nav" aria-label={title} sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+    <Box
+      component="nav"
+      aria-label={title}
+      sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
+    >
       <Box
         component="span"
         sx={{
@@ -53,7 +63,17 @@ function FooterColumn({
       >
         {title}
       </Box>
-      <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: 0.75 }}>
+      <Box
+        component="ul"
+        sx={{
+          listStyle: "none",
+          m: 0,
+          p: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.75,
+        }}
+      >
         {links.map((link) => (
           <Box component="li" key={link.href}>
             <Box
@@ -112,7 +132,10 @@ export default function Footer() {
                   fontWeight: 600,
                   fontSize: 13,
                   "@media (min-width:1920px)": { fontSize: "15px" },
-                  color: (t) => (t.palette.mode === "dark" ? t.palette.primary.light : t.palette.primary.main),
+                  color: (t) =>
+                    t.palette.mode === "dark"
+                      ? t.palette.primary.light
+                      : t.palette.primary.main,
                 }}
               >
                 Iglesia
@@ -214,7 +237,9 @@ export default function Footer() {
             color: "text.secondary",
           }}
         >
-          <Box component="span">© 2026 Iglesia. Todos los derechos reservados.</Box>
+          <Box component="span">
+            © 2026 Iglesia. Todos los derechos reservados.
+          </Box>
           <Box component="span">Hecho con propósito</Box>
         </Box>
       </Container>

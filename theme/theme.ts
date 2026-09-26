@@ -1,6 +1,19 @@
-import { createTheme, type PaletteMode, type ThemeOptions } from "@mui/material/styles";
-import { primary, secondary, gray, semantic, typography, spacing, radius, shadow, breakpoints, zIndex } from "./tokens";
-
+import {
+  createTheme,
+  type PaletteMode,
+  type ThemeOptions,
+} from "@mui/material/styles";
+import {
+  breakpoints,
+  gray,
+  primary,
+  radius,
+  secondary,
+  semantic,
+  shadow,
+  typography,
+  zIndex,
+} from "./tokens";
 
 function getPaletteOptions(mode: PaletteMode): ThemeOptions["palette"] {
   const isLight = mode === "light";
@@ -44,21 +57,42 @@ function getPaletteOptions(mode: PaletteMode): ThemeOptions["palette"] {
 
 function getShapeOptions(): ThemeOptions["shape"] {
   return {
-    borderRadius: radius.sm, 
+    borderRadius: radius.sm,
   };
 }
 
-function getShadowsOptions(mode: PaletteMode): ThemeOptions["shadows"] {
+function getShadowsOptions(_mode: PaletteMode): ThemeOptions["shadows"] {
   const flat = "none";
   const sm = shadow.sm;
   const md = shadow.md;
   const lg = shadow.lg;
 
   return [
-    flat,       
-    sm, sm, sm, 
-    md, md, md, md, md, 
-    lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, lg, 
+    flat,
+    sm,
+    sm,
+    sm,
+    md,
+    md,
+    md,
+    md,
+    md,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
+    lg,
   ] as ThemeOptions["shadows"];
 }
 
@@ -130,7 +164,6 @@ function getTypographyOptions(): ThemeOptions["typography"] {
   };
 }
 
-
 export function getTheme(mode: PaletteMode) {
   const baseTheme = createTheme({
     palette: getPaletteOptions(mode),
@@ -160,19 +193,27 @@ export function getTheme(mode: PaletteMode) {
   return createTheme(baseTheme, {
     typography: {
       h1: {
-        [baseTheme.breakpoints.down("sm")]: { fontSize: typography.size.h1.mobile },
+        [baseTheme.breakpoints.down("sm")]: {
+          fontSize: typography.size.h1.mobile,
+        },
         [LARGE_SCREEN_QUERY]: { fontSize: "72px" },
       },
       h2: {
-        [baseTheme.breakpoints.down("sm")]: { fontSize: typography.size.h2.mobile },
+        [baseTheme.breakpoints.down("sm")]: {
+          fontSize: typography.size.h2.mobile,
+        },
         [LARGE_SCREEN_QUERY]: { fontSize: "52px" },
       },
       h3: {
-        [baseTheme.breakpoints.down("sm")]: { fontSize: typography.size.h3.mobile },
+        [baseTheme.breakpoints.down("sm")]: {
+          fontSize: typography.size.h3.mobile,
+        },
         [LARGE_SCREEN_QUERY]: { fontSize: "36px" },
       },
       h4: {
-        [baseTheme.breakpoints.down("sm")]: { fontSize: typography.size.h4.mobile },
+        [baseTheme.breakpoints.down("sm")]: {
+          fontSize: typography.size.h4.mobile,
+        },
         [LARGE_SCREEN_QUERY]: { fontSize: "26px" },
       },
       body1: { [LARGE_SCREEN_QUERY]: { fontSize: "20px" } },
@@ -226,8 +267,13 @@ export function getTheme(mode: PaletteMode) {
           containedPrimary: {
             // En oscuro `primary.main` es un navy claro (`#5B6B9E`) y con
             // texto blanco da 3.7:1 — se fija un navy más profundo.
-            ...(mode === "dark" && { backgroundColor: primary[600], color: "#FFFFFF" }),
-            "&:hover": { backgroundColor: mode === "dark" ? primary[700] : primary[600] },
+            ...(mode === "dark" && {
+              backgroundColor: primary[600],
+              color: "#FFFFFF",
+            }),
+            "&:hover": {
+              backgroundColor: mode === "dark" ? primary[700] : primary[600],
+            },
             "&.Mui-disabled": {
               backgroundColor: gray[200],
               color: gray[400],
@@ -249,7 +295,10 @@ export function getTheme(mode: PaletteMode) {
           },
           text: {
             padding: "9px 12px",
-            "&:hover": { backgroundColor: "transparent", color: secondary[500] },
+            "&:hover": {
+              backgroundColor: "transparent",
+              color: secondary[500],
+            },
           },
         },
       },

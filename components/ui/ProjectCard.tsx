@@ -1,12 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Image from "next/image";
-import { alpha, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
+import { alpha, useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import Image from "next/image";
+import type { ReactNode } from "react";
 import { primary, radius, semantic, typography } from "@/theme/tokens";
 
 export type ProjectStatus = "active" | "completed";
@@ -24,7 +24,11 @@ export interface ProjectCardProps {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("es", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function ProjectCard({
@@ -41,14 +45,39 @@ export function ProjectCard({
   const theme = useTheme();
   const isCompleted = status === "completed";
   const percent = Math.min(Math.round((currentAmount / goalAmount) * 100), 100);
-  const resolvedCtaLabel = ctaLabel ?? (isCompleted ? "Ver proyecto" : "Aportar");
+  const resolvedCtaLabel =
+    ctaLabel ?? (isCompleted ? "Ver proyecto" : "Aportar");
 
   // Foto de la card vía `next/image` (optimización/AVIF/tamaños por
   // dispositivo). `sx` da el marco (medida, radios, fallback navy); la
   // imagen la cubre con `fill`.
-  const CardPhoto = ({ sx, sizes, children }: { sx: object; sizes: string; children?: ReactNode }) => (
-    <Box sx={{ position: "relative", overflow: "hidden", flexShrink: 0, backgroundColor: theme.palette.primary.dark, ...sx }}>
-      {imageUrl && <Image src={imageUrl} alt="" fill sizes={sizes} style={{ objectFit: "cover" }} />}
+  const CardPhoto = ({
+    sx,
+    sizes,
+    children,
+  }: {
+    sx: object;
+    sizes: string;
+    children?: ReactNode;
+  }) => (
+    <Box
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        flexShrink: 0,
+        backgroundColor: theme.palette.primary.dark,
+        ...sx,
+      }}
+    >
+      {imageUrl && (
+        <Image
+          src={imageUrl}
+          alt=""
+          fill
+          sizes={sizes}
+          style={{ objectFit: "cover" }}
+        />
+      )}
       {children}
     </Box>
   );
@@ -83,7 +112,10 @@ export function ProjectCard({
           : inverted
             ? theme.palette.primary.main
             : "#F5F6FA",
-        border: !isCompleted && !inverted ? `1px solid ${alpha("#F5F6FA", 0.14)}` : "none",
+        border:
+          !isCompleted && !inverted
+            ? `1px solid ${alpha("#F5F6FA", 0.14)}`
+            : "none",
       }}
     >
       {isCompleted ? "Completado" : "Activo"}
@@ -101,14 +133,38 @@ export function ProjectCard({
           height: 6,
           borderRadius: "20px",
           mb: 2,
-          backgroundColor: light ? alpha(theme.palette.common.white, 0.2) : theme.palette.action.hover,
+          backgroundColor: light
+            ? alpha(theme.palette.common.white, 0.2)
+            : theme.palette.action.hover,
         }}
       />
-      <Box sx={{ display: "flex", justifyContent: "space-between", fontSize: "12px", mb: 4 }}>
-        <Typography component="span" sx={{ fontFamily: typography.fontFamily.body, fontWeight: 500, fontSize: "12px", color: light ? "#F5F6FA" : theme.palette.text.primary }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: "12px",
+          mb: 4,
+        }}
+      >
+        <Typography
+          component="span"
+          sx={{
+            fontFamily: typography.fontFamily.body,
+            fontWeight: 500,
+            fontSize: "12px",
+            color: light ? "#F5F6FA" : theme.palette.text.primary,
+          }}
+        >
           {formatCurrency(currentAmount)}
         </Typography>
-        <Typography component="span" sx={{ fontFamily: typography.fontFamily.body, fontSize: "12px", color: light ? "#A6AEC7" : theme.palette.text.secondary }}>
+        <Typography
+          component="span"
+          sx={{
+            fontFamily: typography.fontFamily.body,
+            fontSize: "12px",
+            color: light ? "#A6AEC7" : theme.palette.text.secondary,
+          }}
+        >
           de {formatCurrency(goalAmount)}
         </Typography>
       </Box>
@@ -159,7 +215,13 @@ export function ProjectCard({
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        <CardPhoto sx={{ width: { xs: "100%", sm: 200 }, height: { xs: 180, sm: "auto" } }} sizes="(max-width: 600px) 100vw, 200px" />
+        <CardPhoto
+          sx={{
+            width: { xs: "100%", sm: 200 },
+            height: { xs: 180, sm: "auto" },
+          }}
+          sizes="(max-width: 600px) 100vw, 200px"
+        />
         <Box
           sx={{
             p: { xs: 4, sm: 5 },
@@ -171,8 +233,22 @@ export function ProjectCard({
           }}
         >
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", mb: 1.5 }}>
-              <Typography sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 600, fontSize: "17px", color: theme.palette.text.primary }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                alignItems: "flex-start",
+                mb: 1.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: typography.fontFamily.heading,
+                  fontWeight: 600,
+                  fontSize: "17px",
+                  color: theme.palette.text.primary,
+                }}
+              >
                 {title}
               </Typography>
               <StatusChip inverted={false} />

@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 /**
  * Estado global del modal "Diezmo/Aportes" (fase 07): el diezmo dejó de ser
@@ -25,9 +32,16 @@ export function TitheModalProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const openTithe = useCallback(() => setOpen(true), []);
   const closeTithe = useCallback(() => setOpen(false), []);
-  const value = useMemo(() => ({ open, openTithe, closeTithe }), [open, openTithe, closeTithe]);
+  const value = useMemo(
+    () => ({ open, openTithe, closeTithe }),
+    [open, openTithe, closeTithe],
+  );
 
-  return <TitheModalContext.Provider value={value}>{children}</TitheModalContext.Provider>;
+  return (
+    <TitheModalContext.Provider value={value}>
+      {children}
+    </TitheModalContext.Provider>
+  );
 }
 
 export function useTitheModal() {

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
 import { keyframes } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import { useInView } from "framer-motion";
-import { TitheForm, type TitheFormValues } from "@/components/ui/TitheForm";
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
+import { TitheForm, type TitheFormValues } from "@/components/ui/TitheForm";
 
 /**
  * Sección "CTA Diezmo/Aportes" (fase 06) — componente + datos en un solo archivo (D030).
@@ -70,7 +70,14 @@ function AnimatedFamiliesCounter() {
   }, [isInView]);
 
   return (
-    <Box ref={ref} sx={{ mt: { xs: 4, md: 5 }, pt: 3, borderTop: "1px solid rgba(245,246,250,0.15)" }}>
+    <Box
+      ref={ref}
+      sx={{
+        mt: { xs: 4, md: 5 },
+        pt: 3,
+        borderTop: "1px solid rgba(245,246,250,0.15)",
+      }}
+    >
       <Typography
         component="span"
         sx={{
@@ -84,7 +91,14 @@ function AnimatedFamiliesCounter() {
       >
         +{value}
       </Typography>
-      <Typography sx={{ fontFamily: "var(--font-body)", fontSize: 13, color: "rgba(245,246,250,0.65)", mt: 0.75 }}>
+      <Typography
+        sx={{
+          fontFamily: "var(--font-body)",
+          fontSize: 13,
+          color: "rgba(245,246,250,0.65)",
+          mt: 0.75,
+        }}
+      >
         familias aportando este año entre toda la comunidad
       </Typography>
     </Box>
@@ -124,95 +138,96 @@ export function Tithe() {
         sx={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(circle at 82% 15%, rgba(249,117,13,0.10) 0%, transparent 45%)",
+          background:
+            "radial-gradient(circle at 82% 15%, rgba(249,117,13,0.10) 0%, transparent 45%)",
         }}
       />
 
       <Container maxWidth="lg" sx={{ position: "relative" }}>
         <Reveal>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            alignItems: { xs: "center", md: "flex-start" },
-            justifyContent: "space-between",
-            gap: { xs: 6, md: 8 },
-          }}
-        >
           <Box
             sx={{
-              maxWidth: 480,
-              textAlign: { xs: "center", md: "left" },
-              pt: { md: 2 },
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: { xs: "center", md: "flex-start" },
+              justifyContent: "space-between",
+              gap: { xs: 6, md: 8 },
             }}
           >
             <Box
               sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 44,
-                height: 44,
-                borderRadius: "12px",
-                backgroundColor: "rgba(245,246,250,0.1)",
-                color: "secondary.light",
-                mb: 3,
+                maxWidth: 480,
+                textAlign: { xs: "center", md: "left" },
+                pt: { md: 2 },
               }}
             >
-              <VolunteerActivismRoundedIcon fontSize="small" />
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 44,
+                  height: 44,
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(245,246,250,0.1)",
+                  color: "secondary.light",
+                  mb: 3,
+                }}
+              >
+                <VolunteerActivismRoundedIcon fontSize="small" />
+              </Box>
+
+              <Typography
+                component="span"
+                sx={{
+                  display: "block",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 500,
+                  fontSize: 11,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: "secondary.light",
+                  mb: 1.5,
+                }}
+              >
+                Da con propósito
+              </Typography>
+
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: "var(--font-heading)",
+                  fontWeight: 800,
+                  fontSize: { xs: "28px", md: "38px" },
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.01em",
+                  color: "#F5F6FA",
+                  mb: 2,
+                }}
+              >
+                Tu diezmo y tus aportes sostienen esta obra
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 16,
+                  lineHeight: 1.6,
+                  color: "rgba(245,246,250,0.72)",
+                }}
+              >
+                Cada aporte se destina directamente a nuestras áreas de servicio
+                y proyectos activos. Elige un monto, única vez o mensual, y
+                completa tus datos — sin compromisos, cancela cuando quieras.
+              </Typography>
+
+              <AnimatedFamiliesCounter />
             </Box>
 
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: 11,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.light",
-                mb: 1.5,
-              }}
-            >
-              Da con propósito
-            </Typography>
-
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                fontSize: { xs: "28px", md: "38px" },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "#F5F6FA",
-                mb: 2,
-              }}
-            >
-              Tu diezmo y tus aportes sostienen esta obra
-            </Typography>
-
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: 16,
-                lineHeight: 1.6,
-                color: "rgba(245,246,250,0.72)",
-              }}
-            >
-              Cada aporte se destina directamente a nuestras áreas de servicio y proyectos
-              activos. Elige un monto, única vez o mensual, y completa tus datos — sin
-              compromisos, cancela cuando quieras.
-            </Typography>
-
-            <AnimatedFamiliesCounter />
+            <Box sx={{ flexShrink: 0 }}>
+              <TitheForm width={440} onSubmit={handleSubmit} />
+            </Box>
           </Box>
-
-          <Box sx={{ flexShrink: 0 }}>
-            <TitheForm width={440} onSubmit={handleSubmit} />
-          </Box>
-        </Box>
         </Reveal>
       </Container>
     </Box>

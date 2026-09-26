@@ -1,19 +1,22 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent } from "react";
-import { useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import SearchOffRoundedIcon from "@mui/icons-material/SearchOffRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import { type ChangeEvent, useMemo, useState } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { DashboardTable, type DashboardProjectRow } from "@/components/ui/DashboardTable";
+import {
+  type DashboardProjectRow,
+  DashboardTable,
+} from "@/components/ui/DashboardTable";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { radius, typography } from "@/theme/tokens";
-import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
+import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
+import { radius, typography } from "@/theme/tokens";
 
 /**
  * Página "Dashboard — Proyectos" (`/dashboard/proyectos`) — Opción B ("Panel
@@ -59,19 +62,52 @@ export default function DashboardProyectosPage() {
     return rows.filter((row) => row.title.toLowerCase().includes(normalized));
   }, [rows, query]);
 
-  const activos = projects.filter((project) => project.status === "active").length;
-  const completados = projects.filter((project) => project.status === "completed").length;
+  const activos = projects.filter(
+    (project) => project.status === "active",
+  ).length;
+  const completados = projects.filter(
+    (project) => project.status === "completed",
+  ).length;
 
   return (
     <DashboardShell>
-      <Box sx={{ px: { xs: 3, md: 5 }, pt: { xs: "32px", md: "48px" }, pb: 5, maxWidth: 1400, mx: "auto" }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4, flexWrap: "wrap", gap: 2 }}>
+      <Box
+        sx={{
+          px: { xs: 3, md: 5 },
+          pt: { xs: "32px", md: "48px" },
+          pb: 5,
+          maxWidth: 1400,
+          mx: "auto",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 4,
+            flexWrap: "wrap",
+            gap: 2,
+          }}
+        >
           <Box>
-            <Typography component="h1" sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 800, fontSize: 26, color: theme.palette.text.primary, mb: 0.5 }}>
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: typography.fontFamily.heading,
+                fontWeight: 800,
+                fontSize: 26,
+                color: theme.palette.text.primary,
+                mb: 0.5,
+              }}
+            >
               Proyectos
             </Typography>
-            <Typography sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
-              {projects.length} proyectos · {activos} activos, {completados} completados
+            <Typography
+              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+            >
+              {projects.length} proyectos · {activos} activos, {completados}{" "}
+              completados
             </Typography>
           </Box>
           {/* `color="primary"` + modo oscuro usa `primary.contrastText`
@@ -108,7 +144,9 @@ export default function DashboardProyectosPage() {
           <Box
             component="input"
             value={query}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setQuery(e.target.value)
+            }
             placeholder="Buscar proyecto…"
             sx={{
               border: "none",
@@ -127,7 +165,13 @@ export default function DashboardProyectosPage() {
             del caso "sin ningún proyecto todavía", que resuelve el propio
             `DashboardTable` vía su prop `onCreate` (fase 09, D067). */}
         {!isLoading && query.trim() && filteredRows.length === 0 ? (
-          <Box sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: `${radius.lg}px`, backgroundColor: theme.palette.background.paper }}>
+          <Box
+            sx={{
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: `${radius.lg}px`,
+              backgroundColor: theme.palette.background.paper,
+            }}
+          >
             <EmptyState
               icon={SearchOffRoundedIcon}
               title={`Ningún proyecto coincide con "${query}"`}
@@ -137,7 +181,13 @@ export default function DashboardProyectosPage() {
             />
           </Box>
         ) : (
-          <DashboardTable projects={filteredRows} onEdit={openEdit} onDelete={deleteProject} loading={isLoading} onCreate={openCreate} />
+          <DashboardTable
+            projects={filteredRows}
+            onEdit={openEdit}
+            onDelete={deleteProject}
+            loading={isLoading}
+            onCreate={openCreate}
+          />
         )}
       </Box>
     </DashboardShell>

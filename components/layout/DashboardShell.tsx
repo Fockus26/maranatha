@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import Box from "@mui/material/Box";
+import * as React from "react";
 import { signOut } from "@/app/actions/auth";
 import { DashboardTopbar } from "./DashboardTopbar";
 
@@ -55,11 +55,16 @@ function defaultLogout() {
   });
 }
 
-export function DashboardShell({ onLogout = defaultLogout, children }: DashboardShellProps) {
+export function DashboardShell({
+  onLogout = defaultLogout,
+  children,
+}: DashboardShellProps) {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <DashboardTopbar onLogout={onLogout} />
-      <Box component="main" id="main-content">{children}</Box>
+      <Box component="main" id="main-content">
+        {children}
+      </Box>
     </Box>
   );
 }

@@ -1,23 +1,29 @@
 "use client";
 
-import { useRef, useState } from "react";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import PageNavbar from "@/components/layout/PageNavbar";
+import { useRef, useState } from "react";
 import Footer from "@/components/layout/Footer";
+import PageNavbar from "@/components/layout/PageNavbar";
+import { JsonLd } from "@/components/seo/JsonLd";
+import {
+  PaymentStep,
+  type PaymentStepContribution,
+} from "@/components/ui/PaymentStep";
+import {
+  ProjectContributionForm,
+  type ProjectContributionFormValues,
+} from "@/components/ui/ProjectContributionForm";
 import { ProjectDetailContent } from "@/components/ui/ProjectDetailContent";
 import { ProjectSidebar } from "@/components/ui/ProjectSidebar";
-import { ProjectContributionForm, type ProjectContributionFormValues } from "@/components/ui/ProjectContributionForm";
-import { PaymentStep, type PaymentStepContribution } from "@/components/ui/PaymentStep";
-import type { ProjectRecord } from "@/lib/projectsData";
-import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbJsonLd } from "@/lib/jsonLd";
+import type { ProjectRecord } from "@/lib/projectsData";
 import { gray, semantic } from "@/theme/tokens";
 
 /**
@@ -34,7 +40,8 @@ import { gray, semantic } from "@/theme/tokens";
 export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
   const [contributeOpen, setContributeOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [contribution, setContribution] = useState<PaymentStepContribution | null>(null);
+  const [contribution, setContribution] =
+    useState<PaymentStepContribution | null>(null);
   const isCompleted = project.status === "completed";
 
   function handleContribute(values: ProjectContributionFormValues) {
@@ -55,7 +62,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
   function handleBack() {
     setContribution(null);
     requestAnimationFrame(() => {
-      stepOneRef.current?.querySelector<HTMLElement>('button[type="submit"]')?.focus();
+      stepOneRef.current
+        ?.querySelector<HTMLElement>('button[type="submit"]')
+        ?.focus();
     });
   }
 
@@ -103,7 +112,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
               goalAmount={project.goalAmount}
               deadlineLabel={project.deadlineLabel}
               encargados={project.encargados}
-              onCtaClick={() => (isCompleted ? undefined : setContributeOpen(true))}
+              onCtaClick={() =>
+                isCompleted ? undefined : setContributeOpen(true)
+              }
             />
           </Box>
         </Container>
@@ -117,18 +128,35 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
         maxWidth="xs"
         fullWidth
         aria-label={`Aportar a "${project.title}"`}
-        slotProps={{ paper: { sx: { backgroundImage: "none", m: { xs: 2, sm: 4 } } } }}
+        slotProps={{
+          paper: { sx: { backgroundImage: "none", m: { xs: 2, sm: 4 } } },
+        }}
       >
         <IconButton
           onClick={handleClose}
           aria-label="Cerrar"
-          sx={{ position: "absolute", top: 8, right: 8, zIndex: 1, color: "text.secondary" }}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+            color: "text.secondary",
+          }}
         >
           <CloseRoundedIcon fontSize="small" />
         </IconButton>
-        <DialogContent sx={{ p: { xs: 2.5, sm: 4 }, display: "flex", justifyContent: "center" }}>
+        <DialogContent
+          sx={{
+            p: { xs: 2.5, sm: 4 },
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           {/* Oculto (no desmontado) durante el paso 2: "Volver" conserva lo escrito. */}
-          <Box ref={stepOneRef} sx={{ display: contribution ? "none" : "block" }}>
+          <Box
+            ref={stepOneRef}
+            sx={{ display: contribution ? "none" : "block" }}
+          >
             <ProjectContributionForm
               projectTitle={project.title}
               projectImageUrl={project.imageUrl}
@@ -148,7 +176,11 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
         </DialogContent>
       </Dialog>
 
-      <Snackbar open={confirmed} autoHideDuration={5000} onClose={() => setConfirmed(false)}>
+      <Snackbar
+        open={confirmed}
+        autoHideDuration={5000}
+        onClose={() => setConfirmed(false)}
+      >
         <Alert
           onClose={() => setConfirmed(false)}
           severity="success"
@@ -160,7 +192,8 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
             "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
           }}
         >
-          ¡Gracias por tu aporte a &quot;{project.title}&quot;! Verificaremos tu pago en las próximas horas.
+          ¡Gracias por tu aporte a &quot;{project.title}&quot;! Verificaremos tu
+          pago en las próximas horas.
         </Alert>
       </Snackbar>
     </>

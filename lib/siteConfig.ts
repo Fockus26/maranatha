@@ -14,7 +14,8 @@ export const SITE_INDEXABLE = process.env.VERCEL !== "1";
 
 export const SITE_NAME = "Iglesia Maranatha";
 
-export const SITE_TITLE_DEFAULT = "Iglesia Maranatha — comunidad de fe y propósito";
+export const SITE_TITLE_DEFAULT =
+  "Iglesia Maranatha — comunidad de fe y propósito";
 
 export const SITE_DESCRIPTION =
   "Conoce a la Iglesia Maranatha: nuestras áreas de servicio, el liderazgo, las prédicas, la agenda de reuniones, los proyectos de la comunidad y nuestra historia.";

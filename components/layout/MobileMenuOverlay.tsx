@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Box, IconButton, Button, useTheme } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import { Box, Button, IconButton, useTheme } from "@mui/material";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
+import * as React from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { primary, secondary } from "@/theme/tokens";
 import type { MobileNavLink } from "./navItems";
@@ -60,9 +60,15 @@ export default function MobileMenuOverlay({
 
   const overlayBg = isLight ? theme.palette.background.default : primary[900];
   const textColor = isLight ? theme.palette.text.primary : "#FFFFFF";
-  const mutedColor = isLight ? theme.palette.text.secondary : "rgba(255,255,255,0.75)";
-  const hoverBg = isLight ? theme.palette.action.hover : "rgba(255,255,255,0.12)";
-  const dividerColor = isLight ? theme.palette.divider : "rgba(255,255,255,0.24)";
+  const mutedColor = isLight
+    ? theme.palette.text.secondary
+    : "rgba(255,255,255,0.75)";
+  const hoverBg = isLight
+    ? theme.palette.action.hover
+    : "rgba(255,255,255,0.12)";
+  const dividerColor = isLight
+    ? theme.palette.divider
+    : "rgba(255,255,255,0.24)";
 
   // Cierra con Escape, bloquea el scroll del body, atrapa el foco dentro del
   // overlay mientras está abierto y lo devuelve al abridor al cerrar.
@@ -71,7 +77,10 @@ export default function MobileMenuOverlay({
 
     openerRef.current = document.activeElement;
     // Mueve el foco al botón de cerrar al abrir.
-    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+    const focusTimer = window.setTimeout(
+      () => closeButtonRef.current?.focus(),
+      0,
+    );
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -144,7 +153,12 @@ export default function MobileMenuOverlay({
           }}
         >
           <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-            <IconButton ref={closeButtonRef} onClick={onClose} aria-label="Cerrar menú" sx={{ color: textColor }}>
+            <IconButton
+              ref={closeButtonRef}
+              onClick={onClose}
+              aria-label="Cerrar menú"
+              sx={{ color: textColor }}
+            >
               <CloseRoundedIcon />
             </IconButton>
           </Box>
@@ -174,7 +188,10 @@ export default function MobileMenuOverlay({
                   component={motion.div}
                   initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.25, delay: reduceMotion ? 0 : index * 0.05 }}
+                  transition={{
+                    duration: reduceMotion ? 0 : 0.25,
+                    delay: reduceMotion ? 0 : index * 0.05,
+                  }}
                 >
                   {link.kind === "anchor" ? (
                     <Box
@@ -188,7 +205,9 @@ export default function MobileMenuOverlay({
                         textDecoration: "none",
                         color: isActive ? "secondary.main" : textColor,
                         borderBottom: "2px solid",
-                        borderColor: isActive ? "secondary.main" : "transparent",
+                        borderColor: isActive
+                          ? "secondary.main"
+                          : "transparent",
                         pb: 0.5,
                       }}
                     >
@@ -212,9 +231,17 @@ export default function MobileMenuOverlay({
                         fontWeight: isActive ? 600 : 500,
                         fontSize: "16px",
                         textDecoration: "none",
-                        color: isActive ? (isLight ? secondary[700] : secondary[300]) : mutedColor,
+                        color: isActive
+                          ? isLight
+                            ? secondary[700]
+                            : secondary[300]
+                          : mutedColor,
                         border: "1.5px solid",
-                        borderColor: isActive ? (isLight ? secondary[700] : secondary[300]) : dividerColor,
+                        borderColor: isActive
+                          ? isLight
+                            ? secondary[700]
+                            : secondary[300]
+                          : dividerColor,
                         backgroundColor: "transparent",
                         borderRadius: "999px",
                         pl: 2,

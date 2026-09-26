@@ -1,10 +1,10 @@
 "use client";
 
+import InstagramIcon from "@mui/icons-material/Instagram";
+import IconButton from "@mui/material/IconButton";
 import { alpha } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import { primary, secondary, gray } from "@/theme/tokens";
+import { gray, primary, secondary } from "@/theme/tokens";
 import { PhotoOverlayCard } from "./PhotoOverlayCard";
 
 export interface LeaderCardProps {
@@ -14,7 +14,12 @@ export interface LeaderCardProps {
   instagramUrl?: string;
 }
 
-export function LeaderCard({ name, role, imageUrl, instagramUrl }: LeaderCardProps) {
+export function LeaderCard({
+  name,
+  role,
+  imageUrl,
+  instagramUrl,
+}: LeaderCardProps) {
   return (
     <PhotoOverlayCard
       imageUrl={imageUrl}

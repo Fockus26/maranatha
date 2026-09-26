@@ -72,7 +72,6 @@ export interface PaymentStepProps {
   onReported: () => void;
 }
 
-
 const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
   invalid_input:
     "Revisa los datos del reporte: referencia, fecha y monto pagado.",
@@ -150,13 +149,21 @@ function AnimatedHeight({ children }: { children: ReactNode }) {
     <motion.div
       animate={{ height }}
       initial={false}
-      transition={{ duration: reduceMotion ? 0 : 0.32, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{
+        duration: reduceMotion ? 0 : 0.32,
+        ease: [0.2, 0.8, 0.2, 1],
+      }}
       // `clip` en vez de `hidden`: recorta solo durante la animación sin
       // crear un contenedor de scroll; el margen negativo + padding deja
       // lugar a los anillos de foco de los campos para que no se corten.
       // `content-box`: la altura animada es la del contenido; el padding va
       // aparte (con border-box el padding se comía 8px y cortaba el botón).
-      style={{ overflow: "clip", margin: -4, padding: 4, boxSizing: "content-box" }}
+      style={{
+        overflow: "clip",
+        margin: -4,
+        padding: 4,
+        boxSizing: "content-box",
+      }}
     >
       <div ref={innerRef}>{children}</div>
     </motion.div>
@@ -653,7 +660,9 @@ function ManualPaymentPanel({
           onChange={(e) => setAmountPaid(e.target.value)}
           error={touched && !amountValid}
           helperText={
-            touched && !amountValid ? "Ingresa el monto que pagaste." : undefined
+            touched && !amountValid
+              ? "Ingresa el monto que pagaste."
+              : undefined
           }
           slotProps={{
             htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
@@ -866,27 +875,27 @@ export function PaymentStep({
       )}
 
       <AnimatedHeight>
-      {selected && selected.kind === "gateway" && (
-        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
-          <PaypalPanel
-            key={selected.id}
-            method={selected}
-            contribution={contribution}
-          />
-        </Box>
-      )}
+        {selected && selected.kind === "gateway" && (
+          <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
+            <PaypalPanel
+              key={selected.id}
+              method={selected}
+              contribution={contribution}
+            />
+          </Box>
+        )}
 
-      {selected && selected.kind === "manual" && (
-        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
-          {/* `key`: al cambiar de método se reinicia el formulario de reporte. */}
-          <ManualPaymentPanel
-            key={selected.id}
-            method={selected}
-            contribution={contribution}
-            onReported={onReported}
-          />
-        </Box>
-      )}
+        {selected && selected.kind === "manual" && (
+          <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
+            {/* `key`: al cambiar de método se reinicia el formulario de reporte. */}
+            <ManualPaymentPanel
+              key={selected.id}
+              method={selected}
+              contribution={contribution}
+              onReported={onReported}
+            />
+          </Box>
+        )}
       </AnimatedHeight>
     </DonationFormCard>
   );

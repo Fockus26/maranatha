@@ -1,9 +1,9 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent } from "react";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
+import { type KeyboardEvent, useId, useRef } from "react";
 import { radius } from "@/theme/tokens";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -49,13 +49,16 @@ export function SegmentedToggle<T extends string>({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const currentIndex = options.findIndex((o) => o.value === value);
     let nextIndex = currentIndex;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (currentIndex + 1) % options.length;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (currentIndex - 1 + options.length) % options.length;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown")
+      nextIndex = (currentIndex + 1) % options.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp")
+      nextIndex = (currentIndex - 1 + options.length) % options.length;
     else return;
     event.preventDefault();
     const next = options[nextIndex];
     onChange(next.value);
-    const nodes = containerRef.current?.querySelectorAll<HTMLElement>('[role="radio"]');
+    const nodes =
+      containerRef.current?.querySelectorAll<HTMLElement>('[role="radio"]');
     nodes?.[nextIndex]?.focus();
   }
 
@@ -72,7 +75,10 @@ export function SegmentedToggle<T extends string>({
         p: "3px",
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: `${radius.sm}px`,
-        backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(6,10,29,0.03)",
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? "rgba(255,255,255,0.03)"
+            : "rgba(6,10,29,0.03)",
       }}
     >
       {options.map((option) => {
@@ -99,7 +105,9 @@ export function SegmentedToggle<T extends string>({
               cursor: "pointer",
               color: active ? "#F5F6FA" : theme.palette.text.secondary,
               transition: "color 0.2s ease",
-              "&:hover": !active ? { color: theme.palette.text.primary } : undefined,
+              "&:hover": !active
+                ? { color: theme.palette.text.primary }
+                : undefined,
             }}
           >
             {active && (

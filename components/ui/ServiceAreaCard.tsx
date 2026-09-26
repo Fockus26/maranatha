@@ -22,7 +22,12 @@ export interface ServiceAreaCardProps {
   onClick?: () => void;
 }
 
-export function ServiceAreaCard({ name, description, imageUrl, onClick }: ServiceAreaCardProps) {
+export function ServiceAreaCard({
+  name,
+  description,
+  imageUrl,
+  onClick,
+}: ServiceAreaCardProps) {
   return (
     <PhotoOverlayCard
       imageUrl={imageUrl}

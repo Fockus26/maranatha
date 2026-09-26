@@ -1,13 +1,13 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import LinearProgress from "@mui/material/LinearProgress";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
 import InstagramIcon from "@mui/icons-material/Instagram";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
+import { alpha, useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 import { primary, radius, semantic, typography } from "@/theme/tokens";
 import type { ProjectStatus } from "./ProjectCard";
 
@@ -29,7 +29,11 @@ export interface ProjectSidebarProps {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("es", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 export function ProjectSidebar({
@@ -87,10 +91,26 @@ export function ProjectSidebar({
         {isCompleted ? "Completado" : "Activo"}
       </Box>
 
-      <Typography sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 800, fontSize: "22px", color: theme.palette.text.primary, mt: 3, mb: 0.5 }}>
+      <Typography
+        sx={{
+          fontFamily: typography.fontFamily.heading,
+          fontWeight: 800,
+          fontSize: "22px",
+          color: theme.palette.text.primary,
+          mt: 3,
+          mb: 0.5,
+        }}
+      >
         {formatCurrency(currentAmount)}
       </Typography>
-      <Typography sx={{ fontFamily: typography.fontFamily.body, fontSize: "12px", color: theme.palette.text.secondary, mb: 2.5 }}>
+      <Typography
+        sx={{
+          fontFamily: typography.fontFamily.body,
+          fontSize: "12px",
+          color: theme.palette.text.secondary,
+          mb: 2.5,
+        }}
+      >
         recaudado de {formatCurrency(goalAmount)}
       </Typography>
 
@@ -99,9 +119,21 @@ export function ProjectSidebar({
         value={percent}
         aria-label={`${percent}% recaudado de la meta`}
         color={isCompleted ? "success" : "secondary"}
-        sx={{ height: 6, borderRadius: "20px", mb: 1.5, backgroundColor: theme.palette.action.hover }}
+        sx={{
+          height: 6,
+          borderRadius: "20px",
+          mb: 1.5,
+          backgroundColor: theme.palette.action.hover,
+        }}
       />
-      <Typography sx={{ fontFamily: typography.fontFamily.body, fontSize: "11px", color: theme.palette.text.secondary, mb: 4 }}>
+      <Typography
+        sx={{
+          fontFamily: typography.fontFamily.body,
+          fontSize: "11px",
+          color: theme.palette.text.secondary,
+          mb: 4,
+        }}
+      >
         {percent}% · {deadlineLabel}
       </Typography>
 
@@ -149,13 +181,33 @@ export function ProjectSidebar({
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {encargados.map((encargado) => (
-              <Box key={encargado.name} sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
-                <Avatar src={encargado.imageUrl} alt={encargado.name} sx={{ width: 48, height: 48, flexShrink: 0 }} />
+              <Box
+                key={encargado.name}
+                sx={{ display: "flex", alignItems: "center", gap: 2.5 }}
+              >
+                <Avatar
+                  src={encargado.imageUrl}
+                  alt={encargado.name}
+                  sx={{ width: 48, height: 48, flexShrink: 0 }}
+                />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: typography.fontFamily.heading, fontWeight: 600, fontSize: "13px", color: theme.palette.text.primary }}>
+                  <Typography
+                    sx={{
+                      fontFamily: typography.fontFamily.heading,
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      color: theme.palette.text.primary,
+                    }}
+                  >
                     {encargado.name}
                   </Typography>
-                  <Typography sx={{ fontFamily: typography.fontFamily.body, fontSize: "11px", color: theme.palette.text.secondary }}>
+                  <Typography
+                    sx={{
+                      fontFamily: typography.fontFamily.body,
+                      fontSize: "11px",
+                      color: theme.palette.text.secondary,
+                    }}
+                  >
                     {encargado.role}
                   </Typography>
                 </Box>
@@ -177,7 +229,10 @@ export function ProjectSidebar({
                       "&:hover": {
                         borderColor: theme.palette.secondary.main,
                         color: theme.palette.secondary.main,
-                        backgroundColor: alpha(theme.palette.secondary.main, 0.08),
+                        backgroundColor: alpha(
+                          theme.palette.secondary.main,
+                          0.08,
+                        ),
                       },
                     }}
                   >

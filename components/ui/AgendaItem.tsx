@@ -1,7 +1,7 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { radius, typography } from "@/theme/tokens";
 
@@ -16,7 +16,14 @@ export interface AgendaItemProps {
 
 const DATE_BLOCK_WIDTH = 72;
 
-export function AgendaItem({ day, month, title, schedule, location, onClick }: AgendaItemProps) {
+export function AgendaItem({
+  day,
+  month,
+  title,
+  schedule,
+  location,
+  onClick,
+}: AgendaItemProps) {
   const theme = useTheme();
   const onPrimary = theme.palette.primary.contrastText;
 

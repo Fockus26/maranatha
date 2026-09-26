@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { motion } from "framer-motion";
+import * as React from "react";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -39,7 +39,8 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduceMotion(query.matches);
 
-    const handleChange = (event: MediaQueryListEvent) => setReduceMotion(event.matches);
+    const handleChange = (event: MediaQueryListEvent) =>
+      setReduceMotion(event.matches);
     query.addEventListener("change", handleChange);
     return () => query.removeEventListener("change", handleChange);
   }, []);

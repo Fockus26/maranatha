@@ -1,14 +1,17 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import IconButton from "@mui/material/IconButton";
+import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import { DashboardProjectForm, type DashboardProjectFormValues } from "./DashboardProjectForm";
-import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
+import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
+import {
+  DashboardProjectForm,
+  type DashboardProjectFormValues,
+} from "./DashboardProjectForm";
 
 /**
  * Modal "Crear/editar proyecto" del dashboard — montado una sola vez en
@@ -46,20 +49,23 @@ export function DashboardProjectModal() {
   const { open, editingId, close } = useDashboardProjectModal();
   const { projects, addProject, updateProject } = useDashboardProjects();
 
-  const editingProject = editingId ? projects.find((project) => project.id === editingId) : undefined;
-
-  const initialValues: Partial<DashboardProjectFormValues> | undefined = editingProject
-    ? {
-        title: editingProject.title,
-        description: editingProject.description,
-        imageUrl: editingProject.imageUrl,
-        goalAmount: editingProject.goalAmount,
-        currentAmount: editingProject.currentAmount,
-        deadline: editingProject.deadline,
-        budget: editingProject.budget,
-        encargados: editingProject.encargados,
-      }
+  const editingProject = editingId
+    ? projects.find((project) => project.id === editingId)
     : undefined;
+
+  const initialValues: Partial<DashboardProjectFormValues> | undefined =
+    editingProject
+      ? {
+          title: editingProject.title,
+          description: editingProject.description,
+          imageUrl: editingProject.imageUrl,
+          goalAmount: editingProject.goalAmount,
+          currentAmount: editingProject.currentAmount,
+          deadline: editingProject.deadline,
+          budget: editingProject.budget,
+          encargados: editingProject.encargados,
+        }
+      : undefined;
 
   function handleSubmit(values: DashboardProjectFormValues) {
     if (editingId) {
@@ -83,7 +89,9 @@ export function DashboardProjectModal() {
         // modo oscuro aclaraba el fondo del modal más de lo esperado.
         paper: {
           elevation: 0,
-          sx: isMobile ? { borderRadius: 0 } : { height: "95vh", maxHeight: "95vh" },
+          sx: isMobile
+            ? { borderRadius: 0 }
+            : { height: "95vh", maxHeight: "95vh" },
         },
       }}
     >
@@ -98,7 +106,10 @@ export function DashboardProjectModal() {
           color: theme.palette.text.secondary,
           backgroundColor: theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
-          "&:hover": { borderColor: theme.palette.secondary.main, color: theme.palette.secondary.main },
+          "&:hover": {
+            borderColor: theme.palette.secondary.main,
+            color: theme.palette.secondary.main,
+          },
         }}
       >
         <CloseRoundedIcon fontSize="small" />
@@ -106,7 +117,9 @@ export function DashboardProjectModal() {
       {/* Sin maxWidth: el contenido ocupa todo el ancho del modal (antes
           quedaba en 640px centrado, con franjas vacías a los lados y la
           barra de scroll a mitad del modal). */}
-      <DialogContent sx={{ p: { xs: 3, sm: 5 }, pt: { xs: 6, sm: 6.5 }, width: "100%" }}>
+      <DialogContent
+        sx={{ p: { xs: 3, sm: 5 }, pt: { xs: 6, sm: 6.5 }, width: "100%" }}
+      >
         <DashboardProjectForm
           key={editingId ?? "new"}
           bare

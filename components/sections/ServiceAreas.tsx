@@ -1,15 +1,15 @@
 "use client";
 
+import ChildCareIcon from "@mui/icons-material/ChildCare";
+import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
+import GroupsIcon from "@mui/icons-material/Groups";
+import UsersIcon from "@mui/icons-material/People";
+import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import UsersIcon from "@mui/icons-material/People";
-import GroupsIcon from "@mui/icons-material/Groups";
-import ChildCareIcon from "@mui/icons-material/ChildCare";
-import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
-import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
-import { ServiceAreaCard } from "@/components/ui/ServiceAreaCard";
 import { Reveal } from "@/components/ui/Reveal";
+import { ServiceAreaCard } from "@/components/ui/ServiceAreaCard";
 
 /**
  * Sección "Áreas de Servicio" (fase 06) — componente + datos en un solo
@@ -130,7 +130,8 @@ export function ServiceAreas() {
                 color: "text.secondary",
               }}
             >
-              Cada área es una forma distinta de vivir la fe en comunidad — súmate a la que resuene contigo.
+              Cada área es una forma distinta de vivir la fe en comunidad —
+              súmate a la que resuene contigo.
             </Typography>
           </Box>
         </Reveal>

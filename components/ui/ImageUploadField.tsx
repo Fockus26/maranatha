@@ -1,15 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useTheme } from "@mui/material/styles";
+import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import TextField from "@mui/material/TextField";
-import Tabs from "@mui/material/Tabs";
+import { useTheme } from "@mui/material/styles";
 import Tab from "@mui/material/Tab";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import Tabs from "@mui/material/Tabs";
+import TextField from "@mui/material/TextField";
+import { useRef, useState } from "react";
+import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { radius } from "@/theme/tokens";
 
 export interface ImageUploadFieldProps {
@@ -26,7 +26,11 @@ export interface ImageUploadFieldProps {
  * debajo en vez de al lado — así la vista previa puede crecer sin competir
  * por espacio horizontal con el resto del formulario.
  */
-export function ImageUploadField({ label, value, onChange }: ImageUploadFieldProps) {
+export function ImageUploadField({
+  label,
+  value,
+  onChange,
+}: ImageUploadFieldProps) {
   const theme = useTheme();
   const [tab, setTab] = useState<"upload" | "url">("upload");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +43,16 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
 
   return (
     <Box>
-      <Box sx={{ fontSize: "12px", fontWeight: 500, color: theme.palette.text.primary, mb: 1.5 }}>{label}</Box>
+      <Box
+        sx={{
+          fontSize: "12px",
+          fontWeight: 500,
+          color: theme.palette.text.primary,
+          mb: 1.5,
+        }}
+      >
+        {label}
+      </Box>
 
       <Box
         sx={{
@@ -57,12 +70,29 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
           justifyContent: "center",
         }}
       >
-        {!value && <ImageOutlinedIcon sx={{ fontSize: 40, color: "rgba(255,255,255,0.4)" }} />}
+        {!value && (
+          <ImageOutlinedIcon
+            sx={{ fontSize: 40, color: "rgba(255,255,255,0.4)" }}
+          />
+        )}
       </Box>
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} aria-label="Origen de la imagen" sx={{ minHeight: 32, mb: 1.5 }}>
-        <Tab value="upload" label="Subir archivo" sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }} />
-        <Tab value="url" label="URL" sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }} />
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        aria-label="Origen de la imagen"
+        sx={{ minHeight: 32, mb: 1.5 }}
+      >
+        <Tab
+          value="upload"
+          label="Subir archivo"
+          sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }}
+        />
+        <Tab
+          value="url"
+          label="URL"
+          sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }}
+        />
       </Tabs>
 
       {/*
@@ -75,7 +105,13 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
       */}
       {tab === "upload" ? (
         <>
-          <input ref={inputRef} type="file" accept="image/*" hidden onChange={handleFileChange} />
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleFileChange}
+          />
           {/* Mismo estilo que "Comprobante" del paso de pago (PaymentStep). */}
           <Button
             type="button"
@@ -97,7 +133,10 @@ export function ImageUploadField({ label, value, onChange }: ImageUploadFieldPro
           size="small"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          sx={{ ...SMALL_FIELD_SX, "& .MuiInputBase-root": { fontSize: "14px", height: 40 } }}
+          sx={{
+            ...SMALL_FIELD_SX,
+            "& .MuiInputBase-root": { fontSize: "14px", height: 40 },
+          }}
         />
       )}
     </Box>
