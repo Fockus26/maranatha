@@ -48,7 +48,7 @@
 | D073 | SEO | Staging (Vercel) no indexable | `decisions/02-deploy.md` | Implementado |
 | D074 | Pagos | Pasarela híbrida: métodos manuales con comprobante + PayPal único y mensual | `decisions/03-pagos.md` | Implementado |
 | D075 | Auth | Login con errores específicos solo para ADMIN_EMAILS + rate limit propio | `decisions/03-pagos.md` | Implementado |
-| D076 | CI | CI del kit pospuesto hasta formatear con Biome | `decisions/01-flujo-git.md` | Pendiente |
+| D076 | CI | Formato Biome + eol=lf + CI del kit (typecheck, lint, test, build) | `decisions/01-flujo-git.md` | Implementado |
 
 <!-- ID secuencial, nunca se reutiliza. La próxima decisión es D077. Si hay unidades en
      paralelo, el orquestador reserva un rango de IDs por unidad. -->
