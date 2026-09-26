@@ -253,7 +253,7 @@ function RejectDialog({
           fullWidth
           size="small"
           multiline
-          minRows={2}
+          maxRows={5}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           slotProps={{ htmlInput: { maxLength: 500 } }}
