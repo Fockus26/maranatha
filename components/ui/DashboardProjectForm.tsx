@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useTheme, type Theme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import { type Theme, useTheme } from "@mui/material/styles";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
-import { radius, typography } from "@/theme/tokens";
+import { type FormEvent, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { ImageUploadField } from "./ImageUploadField";
+import { radius, typography } from "@/theme/tokens";
 import { DateField } from "./DateField";
+import { ImageUploadField } from "./ImageUploadField";
 
 export interface BudgetLineInput {
   id: string;
@@ -59,7 +59,9 @@ export interface DashboardProjectFormProps {
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 function newId() {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
 }
 
 function sectionLabelSx(theme: Theme) {
@@ -98,23 +100,44 @@ function numberFieldSx() {
   return {
     ...fieldSx(),
     "& input[type=number]": { MozAppearance: "textfield" },
-    "& input[type=number]::-webkit-outer-spin-button": { WebkitAppearance: "none", margin: 0 },
-    "& input[type=number]::-webkit-inner-spin-button": { WebkitAppearance: "none", margin: 0 },
+    "& input[type=number]::-webkit-outer-spin-button": {
+      WebkitAppearance: "none",
+      margin: 0,
+    },
+    "& input[type=number]::-webkit-inner-spin-button": {
+      WebkitAppearance: "none",
+      margin: 0,
+    },
   };
 }
 
-export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }: DashboardProjectFormProps) {
+export function DashboardProjectForm({
+  initialValues,
+  onSubmit,
+  onCancel,
+  bare,
+}: DashboardProjectFormProps) {
   const theme = useTheme();
 
   const [title, setTitle] = useState(initialValues?.title ?? "");
-  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [description, setDescription] = useState(
+    initialValues?.description ?? "",
+  );
   const [imageUrl, setImageUrl] = useState(initialValues?.imageUrl ?? "");
-  const [imageFile, setImageFile] = useState<File | undefined>(initialValues?.imageFile);
+  const [imageFile, setImageFile] = useState<File | undefined>(
+    initialValues?.imageFile,
+  );
   const [goalAmount, setGoalAmount] = useState(initialValues?.goalAmount ?? 0);
-  const [currentAmount, setCurrentAmount] = useState(initialValues?.currentAmount ?? 0);
+  const [currentAmount, setCurrentAmount] = useState(
+    initialValues?.currentAmount ?? 0,
+  );
   const [deadline, setDeadline] = useState(initialValues?.deadline ?? "");
-  const [budget, setBudget] = useState<BudgetLineInput[]>(initialValues?.budget ?? []);
-  const [encargados, setEncargados] = useState<EncargadoInput[]>(initialValues?.encargados ?? []);
+  const [budget, setBudget] = useState<BudgetLineInput[]>(
+    initialValues?.budget ?? [],
+  );
+  const [encargados, setEncargados] = useState<EncargadoInput[]>(
+    initialValues?.encargados ?? [],
+  );
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -123,24 +146,32 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
   const deadlineValid = deadline.trim().length > 0;
   // El recaudado no puede ser negativo ni superar la meta (un tipeo que lo
   // pasara marcaba el proyecto como "Completado" y bloqueaba la edición).
-  const currentValid = currentAmount >= 0 && (!goalValid || currentAmount <= goalAmount);
+  const currentValid =
+    currentAmount >= 0 && (!goalValid || currentAmount <= goalAmount);
   const formValid = titleValid && goalValid && deadlineValid && currentValid;
 
   function addBudgetLine() {
     setBudget((prev) => [...prev, { id: newId(), label: "", amount: 0 }]);
   }
   function updateBudgetLine(id: string, patch: Partial<BudgetLineInput>) {
-    setBudget((prev) => prev.map((line) => (line.id === id ? { ...line, ...patch } : line)));
+    setBudget((prev) =>
+      prev.map((line) => (line.id === id ? { ...line, ...patch } : line)),
+    );
   }
   function removeBudgetLine(id: string) {
     setBudget((prev) => prev.filter((line) => line.id !== id));
   }
 
   function addEncargado() {
-    setEncargados((prev) => [...prev, { id: newId(), name: "", role: "", imageUrl: "", instagramUrl: "" }]);
+    setEncargados((prev) => [
+      ...prev,
+      { id: newId(), name: "", role: "", imageUrl: "", instagramUrl: "" },
+    ]);
   }
   function updateEncargado(id: string, patch: Partial<EncargadoInput>) {
-    setEncargados((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+    setEncargados((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
   }
   function removeEncargado(id: string) {
     setEncargados((prev) => prev.filter((item) => item.id !== id));
@@ -192,7 +223,9 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           error={touched && !titleValid}
-          helperText={touched && !titleValid ? "El título es obligatorio." : undefined}
+          helperText={
+            touched && !titleValid ? "El título es obligatorio." : undefined
+          }
           sx={fieldSx()}
         />
 
@@ -219,16 +252,24 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
         {/* Fase 08: los grids de 2/3 columnas fijas de este formulario no
             cabían en mobile (modal angosto) — todos pasan a 1 columna por
             debajo de `sm`, sin cambiar nada en tablet/desktop. */}
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            gap: 3,
+          }}
+        >
           <TextField
-          size="small"
+            size="small"
             label="Monto meta"
             type="number"
             fullWidth
             value={goalAmount || ""}
             onChange={(e) => setGoalAmount(Number(e.target.value))}
             error={touched && !goalValid}
-            helperText={touched && !goalValid ? "Ingresá un monto mayor a 0." : undefined}
+            helperText={
+              touched && !goalValid ? "Ingresá un monto mayor a 0." : undefined
+            }
             sx={numberFieldSx()}
           />
           <DateField
@@ -265,9 +306,21 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
         />
 
         <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4.5 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
             <Typography sx={sectionLabelSx(theme)}>Presupuesto</Typography>
-            <Button type="button" size="small" startIcon={<AddIcon />} onClick={addBudgetLine}>
+            <Button
+              type="button"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={addBudgetLine}
+            >
               Agregar línea
             </Button>
           </Box>
@@ -286,15 +339,27 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
                   initial={{ opacity: 0, y: -8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.22, ease: EASE }}
-                  sx={{ display: "grid", gridTemplateColumns: { xs: "1fr auto", sm: "1fr 160px auto" }, gap: 2 }}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr auto",
+                      sm: "1fr 160px auto",
+                    },
+                    gap: 2,
+                  }}
                 >
                   <TextField
                     placeholder="Concepto"
                     aria-label="Concepto de la línea de presupuesto"
                     size="small"
                     value={line.label}
-                    onChange={(e) => updateBudgetLine(line.id, { label: e.target.value })}
-                    sx={{ ...fieldSx(), gridColumn: { xs: "1 / -1", sm: "auto" } }}
+                    onChange={(e) =>
+                      updateBudgetLine(line.id, { label: e.target.value })
+                    }
+                    sx={{
+                      ...fieldSx(),
+                      gridColumn: { xs: "1 / -1", sm: "auto" },
+                    }}
                   />
                   <TextField
                     placeholder="Monto"
@@ -303,14 +368,22 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
                     inputMode="numeric"
                     size="small"
                     value={line.amount || ""}
-                    onChange={(e) => updateBudgetLine(line.id, { amount: Number(e.target.value) })}
+                    onChange={(e) =>
+                      updateBudgetLine(line.id, {
+                        amount: Number(e.target.value),
+                      })
+                    }
                     sx={numberFieldSx()}
                   />
                   <IconButton
                     type="button"
                     size="small"
                     onClick={() => removeBudgetLine(line.id)}
-                    aria-label={line.label ? `Eliminar línea "${line.label}"` : "Eliminar línea de presupuesto"}
+                    aria-label={
+                      line.label
+                        ? `Eliminar línea "${line.label}"`
+                        : "Eliminar línea de presupuesto"
+                    }
                     sx={{ color: theme.palette.text.secondary }}
                   >
                     <DeleteOutlineIcon fontSize="small" />
@@ -322,9 +395,21 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
         </Box>
 
         <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4.5 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
             <Typography sx={sectionLabelSx(theme)}>Encargados</Typography>
-            <Button type="button" size="small" startIcon={<AddIcon />} onClick={addEncargado}>
+            <Button
+              type="button"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={addEncargado}
+            >
               Agregar encargado
             </Button>
           </Box>
@@ -338,28 +423,46 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
                   initial={{ opacity: 0, y: -8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.22, ease: EASE }}
-                  sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: `${radius.md}px`, p: 3 }}
+                  sx={{
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: `${radius.md}px`,
+                    p: 3,
+                  }}
                 >
-                  <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2, mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
                     <TextField
                       label="Nombre"
                       size="small"
                       value={encargado.name}
-                      onChange={(e) => updateEncargado(encargado.id, { name: e.target.value })}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, { name: e.target.value })
+                      }
                       sx={fieldSx()}
                     />
                     <TextField
                       label="Rol"
                       size="small"
                       value={encargado.role}
-                      onChange={(e) => updateEncargado(encargado.id, { role: e.target.value })}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, { role: e.target.value })
+                      }
                       sx={fieldSx()}
                     />
                   </Box>
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: { xs: "1fr auto", sm: "1fr 1fr auto" },
+                      gridTemplateColumns: {
+                        xs: "1fr auto",
+                        sm: "1fr 1fr auto",
+                      },
                       gap: 2,
                       alignItems: "center",
                     }}
@@ -368,21 +471,36 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
                       label="URL de foto"
                       size="small"
                       value={encargado.imageUrl}
-                      onChange={(e) => updateEncargado(encargado.id, { imageUrl: e.target.value })}
-                      sx={{ ...fieldSx(), gridColumn: { xs: "1 / -1", sm: "auto" } }}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, {
+                          imageUrl: e.target.value,
+                        })
+                      }
+                      sx={{
+                        ...fieldSx(),
+                        gridColumn: { xs: "1 / -1", sm: "auto" },
+                      }}
                     />
                     <TextField
                       label="Instagram (opcional)"
                       size="small"
                       value={encargado.instagramUrl}
-                      onChange={(e) => updateEncargado(encargado.id, { instagramUrl: e.target.value })}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, {
+                          instagramUrl: e.target.value,
+                        })
+                      }
                       sx={fieldSx()}
                     />
                     <IconButton
                       type="button"
                       size="small"
                       onClick={() => removeEncargado(encargado.id)}
-                      aria-label={encargado.name ? `Eliminar a ${encargado.name}` : "Eliminar encargado"}
+                      aria-label={
+                        encargado.name
+                          ? `Eliminar a ${encargado.name}`
+                          : "Eliminar encargado"
+                      }
                       sx={{ color: theme.palette.text.secondary }}
                     >
                       <DeleteOutlineIcon fontSize="small" />
@@ -394,11 +512,30 @@ export function DashboardProjectForm({ initialValues, onSubmit, onCancel, bare }
           </Box>
         </Box>
 
-        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4.5, display: "flex", gap: 2.5, justifyContent: "flex-end" }}>
-          <Button type="button" variant="outlined" color="primary" onClick={onCancel}>
+        <Box
+          sx={{
+            borderTop: `1px solid ${theme.palette.divider}`,
+            pt: 4.5,
+            display: "flex",
+            gap: 2.5,
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            color="primary"
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
-          <Button type="submit" variant="contained" color="primary" disabled={submitting} sx={{ color: "#FFFFFF" }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={submitting}
+            sx={{ color: "#FFFFFF" }}
+          >
             Guardar
           </Button>
         </Box>

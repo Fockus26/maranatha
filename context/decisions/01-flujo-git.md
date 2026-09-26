@@ -17,7 +17,8 @@
 **Por qué:** instalar dependencias en cada worktree nuevo era lo más lento de una tanda.
 **Estado:** Implementado en el kit; el pool se crea (`wt init`) la primera vez que se lance una tanda
 
-## D076 — CI del kit pospuesto hasta formatear el código
-**Decisión:** `.github/workflows/ci.yml` no se añade todavía.
-**Por qué:** `bun run lint` falla en `main` con 145 errores de Biome (136 de formato + 9 de reglas) incluso en un checkout LF; el CI dejaría todos los PRs en rojo.
-**Estado:** Pendiente — un PR aparte formatea, corrige los 9 errores y añade el CI
+## D076 — Biome como puerta de lint y CI del kit
+**Decisión:** el código se formatea con Biome (`biome check --write`), se corrigen los 9 errores de reglas y se añade `.github/workflows/ci.yml` (typecheck, lint, test, build en cada PR y en `main`). `.gitattributes` fija `* text=auto eol=lf` para que las copias con `core.autocrlf=true` no queden en CRLF.
+**Por qué:** `bun run lint` fallaba en `main` (145 errores en un checkout LF, más con CRLF); sin lint en verde el CI dejaba todos los PRs en rojo.
+**Detalle:** `JsonLd` y la cookie `color-mode` llevan `biome-ignore` justificado; el build no necesita variables, así que el CI no lleva env de relleno.
+**Estado:** Implementado (`style/biome-format`)

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import EventRoundedIcon from "@mui/icons-material/EventRounded";
-import { motion, useReducedMotion } from "framer-motion";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
 import { useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { secondary } from "@/theme/tokens";
 
@@ -83,20 +83,60 @@ import { secondary } from "@/theme/tokens";
  */
 
 const MONTH_ABBR = [
-  "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
-  "JUL", "AGO", "SEP", "OCT", "NOV", "DIC",
+  "ENE",
+  "FEB",
+  "MAR",
+  "ABR",
+  "MAY",
+  "JUN",
+  "JUL",
+  "AGO",
+  "SEP",
+  "OCT",
+  "NOV",
+  "DIC",
 ] as const;
 
 const RECURRING_EVENTS = [
-  { weekday: 0, title: "Servicio Dominical", schedule: "10:00 a.m.", location: "Templo principal" },
-  { weekday: 3, title: "Reunión de oración", schedule: "7:00 p.m.", location: "Salón de oración" },
-  { weekday: 5, title: "Reunión de jóvenes", schedule: "7:00 p.m.", location: "Salón de jóvenes" },
+  {
+    weekday: 0,
+    title: "Servicio Dominical",
+    schedule: "10:00 a.m.",
+    location: "Templo principal",
+  },
+  {
+    weekday: 3,
+    title: "Reunión de oración",
+    schedule: "7:00 p.m.",
+    location: "Salón de oración",
+  },
+  {
+    weekday: 5,
+    title: "Reunión de jóvenes",
+    schedule: "7:00 p.m.",
+    location: "Salón de jóvenes",
+  },
 ] as const;
 
 const ONE_TIME_EVENTS = [
-  { offsetDays: 4, title: "Noche de alabanza especial", schedule: "6:30 p.m.", location: "Templo principal" },
-  { offsetDays: 9, title: "Bautismos", schedule: "11:00 a.m.", location: "Templo principal" },
-  { offsetDays: 17, title: "Conferencia de matrimonios", schedule: "5:00 p.m.", location: "Salón multiusos" },
+  {
+    offsetDays: 4,
+    title: "Noche de alabanza especial",
+    schedule: "6:30 p.m.",
+    location: "Templo principal",
+  },
+  {
+    offsetDays: 9,
+    title: "Bautismos",
+    schedule: "11:00 a.m.",
+    location: "Templo principal",
+  },
+  {
+    offsetDays: 17,
+    title: "Conferencia de matrimonios",
+    schedule: "5:00 p.m.",
+    location: "Salón multiusos",
+  },
 ] as const;
 
 const INITIAL_COUNT = 6;
@@ -185,12 +225,13 @@ function findAccentKey(entries: AgendaEntry[]): string | undefined {
   return entries.find((e) => e.kind === "recurring")?.key;
 }
 
-const SPAN_BY_SIZE: Record<TileSize, { gridColumn: string; gridRow: string }> = {
-  feature: { gridColumn: "span 2", gridRow: "span 2" },
-  wide: { gridColumn: "span 2", gridRow: "span 1" },
-  tall: { gridColumn: "span 1", gridRow: "span 2" },
-  sm: { gridColumn: "span 1", gridRow: "span 1" },
-};
+const SPAN_BY_SIZE: Record<TileSize, { gridColumn: string; gridRow: string }> =
+  {
+    feature: { gridColumn: "span 2", gridRow: "span 2" },
+    wide: { gridColumn: "span 2", gridRow: "span 1" },
+    tall: { gridColumn: "span 1", gridRow: "span 2" },
+    sm: { gridColumn: "span 1", gridRow: "span 1" },
+  };
 
 function AgendaTile({
   entry,
@@ -219,18 +260,30 @@ function AgendaTile({
   // (`secondary[700]`) solo en modo claro, sin tocar el tratamiento en modo
   // oscuro ni el de las celdas destacadas (siempre sobre navy, sin este
   // problema).
-  const tagColor = theme.palette.mode === "light" ? secondary[700] : theme.palette.secondary.light;
+  const tagColor =
+    theme.palette.mode === "light"
+      ? secondary[700]
+      : theme.palette.secondary.light;
   // "Destacado" (fondo navy sólido) — solo el próximo evento recurrente
   // (D039). Los puntuales ("feature"/"wide") nunca lo llevan, solo su
   // tag naranja "Evento especial".
-  const tagLabel = isFeature ? "Evento especial" : isAccented ? (isToday ? "Hoy" : "Próximo evento") : null;
+  const tagLabel = isFeature
+    ? "Evento especial"
+    : isAccented
+      ? isToday
+        ? "Hoy"
+        : "Próximo evento"
+      : null;
 
   return (
     <Box
       sx={{
         position: "relative",
         gridColumn: { xs: "span 2", sm: SPAN_BY_SIZE[size].gridColumn },
-        gridRow: { xs: size === "tall" || size === "feature" ? "span 2" : "span 1", sm: SPAN_BY_SIZE[size].gridRow },
+        gridRow: {
+          xs: size === "tall" || size === "feature" ? "span 2" : "span 1",
+          sm: SPAN_BY_SIZE[size].gridRow,
+        },
         display: "flex",
         flexDirection: "column",
         justifyContent: isCompact ? "flex-start" : "space-between",
@@ -244,7 +297,8 @@ function AgendaTile({
         // se lea igual de sólido en ambos modos.
         backgroundColor: isAccented ? "#101B45" : "background.paper",
         p: isFeature || size === "tall" ? 2.75 : 2,
-        transition: "box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease",
+        transition:
+          "box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease",
         cursor: "default",
         "&:hover": isAccented
           ? {
@@ -276,14 +330,26 @@ function AgendaTile({
         </Box>
       )}
 
-      <Box sx={{ display: "flex", alignItems: "baseline", gap: isCompact ? 0.75 : 1.25 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: isCompact ? 0.75 : 1.25,
+        }}
+      >
         <Typography
           component="span"
           className="tile-day"
           sx={{
             fontFamily: "var(--font-heading)",
             fontWeight: 800,
-            fontSize: isFeature ? "44px" : size === "tall" ? "34px" : isCompact ? "20px" : "26px",
+            fontSize: isFeature
+              ? "44px"
+              : size === "tall"
+                ? "34px"
+                : isCompact
+                  ? "20px"
+                  : "26px",
             lineHeight: 1,
             // Blanco sólido, igual que el título — sin la opacidad reducida
             // que antes separaba día/título de mes/hora (fase 07, ajuste
@@ -318,7 +384,13 @@ function AgendaTile({
           sx={{
             fontFamily: "var(--font-heading)",
             fontWeight: 600,
-            fontSize: isFeature ? "20px" : size === "tall" ? "17px" : isCompact ? "13.5px" : "15px",
+            fontSize: isFeature
+              ? "20px"
+              : size === "tall"
+                ? "17px"
+                : isCompact
+                  ? "13.5px"
+                  : "15px",
             lineHeight: 1.25,
             color: isAccented ? "#F5F6FA" : "text.primary",
             mb: isCompact ? 0.25 : 0.75,
@@ -377,7 +449,8 @@ export function Agenda() {
   const accentKey = useMemo(() => findAccentKey(agenda), [agenda]);
   const [expanded, setExpanded] = useState(false);
   const hasMore = agenda.length > INITIAL_COUNT;
-  const isToday = (entry: AgendaEntry) => entry.date.toDateString() === new Date().toDateString();
+  const isToday = (entry: AgendaEntry) =>
+    entry.date.toDateString() === new Date().toDateString();
 
   // Medidores ocultos: dos grillas invisibles (misma `gridAutoFlow: dense`,
   // así que la altura medida coincide con la real) que existen únicamente
@@ -403,9 +476,13 @@ export function Agenda() {
     observer.observe(collapsedEl);
     observer.observe(fullEl);
     return () => observer.disconnect();
-  }, [agenda]);
+  }, []);
 
-  const targetHeight = !hasMore ? fullHeight : expanded ? fullHeight : collapsedHeight;
+  const targetHeight = !hasMore
+    ? fullHeight
+    : expanded
+      ? fullHeight
+      : collapsedHeight;
 
   return (
     <Box component="section" id="agenda" sx={{ py: { xs: 8, md: 12 } }}>
@@ -461,7 +538,8 @@ export function Agenda() {
                 color: "text.secondary",
               }}
             >
-              Servicios de cada semana y eventos especiales, todo en un solo lugar.
+              Servicios de cada semana y eventos especiales, todo en un solo
+              lugar.
             </Typography>
           </Box>
         </Reveal>
@@ -469,7 +547,10 @@ export function Agenda() {
         <Reveal delay={0.12}>
           {/* Medidores ocultos — nunca visibles, `height: 0` + `overflow: hidden`
               los saca del flujo sin afectar el layout ni el ancho medido. */}
-          <Box aria-hidden sx={{ height: 0, overflow: "hidden", visibility: "hidden" }}>
+          <Box
+            aria-hidden
+            sx={{ height: 0, overflow: "hidden", visibility: "hidden" }}
+          >
             <Box ref={collapsedRef} sx={AGENDA_GRID_SX}>
               {agenda.slice(0, INITIAL_COUNT).map((entry) => (
                 <AgendaTile
@@ -501,7 +582,11 @@ export function Agenda() {
           <Box
             component={motion.div}
             animate={{ height: targetHeight ?? "auto" }}
-            transition={reduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }
+            }
             sx={{ overflow: "hidden" }}
           >
             <Box sx={AGENDA_GRID_SX}>
@@ -534,7 +619,9 @@ export function Agenda() {
                   </motion.span>
                 }
               >
-                {expanded ? "Ver menos" : `Ver toda la agenda (${agenda.length})`}
+                {expanded
+                  ? "Ver menos"
+                  : `Ver toda la agenda (${agenda.length})`}
               </Button>
             </Box>
           )}

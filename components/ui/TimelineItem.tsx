@@ -1,7 +1,7 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { primary, secondary, typography } from "@/theme/tokens";
 
@@ -14,8 +14,18 @@ export interface TimelineItemProps {
 
 // El último paso era `secondary[500]` (#F9750D) — a 40px sobre fondo claro
 // da 2.7:1 (mín. 3:1). `secondary[700]` lo sube a ~5.9:1.
-const RAMP_LIGHT = [primary[700], primary[500], secondary[700], secondary[700]] as const;
-const RAMP_DARK = [primary[300], primary[200], secondary[300], secondary[500]] as const;
+const RAMP_LIGHT = [
+  primary[700],
+  primary[500],
+  secondary[700],
+  secondary[700],
+] as const;
+const RAMP_DARK = [
+  primary[300],
+  primary[200],
+  secondary[300],
+  secondary[500],
+] as const;
 
 function hexToRgb(hex: string): [number, number, number] {
   const value = parseInt(hex.slice(1), 16);
@@ -42,9 +52,17 @@ function rampColor(ramp: readonly string[], progress: number): string {
   ]);
 }
 
-export function TimelineItem({ year, title, description, progress }: TimelineItemProps) {
+export function TimelineItem({
+  year,
+  title,
+  description,
+  progress,
+}: TimelineItemProps) {
   const theme = useTheme();
-  const yearColor = rampColor(theme.palette.mode === "light" ? RAMP_LIGHT : RAMP_DARK, progress);
+  const yearColor = rampColor(
+    theme.palette.mode === "light" ? RAMP_LIGHT : RAMP_DARK,
+    progress,
+  );
 
   return (
     <Box

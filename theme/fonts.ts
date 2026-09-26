@@ -1,4 +1,4 @@
-import { Sora, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Sans, Sora } from "next/font/google";
 
 export const sora = Sora({
   subsets: ["latin"],

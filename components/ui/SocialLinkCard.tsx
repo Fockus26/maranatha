@@ -1,10 +1,10 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import type { SvgIconComponent } from "@mui/icons-material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import { alpha, useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
 
 export interface SocialLinkCardProps {
   platform: string;
@@ -63,7 +63,8 @@ export function SocialLinkCard({
         <Icon
           sx={{
             fontSize: 20,
-            color: (t) => (t.palette.mode === "light" ? "primary.main" : "primary.light"),
+            color: (t) =>
+              t.palette.mode === "light" ? "primary.main" : "primary.light",
           }}
         />
       </Box>

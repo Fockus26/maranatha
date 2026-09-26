@@ -1,9 +1,9 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import Image from "next/image";
+import { alpha, useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import type { KeyboardEvent, ReactNode } from "react";
 import { primary } from "@/theme/tokens";
 
@@ -92,10 +92,14 @@ export function PhotoOverlayCard({
       />
 
       {topLeftSlot && (
-        <Box sx={{ position: "absolute", top: 16, left: 16 }}>{topLeftSlot}</Box>
+        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+          {topLeftSlot}
+        </Box>
       )}
       {topRightSlot && (
-        <Box sx={{ position: "absolute", top: 16, right: 16 }}>{topRightSlot}</Box>
+        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+          {topRightSlot}
+        </Box>
       )}
 
       <Box sx={{ position: "absolute", left: 0, right: 0, bottom: 0, p: 2.25 }}>

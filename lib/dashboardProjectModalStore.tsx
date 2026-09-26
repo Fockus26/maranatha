@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 /**
  * Estado global del modal "Crear/editar proyecto" del dashboard — antes
@@ -21,9 +28,14 @@ interface DashboardProjectModalContextValue {
   close: () => void;
 }
 
-const DashboardProjectModalContext = createContext<DashboardProjectModalContextValue | null>(null);
+const DashboardProjectModalContext =
+  createContext<DashboardProjectModalContextValue | null>(null);
 
-export function DashboardProjectModalProvider({ children }: { children: ReactNode }) {
+export function DashboardProjectModalProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -47,13 +59,19 @@ export function DashboardProjectModalProvider({ children }: { children: ReactNod
     [open, editingId, openCreate, openEdit, close],
   );
 
-  return <DashboardProjectModalContext.Provider value={value}>{children}</DashboardProjectModalContext.Provider>;
+  return (
+    <DashboardProjectModalContext.Provider value={value}>
+      {children}
+    </DashboardProjectModalContext.Provider>
+  );
 }
 
 export function useDashboardProjectModal() {
   const ctx = useContext(DashboardProjectModalContext);
   if (!ctx) {
-    throw new Error("useDashboardProjectModal debe usarse dentro de <DashboardProjectModalProvider>");
+    throw new Error(
+      "useDashboardProjectModal debe usarse dentro de <DashboardProjectModalProvider>",
+    );
   }
   return ctx;
 }

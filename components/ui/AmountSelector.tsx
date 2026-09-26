@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import { radius, secondary, typography } from "@/theme/tokens";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -19,10 +19,20 @@ export interface AmountSelectorProps {
 }
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("es", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-export function AmountSelector({ presets, onChange, customLabel = "Otro monto", error, helperText }: AmountSelectorProps) {
+export function AmountSelector({
+  presets,
+  onChange,
+  customLabel = "Otro monto",
+  error,
+  helperText,
+}: AmountSelectorProps) {
   const theme = useTheme();
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
@@ -46,7 +56,14 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
 
   return (
     <Box>
-      <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${presets.length}, 1fr)`, gap: 2, mb: 3.5 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${presets.length}, 1fr)`,
+          gap: 2,
+          mb: 3.5,
+        }}
+      >
         {presets.map((value) => {
           const active = selectedPreset === value;
           return (
@@ -115,7 +132,7 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
                       inset: -1,
                       borderRadius: `${radius.sm}px`,
                       border: `1px solid ${theme.palette.secondary.main}`,
-                      backgroundColor: theme.palette.secondary.light + "22",
+                      backgroundColor: `${theme.palette.secondary.light}22`,
                       zIndex: 0,
                     }}
                   />
@@ -133,7 +150,14 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
         type="number"
         // En el <input> (no en el contenedor): es el que necesita el nombre
         // accesible. "decimal": se aceptan centavos.
-        slotProps={{ htmlInput: { "aria-label": customLabel, inputMode: "decimal", min: 0, step: "0.01" } }}
+        slotProps={{
+          htmlInput: {
+            "aria-label": customLabel,
+            inputMode: "decimal",
+            min: 0,
+            step: "0.01",
+          },
+        }}
         fullWidth
         size="small"
         value={customAmount}
@@ -145,13 +169,21 @@ export function AmountSelector({ presets, onChange, customLabel = "Otro monto", 
           // se veía "muy grande" para el cliente en un campo de una sola
           // línea; 14px iguala el resto de texto secundario del formulario.
           "& .MuiInputBase-input": { fontSize: typography.size.small },
-          "& .MuiInputBase-input::placeholder": { fontSize: typography.size.small },
+          "& .MuiInputBase-input::placeholder": {
+            fontSize: typography.size.small,
+          },
           // Quita las flechas de incremento/decremento del input numérico
           // (Chrome/Safari vía -webkit-appearance, Firefox vía
           // -moz-appearance) — al cliente no le gustaban.
           "& input[type=number]": { MozAppearance: "textfield" },
-          "& input[type=number]::-webkit-outer-spin-button": { WebkitAppearance: "none", margin: 0 },
-          "& input[type=number]::-webkit-inner-spin-button": { WebkitAppearance: "none", margin: 0 },
+          "& input[type=number]::-webkit-outer-spin-button": {
+            WebkitAppearance: "none",
+            margin: 0,
+          },
+          "& input[type=number]::-webkit-inner-spin-button": {
+            WebkitAppearance: "none",
+            margin: 0,
+          },
         }}
       />
     </Box>

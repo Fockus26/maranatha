@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
+import { CssBaseline, type PaletteMode, ThemeProvider } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
-import { ThemeProvider, CssBaseline, type PaletteMode } from "@mui/material";
 import { MotionConfig } from "framer-motion";
+import * as React from "react";
 import { getTheme } from "./theme";
 
 const STORAGE_KEY = "color-mode";
@@ -15,11 +15,14 @@ type ColorModeContextValue = {
   toggleColorMode: () => void;
 };
 
-const ColorModeContext = React.createContext<ColorModeContextValue | null>(null);
+const ColorModeContext = React.createContext<ColorModeContextValue | null>(
+  null,
+);
 
 export function useColorMode() {
   const ctx = React.useContext(ColorModeContext);
-  if (!ctx) throw new Error("useColorMode debe usarse dentro de <ThemeRegistry>");
+  if (!ctx)
+    throw new Error("useColorMode debe usarse dentro de <ThemeRegistry>");
   return ctx;
 }
 
@@ -28,6 +31,7 @@ function persistMode(mode: PaletteMode) {
   // La cookie es lo que le permite a `app/layout.tsx` resolver el modo en el
   // SERVIDOR (ver ese archivo) — sin ella, el HTML siempre sale en "light" y
   // el cliente lo corrige después, que es justo el flash que se reportó.
+  // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API no está en Safari/Firefox estables; es una cookie propia sin datos sensibles.
   document.cookie = `${COOKIE_KEY}=${mode}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
@@ -44,7 +48,10 @@ interface ThemeRegistryProps {
   initialMode: PaletteMode;
 }
 
-export default function ThemeRegistry({ children, initialMode }: ThemeRegistryProps) {
+export default function ThemeRegistry({
+  children,
+  initialMode,
+}: ThemeRegistryProps) {
   const [mode, setMode] = React.useState<PaletteMode>(initialMode);
 
   // Migración de una sola vez: alguien que ya tenía una preferencia guardada
@@ -55,10 +62,14 @@ export default function ThemeRegistry({ children, initialMode }: ThemeRegistryPr
   // primera visita) — es un costo de migración único, no algo que se repita
   // en cargas posteriores.
   React.useEffect(() => {
-    const hasCookie = document.cookie.split("; ").some((c) => c.startsWith(`${COOKIE_KEY}=`));
+    const hasCookie = document.cookie
+      .split("; ")
+      .some((c) => c.startsWith(`${COOKIE_KEY}=`));
     if (hasCookie) return;
 
-    const saved = window.localStorage.getItem(STORAGE_KEY) as PaletteMode | null;
+    const saved = window.localStorage.getItem(
+      STORAGE_KEY,
+    ) as PaletteMode | null;
     const resolved: PaletteMode =
       saved === "light" || saved === "dark"
         ? saved
@@ -87,7 +98,10 @@ export default function ThemeRegistry({ children, initialMode }: ThemeRegistryPr
   }, [mode]);
 
   const theme = React.useMemo(() => getTheme(mode), [mode]);
-  const contextValue = React.useMemo(() => ({ mode, toggleColorMode }), [mode, toggleColorMode]);
+  const contextValue = React.useMemo(
+    () => ({ mode, toggleColorMode }),
+    [mode, toggleColorMode],
+  );
 
   return (
     <AppRouterCacheProvider options={{ key: "mui" }}>

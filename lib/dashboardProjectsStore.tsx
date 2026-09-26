@@ -1,9 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { PROJECTS } from "./projectsData";
-import type { ProjectStatus } from "@/components/ui/ProjectCard";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { DashboardProjectFormValues } from "@/components/ui/DashboardProjectForm";
+import type { ProjectStatus } from "@/components/ui/ProjectCard";
+import { PROJECTS } from "./projectsData";
 
 /**
  * Estado del dashboard de proyectos (fase 07, D045) — vive solo en memoria
@@ -30,7 +38,13 @@ export interface DashboardProject {
   currentAmount: number;
   deadline: string;
   budget: { id: string; label: string; amount: number }[];
-  encargados: { id: string; name: string; role: string; imageUrl: string; instagramUrl: string }[];
+  encargados: {
+    id: string;
+    name: string;
+    role: string;
+    imageUrl: string;
+    instagramUrl: string;
+  }[];
 }
 
 export interface DashboardProjectWithStatus extends DashboardProject {
@@ -39,27 +53,41 @@ export interface DashboardProjectWithStatus extends DashboardProject {
 }
 
 function newId() {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
 }
 
 function statusOf(project: DashboardProject): ProjectStatus {
-  return project.goalAmount > 0 && project.currentAmount >= project.goalAmount ? "completed" : "active";
+  return project.goalAmount > 0 && project.currentAmount >= project.goalAmount
+    ? "completed"
+    : "active";
 }
 
 function formatDeadlineLabel(deadline: string): string {
   if (!deadline) return "Sin fecha";
   const date = new Date(`${deadline}T00:00:00`);
   if (Number.isNaN(date.getTime())) return deadline;
-  return new Intl.DateTimeFormat("es", { day: "numeric", month: "short", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat("es", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 function withDerived(project: DashboardProject): DashboardProjectWithStatus {
-  return { ...project, status: statusOf(project), deadlineLabel: formatDeadlineLabel(project.deadline) };
+  return {
+    ...project,
+    status: statusOf(project),
+    deadlineLabel: formatDeadlineLabel(project.deadline),
+  };
 }
 
 // `raisedBySlug`: pagos confirmados por proyecto (Supabase), sumados al
 // monto base del array estático — los lee el layout del dashboard en el servidor.
-function seedProjects(raisedBySlug: Record<string, number>): DashboardProject[] {
+function seedProjects(
+  raisedBySlug: Record<string, number>,
+): DashboardProject[] {
   return PROJECTS.map((project) => ({
     id: project.slug,
     title: project.title,
@@ -68,7 +96,11 @@ function seedProjects(raisedBySlug: Record<string, number>): DashboardProject[] 
     goalAmount: project.goalAmount,
     currentAmount: project.currentAmount + (raisedBySlug[project.slug] ?? 0),
     deadline: project.deadline,
-    budget: project.budget.map((line) => ({ id: newId(), label: line.label, amount: line.amount })),
+    budget: project.budget.map((line) => ({
+      id: newId(),
+      label: line.label,
+      amount: line.amount,
+    })),
     encargados: project.encargados.map((encargado) => ({
       id: newId(),
       name: encargado.name,
@@ -97,7 +129,8 @@ interface DashboardProjectsContextValue {
   deleteProject: (id: string) => void;
 }
 
-const DashboardProjectsContext = createContext<DashboardProjectsContextValue | null>(null);
+const DashboardProjectsContext =
+  createContext<DashboardProjectsContextValue | null>(null);
 
 export function DashboardProjectsProvider({
   children,
@@ -106,7 +139,9 @@ export function DashboardProjectsProvider({
   children: ReactNode;
   raisedBySlug?: Record<string, number>;
 }) {
-  const [projects, setProjects] = useState<DashboardProject[]>(() => seedProjects(raisedBySlug));
+  const [projects, setProjects] = useState<DashboardProject[]>(() =>
+    seedProjects(raisedBySlug),
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -131,40 +166,56 @@ export function DashboardProjectsProvider({
     ]);
   }, []);
 
-  const updateProject = useCallback((id: string, values: DashboardProjectFormValues) => {
-    setProjects((prev) =>
-      prev.map((project) =>
-        project.id === id
-          ? {
-              ...project,
-              title: values.title,
-              description: values.description,
-              imageUrl: values.imageUrl,
-              goalAmount: values.goalAmount,
-              currentAmount: values.currentAmount,
-              deadline: values.deadline,
-              budget: values.budget,
-              encargados: values.encargados,
-            }
-          : project,
-      ),
-    );
-  }, []);
+  const updateProject = useCallback(
+    (id: string, values: DashboardProjectFormValues) => {
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.id === id
+            ? {
+                ...project,
+                title: values.title,
+                description: values.description,
+                imageUrl: values.imageUrl,
+                goalAmount: values.goalAmount,
+                currentAmount: values.currentAmount,
+                deadline: values.deadline,
+                budget: values.budget,
+                encargados: values.encargados,
+              }
+            : project,
+        ),
+      );
+    },
+    [],
+  );
 
   const deleteProject = useCallback((id: string) => {
     setProjects((prev) => prev.filter((project) => project.id !== id));
   }, []);
 
   const value = useMemo<DashboardProjectsContextValue>(
-    () => ({ projects: projects.map(withDerived), isLoading, addProject, updateProject, deleteProject }),
+    () => ({
+      projects: projects.map(withDerived),
+      isLoading,
+      addProject,
+      updateProject,
+      deleteProject,
+    }),
     [projects, isLoading, addProject, updateProject, deleteProject],
   );
 
-  return <DashboardProjectsContext.Provider value={value}>{children}</DashboardProjectsContext.Provider>;
+  return (
+    <DashboardProjectsContext.Provider value={value}>
+      {children}
+    </DashboardProjectsContext.Provider>
+  );
 }
 
 export function useDashboardProjects() {
   const ctx = useContext(DashboardProjectsContext);
-  if (!ctx) throw new Error("useDashboardProjects debe usarse dentro de DashboardProjectsProvider");
+  if (!ctx)
+    throw new Error(
+      "useDashboardProjects debe usarse dentro de DashboardProjectsProvider",
+    );
   return ctx;
 }

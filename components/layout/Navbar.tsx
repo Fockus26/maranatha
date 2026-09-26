@@ -1,25 +1,29 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import {
   AppBar,
-  Toolbar,
-  Container,
   Box,
   Button,
+  Container,
   IconButton,
+  Toolbar,
   useScrollTrigger,
   useTheme,
 } from "@mui/material";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import * as React from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import MobileMenuOverlay from "./MobileMenuOverlay";
-import { HOME_ANCHOR_ITEMS, PAGE_NAV_ITEMS, type MobileNavLink } from "./navItems";
-import { useActiveAnchor } from "./useActiveAnchor";
 import { useTitheModal } from "@/lib/titheModalStore";
+import MobileMenuOverlay from "./MobileMenuOverlay";
+import {
+  HOME_ANCHOR_ITEMS,
+  type MobileNavLink,
+  PAGE_NAV_ITEMS,
+} from "./navItems";
+import { useActiveAnchor } from "./useActiveAnchor";
 
 const ANCHOR_IDS = HOME_ANCHOR_ITEMS.map((item) => item.id);
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -51,7 +55,10 @@ export default function Navbar() {
     if (!el) return;
 
     const setNavbarHeightVar = () => {
-      document.documentElement.style.setProperty("--navbar-height", `${el.getBoundingClientRect().height}px`);
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${el.getBoundingClientRect().height}px`,
+      );
     };
     setNavbarHeightVar();
 
@@ -87,9 +94,12 @@ export default function Navbar() {
           color: "text.primary",
           borderBottom: `1px solid ${scrolled ? "transparent" : theme.palette.divider}`,
           boxShadow: scrolled ? theme.shadows[1] : "none",
-          transition: theme.transitions.create(["box-shadow", "border-bottom"], {
-            duration: theme.transitions.duration.shortest,
-          }),
+          transition: theme.transitions.create(
+            ["box-shadow", "border-bottom"],
+            {
+              duration: theme.transitions.duration.shortest,
+            },
+          ),
         }}
       >
         <Container maxWidth="lg" disableGutters={false}>
@@ -105,9 +115,21 @@ export default function Navbar() {
             <Box
               component={Link}
               href="/"
-              sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                textDecoration: "none",
+              }}
             >
-              <Box sx={{ width: 18, height: 18, borderRadius: "4px", bgcolor: "primary.main" }} />
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: "4px",
+                  bgcolor: "primary.main",
+                }}
+              />
               <Box
                 component="span"
                 sx={{
@@ -115,7 +137,10 @@ export default function Navbar() {
                   fontWeight: 600,
                   fontSize: 14,
                   "@media (min-width:1920px)": { fontSize: "16px" },
-                  color: (t) => (t.palette.mode === "dark" ? t.palette.primary.light : t.palette.primary.main),
+                  color: (t) =>
+                    t.palette.mode === "dark"
+                      ? t.palette.primary.light
+                      : t.palette.primary.main,
                 }}
               >
                 Iglesia
@@ -123,7 +148,15 @@ export default function Navbar() {
             </Box>
 
             {/* Links de escritorio: anclas + páginas */}
-            <Box component="nav" aria-label="Principal" sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 3 }}>
+            <Box
+              component="nav"
+              aria-label="Principal"
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
               {HOME_ANCHOR_ITEMS.map((item) => {
                 const isActive = activeAnchor === item.id;
                 return (
@@ -182,7 +215,9 @@ export default function Navbar() {
                   navbar (`secondary.main`, D023) — la píldora es la que
                   cambia, no el criterio de color. */}
               {PAGE_NAV_ITEMS.length > 0 && (
-                <Box sx={{ width: "1px", height: 20, backgroundColor: "divider" }} />
+                <Box
+                  sx={{ width: "1px", height: 20, backgroundColor: "divider" }}
+                />
               )}
               {PAGE_NAV_ITEMS.map((item) => (
                 <Box
@@ -204,7 +239,10 @@ export default function Navbar() {
                     pl: 1.5,
                     pr: 1.75,
                     py: 0.75,
-                    "&:hover": { color: "secondary.main", borderColor: "secondary.main" },
+                    "&:hover": {
+                      color: "secondary.main",
+                      borderColor: "secondary.main",
+                    },
                   }}
                 >
                   <OpenInNewRoundedIcon sx={{ fontSize: 13 }} />
@@ -215,7 +253,13 @@ export default function Navbar() {
 
             {/* Theme toggle + CTA (escritorio) / hamburguesa (mobile) */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1.5 }}>
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
                 <ThemeToggle />
                 <Button
                   onClick={openTithe}
@@ -230,7 +274,10 @@ export default function Navbar() {
               <IconButton
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
-                sx={{ display: { xs: "inline-flex", md: "none" }, color: "text.primary" }}
+                sx={{
+                  display: { xs: "inline-flex", md: "none" },
+                  color: "text.primary",
+                }}
               >
                 <MenuRoundedIcon />
               </IconButton>

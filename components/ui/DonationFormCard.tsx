@@ -1,7 +1,7 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { radius } from "@/theme/tokens";
 
@@ -10,7 +10,10 @@ export interface DonationFormCardProps {
   children: ReactNode;
 }
 
-export function DonationFormCard({ width = 320, children }: DonationFormCardProps) {
+export function DonationFormCard({
+  width = 320,
+  children,
+}: DonationFormCardProps) {
   const theme = useTheme();
 
   return (

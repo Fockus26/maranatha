@@ -13,7 +13,7 @@ const config: Config = {
         xl: `${radius.xl}px`,
       },
       spacing: Object.fromEntries(
-        Object.entries(spacing).map(([key, val]) => [key, `${val}px`])
+        Object.entries(spacing).map(([key, val]) => [key, `${val}px`]),
       ),
     },
   },

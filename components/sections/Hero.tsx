@@ -1,20 +1,26 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Image from "next/image";
-import Link from "next/link";
-import { alpha, keyframes } from "@mui/material/styles";
-import { AnimatePresence, motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import PauseRoundedIcon from "@mui/icons-material/PauseRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import { primary, secondary, gray } from "@/theme/tokens";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import { alpha, keyframes } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { useRef, useState } from "react";
+import { gray, primary, secondary } from "@/theme/tokens";
 
 const AUTOPLAY_MS = 6000;
 
@@ -63,8 +69,15 @@ export function Hero() {
   // Parallax (fase 07, Dirección B elegida en /design): la foto se mueve
   // más lento que el scroll a medida que el Hero sale de vista. Se desactiva
   // con "reducir movimiento" (WCAG 2.3.3).
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const parallaxTransform = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const parallaxTransform = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["0%", "16%"],
+  );
   const parallaxY = reduceMotion ? "0%" : parallaxTransform;
 
   // Autoplay del slider (WCAG 2.2.2): no corre si el usuario pidió reducir
@@ -115,7 +128,14 @@ export function Hero() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7, ease: "easeInOut" }}
-          style={{ position: "absolute", top: "-10%", bottom: "-10%", left: 0, right: 0, y: parallaxY }}
+          style={{
+            position: "absolute",
+            top: "-10%",
+            bottom: "-10%",
+            left: 0,
+            right: 0,
+            y: parallaxY,
+          }}
         >
           <Image
             src={slide.imageUrl}
@@ -199,16 +219,38 @@ export function Hero() {
           izquierda en pantallas < ~1280px y el clic a veces caía en el texto. */}
       <Container
         maxWidth="lg"
-        sx={{ position: "relative", px: { md: 22 }, pt: { xs: 14, md: 10 }, pb: { xs: 8, md: 10 } }}
+        sx={{
+          position: "relative",
+          px: { md: 22 },
+          pt: { xs: 14, md: 10 },
+          pb: { xs: 8, md: 10 },
+        }}
       >
         {/* En pantallas grandes el bloque se ensancha para acompañar el
             headline más grande (64px) — antes quedaba encajado en 580px y el
             título se recortaba a 3 líneas apretadas. */}
-        <Box sx={{ maxWidth: { xs: 580, xl: 720 }, "@media (min-width:1920px)": { maxWidth: 860 } }}>
+        <Box
+          sx={{
+            maxWidth: { xs: 580, xl: 720 },
+            "@media (min-width:1920px)": { maxWidth: 860 },
+          }}
+        >
           {/* Barras de progreso — indican slide activo y navegan (botones reales).
               + control de pausa/reproducción del autoplay (WCAG 2.2.2). */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, mb: 5, maxWidth: 260 }}>
-            <Box sx={{ display: "flex", gap: 1, flex: 1 }} role="group" aria-label="Elegir destacado">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.25,
+              mb: 5,
+              maxWidth: 260,
+            }}
+          >
+            <Box
+              sx={{ display: "flex", gap: 1, flex: 1 }}
+              role="group"
+              aria-label="Elegir destacado"
+            >
               {SLIDES.map((s, i) => (
                 <Box
                   key={s.id}
@@ -236,7 +278,8 @@ export function Hero() {
                       display: "block",
                       height: 2.5,
                       width: i < index ? "100%" : "0%",
-                      bgcolor: i < index ? alpha(gray[50], 0.55) : secondary[400],
+                      bgcolor:
+                        i < index ? alpha(gray[50], 0.55) : secondary[400],
                       ...(i === index &&
                         !reduceMotion && {
                           animation: `${progressAnim} ${AUTOPLAY_MS}ms linear forwards`,
@@ -245,14 +288,20 @@ export function Hero() {
                       // Reducir movimiento: sin autoplay; la barra activa queda llena.
                       ...(i === index && reduceMotion && { width: "100%" }),
                     }}
-                    onAnimationEnd={i === index ? () => goTo(index + 1) : undefined}
+                    onAnimationEnd={
+                      i === index ? () => goTo(index + 1) : undefined
+                    }
                   />
                 </Box>
               ))}
             </Box>
             <IconButton
               onClick={() => setPaused((p) => !p)}
-              aria-label={autoplayActive ? "Pausar cambio automático de destacados" : "Reanudar cambio automático de destacados"}
+              aria-label={
+                autoplayActive
+                  ? "Pausar cambio automático de destacados"
+                  : "Reanudar cambio automático de destacados"
+              }
               disabled={!!reduceMotion}
               sx={{
                 color: gray[50],
@@ -263,7 +312,11 @@ export function Hero() {
                 "&.Mui-disabled": { color: alpha(gray[50], 0.4) },
               }}
             >
-              {autoplayActive ? <PauseRoundedIcon sx={{ fontSize: 16 }} /> : <PlayArrowRoundedIcon sx={{ fontSize: 16 }} />}
+              {autoplayActive ? (
+                <PauseRoundedIcon sx={{ fontSize: 16 }} />
+              ) : (
+                <PlayArrowRoundedIcon sx={{ fontSize: 16 }} />
+              )}
             </IconButton>
           </Box>
 

@@ -7,7 +7,6 @@ import { DASHBOARD_CONTENT_SX } from "@/components/layout/DashboardShell";
 import { patternLayerSx } from "@/theme/patterns";
 import { primary } from "@/theme/tokens";
 
-
 export interface DashboardStat {
   label: string;
   value: string;

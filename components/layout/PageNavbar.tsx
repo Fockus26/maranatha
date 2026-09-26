@@ -1,26 +1,26 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import {
   AppBar,
-  Toolbar,
-  Container,
   Box,
   Button,
+  Container,
   IconButton,
+  Toolbar,
   useScrollTrigger,
   useTheme,
 } from "@mui/material";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import * as React from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import MobileMenuOverlay from "./MobileMenuOverlay";
-import { PAGE_NAV_ITEMS, type MobileNavLink } from "./navItems";
 import { useTitheModal } from "@/lib/titheModalStore";
 import { secondary } from "@/theme/tokens";
+import MobileMenuOverlay from "./MobileMenuOverlay";
+import { type MobileNavLink, PAGE_NAV_ITEMS } from "./navItems";
 
 /**
  * Variante simplificada de `Navbar` para toda página pública que no sea Home
@@ -38,7 +38,8 @@ export default function PageNavbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { openTithe } = useTitheModal();
 
-  const isActive = (href: string) => pathname === href || (pathname?.startsWith(`${href}/`) ?? false);
+  const isActive = (href: string) =>
+    pathname === href || (pathname?.startsWith(`${href}/`) ?? false);
 
   // Píldora de link de página — mismo tratamiento que el Navbar de Home
   // (Opción 1 del comparador de navbar, /design): borde + ícono en vez de
@@ -51,7 +52,8 @@ export default function PageNavbar() {
   // Naranja del estado activo contrastado según el modo (en oscuro
   // `secondary[700]` sobre navy da 3.7:1). Sin relleno translúcido: sobre él
   // el texto quedaba en 4.4:1; el borde ya marca el activo.
-  const activeOrange = theme.palette.mode === "dark" ? secondary[300] : secondary[700];
+  const activeOrange =
+    theme.palette.mode === "dark" ? secondary[300] : secondary[700];
   const pillSx = (active: boolean) => ({
     display: "inline-flex",
     alignItems: "center",
@@ -69,7 +71,9 @@ export default function PageNavbar() {
     pl: 1.5,
     pr: 1.75,
     py: 0.75,
-    ...(!active && { "&:hover": { color: "secondary.main", borderColor: "secondary.main" } }),
+    ...(!active && {
+      "&:hover": { color: "secondary.main", borderColor: "secondary.main" },
+    }),
   });
 
   // "Inicio" también se agrega al menú mobile por la misma razón que en
@@ -96,9 +100,12 @@ export default function PageNavbar() {
           color: "text.primary",
           borderBottom: `1px solid ${scrolled ? "transparent" : theme.palette.divider}`,
           boxShadow: scrolled ? theme.shadows[1] : "none",
-          transition: theme.transitions.create(["box-shadow", "border-bottom"], {
-            duration: theme.transitions.duration.shortest,
-          }),
+          transition: theme.transitions.create(
+            ["box-shadow", "border-bottom"],
+            {
+              duration: theme.transitions.duration.shortest,
+            },
+          ),
         }}
       >
         <Container maxWidth="lg" disableGutters={false}>
@@ -114,9 +121,21 @@ export default function PageNavbar() {
             <Box
               component={Link}
               href="/"
-              sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                textDecoration: "none",
+              }}
             >
-              <Box sx={{ width: 18, height: 18, borderRadius: "4px", bgcolor: "primary.main" }} />
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: "4px",
+                  bgcolor: "primary.main",
+                }}
+              />
               <Box
                 component="span"
                 sx={{
@@ -124,7 +143,10 @@ export default function PageNavbar() {
                   fontWeight: 600,
                   fontSize: 14,
                   "@media (min-width:1920px)": { fontSize: "16px" },
-                  color: (t) => (t.palette.mode === "dark" ? t.palette.primary.light : t.palette.primary.main),
+                  color: (t) =>
+                    t.palette.mode === "dark"
+                      ? t.palette.primary.light
+                      : t.palette.primary.main,
                 }}
               >
                 Iglesia
@@ -138,7 +160,15 @@ export default function PageNavbar() {
                 era suficientemente explícito. Se agrega "Inicio" siempre
                 primero, con el mismo tratamiento de píldora que el resto
                 (Opción 1 del comparador de navbar, /design). */}
-            <Box component="nav" aria-label="Principal" sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1.25 }}>
+            <Box
+              component="nav"
+              aria-label="Principal"
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                gap: 1.25,
+              }}
+            >
               <Box component={Link} href="/" sx={pillSx(false)}>
                 <HomeRoundedIcon sx={{ fontSize: 13 }} />
                 Inicio
@@ -146,7 +176,12 @@ export default function PageNavbar() {
               {PAGE_NAV_ITEMS.map((item) => {
                 const active = isActive(item.href);
                 return (
-                  <Box key={item.href} component={Link} href={item.href} sx={pillSx(active)}>
+                  <Box
+                    key={item.href}
+                    component={Link}
+                    href={item.href}
+                    sx={pillSx(active)}
+                  >
                     <OpenInNewRoundedIcon sx={{ fontSize: 13 }} />
                     {item.label}
                   </Box>
@@ -156,7 +191,13 @@ export default function PageNavbar() {
 
             {/* Theme toggle + CTA (escritorio) / hamburguesa (mobile) */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1.5 }}>
+              <Box
+                sx={{
+                  display: { xs: "none", md: "flex" },
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
                 <ThemeToggle />
                 <Button
                   onClick={openTithe}
@@ -171,7 +212,10 @@ export default function PageNavbar() {
               <IconButton
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
-                sx={{ display: { xs: "inline-flex", md: "none" }, color: "text.primary" }}
+                sx={{
+                  display: { xs: "inline-flex", md: "none" },
+                  color: "text.primary",
+                }}
               >
                 <MenuRoundedIcon />
               </IconButton>

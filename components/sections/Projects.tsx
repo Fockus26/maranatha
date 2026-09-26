@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import { useRouter } from "next/navigation";
 import { ProjectCard, type ProjectStatus } from "@/components/ui/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -132,7 +132,8 @@ export function Projects() {
                 color: "text.secondary",
               }}
             >
-              Cada proyecto es una necesidad real de la iglesia — tu aporte hace la diferencia.
+              Cada proyecto es una necesidad real de la iglesia — tu aporte hace
+              la diferencia.
             </Typography>
           </Box>
         </Reveal>
@@ -177,7 +178,11 @@ export function Projects() {
               color="primary"
               size="large"
               endIcon={<ArrowForwardRoundedIcon />}
-              sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 600 }}
+              sx={{
+                borderRadius: "10px",
+                textTransform: "none",
+                fontWeight: 600,
+              }}
             >
               Ver todos los proyectos
             </Button>

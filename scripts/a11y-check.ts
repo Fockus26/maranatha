@@ -13,11 +13,18 @@
  * Nota: se corre con `node` (Node 22+) y no con `bun` — el binario de
  * Playwright no conecta por pipe bajo bun en Windows.
  */
-import { chromium } from "playwright";
+
 import AxeBuilder from "@axe-core/playwright";
+import { chromium } from "playwright";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const ROUTES = ["/", "/proyectos", "/proyectos/techo-para-el-salon-multiusos", "/dashboard", "/dashboard/proyectos"];
+const ROUTES = [
+  "/",
+  "/proyectos",
+  "/proyectos/techo-para-el-salon-multiusos",
+  "/dashboard",
+  "/dashboard/proyectos",
+];
 const MODES = ["light", "dark"] as const;
 
 const browser = await chromium.launch();
@@ -26,16 +33,23 @@ let failed = false;
 for (const mode of MODES) {
   const url = new URL(BASE);
   const context = await browser.newContext();
-  await context.addCookies([{ name: "color-mode", value: mode, domain: url.hostname, path: "/" }]);
+  await context.addCookies([
+    { name: "color-mode", value: mode, domain: url.hostname, path: "/" },
+  ]);
   console.log(`\n===== modo ${mode} =====`);
 
   for (const path of ROUTES) {
     const page = await context.newPage();
     try {
-      await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.goto(BASE + path, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
       await page.waitForTimeout(2000); // hidratación + store del dashboard
     } catch {
-      console.log(`\n⚠️  No se pudo cargar ${path} — ¿está corriendo el server en ${BASE}?`);
+      console.log(
+        `\n⚠️  No se pudo cargar ${path} — ¿está corriendo el server en ${BASE}?`,
+      );
       await page.close();
       continue;
     }
@@ -53,7 +67,10 @@ for (const mode of MODES) {
         console.log(`  [${v.impact}] ${v.id} — ${v.help}`);
         for (const node of v.nodes) {
           console.log(`    → ${node.target.join(" ")}`);
-          if (node.failureSummary) console.log(`      ${node.failureSummary.replace(/\n/g, "\n      ")}`);
+          if (node.failureSummary)
+            console.log(
+              `      ${node.failureSummary.replace(/\n/g, "\n      ")}`,
+            );
         }
       }
     }

@@ -6,7 +6,7 @@ export const primary = {
   400: "#5B6B9E",
   500: "#37447A",
   600: "#1E2B5C",
-  700: "#101B45", 
+  700: "#101B45",
   800: "#0B1433",
   900: "#060A1D",
 } as const;
@@ -17,7 +17,7 @@ export const secondary = {
   200: "#FDC48A",
   300: "#FCA355",
   400: "#FA8A2E",
-  500: "#F9750D", 
+  500: "#F9750D",
   600: "#DC5F02",
   700: "#B34C02",
   800: "#8A3B03",
@@ -100,11 +100,11 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  xs: 4,   
-  sm: 6,   
-  md: 8,   
-  lg: 12,  
-  xl: 16,  
+  xs: 4,
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
 } as const;
 
 export const shadow = {

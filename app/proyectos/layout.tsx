@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ProyectosLayout({ children }: { children: React.ReactNode }) {
+export default function ProyectosLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

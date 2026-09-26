@@ -3,8 +3,8 @@
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { TimelineItem } from "@/components/ui/TimelineItem";
 import { Reveal } from "@/components/ui/Reveal";
+import { TimelineItem } from "@/components/ui/TimelineItem";
 
 /**
  * Sección "Historia" (fase 06) — componente + datos en un solo archivo (D030).
@@ -114,8 +114,8 @@ export function History() {
                 color: "text.secondary",
               }}
             >
-              De un grupo pequeño a una familia que crece cada año, en cinco áreas de servicio
-              y una sola comunidad.
+              De un grupo pequeño a una familia que crece cada año, en cinco
+              áreas de servicio y una sola comunidad.
             </Typography>
           </Box>
         </Reveal>

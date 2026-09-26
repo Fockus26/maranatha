@@ -60,10 +60,15 @@ function normalize(p: BeholdPost): InstagramPost {
   };
 }
 
-export async function getInstagramPosts(feedId: string | undefined, limit = 4): Promise<InstagramPost[]> {
+export async function getInstagramPosts(
+  feedId: string | undefined,
+  limit = 4,
+): Promise<InstagramPost[]> {
   if (!feedId) return [];
   try {
-    const res = await fetch(`https://feeds.behold.so/${feedId}`, { next: { revalidate: 3600 } });
+    const res = await fetch(`https://feeds.behold.so/${feedId}`, {
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return [];
     const data = (await res.json()) as { posts?: BeholdPost[] };
     return (data.posts ?? []).slice(0, limit).map(normalize);
@@ -73,9 +78,14 @@ export async function getInstagramPosts(feedId: string | undefined, limit = 4): 
 }
 
 /** Trae los posts de las 3 cuentas en paralelo. */
-export async function getAllInstagramPosts(limit = 4): Promise<Record<string, InstagramPost[]>> {
+export async function getAllInstagramPosts(
+  limit = 4,
+): Promise<Record<string, InstagramPost[]>> {
   const entries = await Promise.all(
-    Object.entries(BEHOLD_FEED_IDS).map(async ([key, feedId]) => [key, await getInstagramPosts(feedId, limit)] as const),
+    Object.entries(BEHOLD_FEED_IDS).map(
+      async ([key, feedId]) =>
+        [key, await getInstagramPosts(feedId, limit)] as const,
+    ),
   );
   return Object.fromEntries(entries);
 }

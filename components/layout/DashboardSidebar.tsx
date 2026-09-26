@@ -1,17 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Box, Typography } from "@mui/material";
-import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import { Box, Typography } from "@mui/material";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { primary } from "@/theme/tokens";
 
 const DASHBOARD_ITEMS = [
   { label: "Resumen", href: "/dashboard", icon: SpaceDashboardOutlinedIcon },
-  { label: "Proyectos", href: "/dashboard/proyectos", icon: FolderOutlinedIcon },
+  {
+    label: "Proyectos",
+    href: "/dashboard/proyectos",
+    icon: FolderOutlinedIcon,
+  },
 ] as const;
 
 export const DASHBOARD_SIDEBAR_WIDTH = 260;
@@ -52,19 +56,42 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 3, py: 3 }}>
-        <Box sx={{ width: 18, height: 18, borderRadius: "4px", bgcolor: "secondary.main" }} />
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "4px",
+            bgcolor: "secondary.main",
+          }}
+        />
         <Typography
           component="span"
-          sx={{ fontFamily: "var(--font-heading)", fontWeight: 600, fontSize: 14, color: ON_DARK }}
+          sx={{
+            fontFamily: "var(--font-heading)",
+            fontWeight: 600,
+            fontSize: 14,
+            color: ON_DARK,
+          }}
         >
           Iglesia
         </Typography>
       </Box>
 
-      <Box component="nav" sx={{ display: "flex", flexDirection: "column", gap: 0.5, px: 2, mt: 1 }}>
+      <Box
+        component="nav"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.5,
+          px: 2,
+          mt: 1,
+        }}
+      >
         {DASHBOARD_ITEMS.map((item) => {
           const isActive =
-            pathname === item.href || (item.href !== "/dashboard" && (pathname?.startsWith(`${item.href}/`) ?? false));
+            pathname === item.href ||
+            (item.href !== "/dashboard" &&
+              (pathname?.startsWith(`${item.href}/`) ?? false));
           const Icon = item.icon;
           return (
             <Box
@@ -114,7 +141,10 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
             size="small"
             sx={{
               color: "rgba(255,255,255,0.75)",
-              "&:hover": { backgroundColor: "rgba(255,255,255,0.08)", color: ON_DARK },
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.08)",
+                color: ON_DARK,
+              },
             }}
           />
           <Box

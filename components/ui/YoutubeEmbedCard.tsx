@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { alpha, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import { primary, gray } from "@/theme/tokens";
+import Box from "@mui/material/Box";
+import { alpha, useTheme } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import type * as React from "react";
+import { gray, primary } from "@/theme/tokens";
 
 export interface YoutubeEmbedCardProps {
   videoId: string;

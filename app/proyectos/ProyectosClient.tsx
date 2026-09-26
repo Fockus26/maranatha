@@ -1,26 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { alpha, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import IconButton from "@mui/material/IconButton";
-import { AnimatePresence, motion } from "framer-motion";
+import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
 import SearchOffRoundedIcon from "@mui/icons-material/SearchOffRounded";
 import ViewListRoundedIcon from "@mui/icons-material/ViewListRounded";
-import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
-import PageNavbar from "@/components/layout/PageNavbar";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import { alpha, useTheme } from "@mui/material/styles";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Typography from "@mui/material/Typography";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import Footer from "@/components/layout/Footer";
-import { ProjectCard } from "@/components/ui/ProjectCard";
+import PageNavbar from "@/components/layout/PageNavbar";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ProjectCard } from "@/components/ui/ProjectCard";
+import { breadcrumbJsonLd } from "@/lib/jsonLd";
 import type { ProjectRecord } from "@/lib/projectsData";
 import { secondary } from "@/theme/tokens";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { breadcrumbJsonLd } from "@/lib/jsonLd";
 
 /**
  * Página "Proyectos" (`/proyectos`, fase 07, D044) — listado completo, a
@@ -113,7 +113,8 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 color: "text.secondary",
               }}
             >
-              Cada proyecto es una necesidad real de la iglesia — tu aporte hace la diferencia.
+              Cada proyecto es una necesidad real de la iglesia — tu aporte hace
+              la diferencia.
             </Typography>
           </Box>
 
@@ -156,14 +157,21 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 // `secondary[700]` (oscuro sobre fondo claro), en oscuro
                 // `secondary[300]` (claro sobre navy).
                 "& .Mui-selected": {
-                  color: (t) => `${t.palette.mode === "dark" ? secondary[300] : secondary[700]} !important`,
+                  color: (t) =>
+                    `${t.palette.mode === "dark" ? secondary[300] : secondary[700]} !important`,
                   fontWeight: 600,
                 },
               }}
             >
               <Tab value="all" label={`Todos (${projects.length})`} />
-              <Tab value="active" label={`Activos (${projects.filter((p) => p.status === "active").length})`} />
-              <Tab value="completed" label={`Completados (${projects.filter((p) => p.status === "completed").length})`} />
+              <Tab
+                value="active"
+                label={`Activos (${projects.filter((p) => p.status === "active").length})`}
+              />
+              <Tab
+                value="completed"
+                label={`Completados (${projects.filter((p) => p.status === "completed").length})`}
+              />
             </Tabs>
 
             {/* Toggle lista / cuadrícula — oculto en mobile (< sm). */}
@@ -187,9 +195,16 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 sx={{
                   borderRadius: 0,
                   px: 1.25,
-                  color: viewMode === "list" ? "primary.main" : "text.secondary",
-                  backgroundColor: viewMode === "list" ? alpha(theme.palette.primary.main, 0.08) : "transparent",
-                  "&:hover": { color: "primary.main", backgroundColor: alpha(theme.palette.primary.main, 0.08) },
+                  color:
+                    viewMode === "list" ? "primary.main" : "text.secondary",
+                  backgroundColor:
+                    viewMode === "list"
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : "transparent",
+                  "&:hover": {
+                    color: "primary.main",
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  },
                 }}
               >
                 <ViewListRoundedIcon fontSize="small" />
@@ -203,9 +218,16 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 sx={{
                   borderRadius: 0,
                   px: 1.25,
-                  color: viewMode === "grid" ? "primary.main" : "text.secondary",
-                  backgroundColor: viewMode === "grid" ? alpha(theme.palette.primary.main, 0.08) : "transparent",
-                  "&:hover": { color: "primary.main", backgroundColor: alpha(theme.palette.primary.main, 0.08) },
+                  color:
+                    viewMode === "grid" ? "primary.main" : "text.secondary",
+                  backgroundColor:
+                    viewMode === "grid"
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : "transparent",
+                  "&:hover": {
+                    color: "primary.main",
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                  },
                 }}
               >
                 <GridViewRoundedIcon fontSize="small" />
@@ -233,7 +255,11 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 viewMode === "grid"
                   ? {
                       display: "grid",
-                      gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        lg: "repeat(3, 1fr)",
+                      },
                       gap: "24px",
                     }
                   : { display: "flex", flexDirection: "column", gap: 3 }
@@ -258,7 +284,9 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                       status={project.status}
                       currentAmount={project.currentAmount}
                       goalAmount={project.goalAmount}
-                      onCtaClick={() => router.push(`/proyectos/${project.slug}`)}
+                      onCtaClick={() =>
+                        router.push(`/proyectos/${project.slug}`)
+                      }
                     />
                   </Box>
                 ))}

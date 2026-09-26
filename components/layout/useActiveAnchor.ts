@@ -20,7 +20,8 @@ export function useActiveAnchor(ids: string[]): string | null {
   const key = ids.join("|");
 
   useEffect(() => {
-    const elements = ids
+    const elements = key
+      .split("|")
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
@@ -44,7 +45,6 @@ export function useActiveAnchor(ids: string[]): string | null {
 
     for (const el of elements) observer.observe(el);
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   return activeId;

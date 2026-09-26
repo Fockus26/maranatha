@@ -1,8 +1,8 @@
 "use client";
 
-import { IconButton, type IconButtonProps } from "@mui/material";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import { IconButton, type IconButtonProps } from "@mui/material";
 import { useColorMode } from "@/theme/ThemeRegistry";
 
 type ThemeToggleProps = {
@@ -22,7 +22,9 @@ export default function ThemeToggle({ size = "small", sx }: ThemeToggleProps) {
     <IconButton
       onClick={toggleColorMode}
       size={size}
-      aria-label={mode === "light" ? "Activar modo oscuro" : "Activar modo claro"}
+      aria-label={
+        mode === "light" ? "Activar modo oscuro" : "Activar modo claro"
+      }
       sx={[
         {
           color: "text.secondary",
@@ -40,9 +42,13 @@ export default function ThemeToggle({ size = "small", sx }: ThemeToggleProps) {
       ]}
     >
       {mode === "light" ? (
-        <DarkModeOutlinedIcon fontSize={size === "large" ? "medium" : "small"} />
+        <DarkModeOutlinedIcon
+          fontSize={size === "large" ? "medium" : "small"}
+        />
       ) : (
-        <LightModeOutlinedIcon fontSize={size === "large" ? "medium" : "small"} />
+        <LightModeOutlinedIcon
+          fontSize={size === "large" ? "medium" : "small"}
+        />
       )}
     </IconButton>
   );

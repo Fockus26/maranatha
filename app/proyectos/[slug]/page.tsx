@@ -20,13 +20,18 @@ export function generateStaticParams() {
   return PROJECTS.map((project) => ({ slug: project.slug }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/proyectos/[slug]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/proyectos/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
 
   if (!project) {
     // El slug no existe → la página llama a `notFound()`; que no se indexe.
-    return { title: "Proyecto no encontrado", robots: { index: false, follow: false } };
+    return {
+      title: "Proyecto no encontrado",
+      robots: { index: false, follow: false },
+    };
   }
 
   const path = `/proyectos/${project.slug}`;
@@ -39,12 +44,16 @@ export async function generateMetadata({ params }: PageProps<"/proyectos/[slug]"
       title: `${project.title} | Iglesia Maranatha`,
       description: project.description,
       url: `${SITE_URL}${path}`,
-      images: [{ url: project.imageUrl, width: 1200, height: 800, alt: project.title }],
+      images: [
+        { url: project.imageUrl, width: 1200, height: 800, alt: project.title },
+      ],
     },
   };
 }
 
-export default async function ProyectoDetallePage({ params }: PageProps<"/proyectos/[slug]">) {
+export default async function ProyectoDetallePage({
+  params,
+}: PageProps<"/proyectos/[slug]">) {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
 
@@ -53,5 +62,9 @@ export default async function ProyectoDetallePage({ params }: PageProps<"/proyec
   }
 
   // Recaudado = base + pagos confirmados (se revalida al confirmar un pago).
-  return <ProjectDetailClient project={withRaised(project, await getRaisedRecord())} />;
+  return (
+    <ProjectDetailClient
+      project={withRaised(project, await getRaisedRecord())}
+    />
+  );
 }

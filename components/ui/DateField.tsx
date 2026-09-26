@@ -1,15 +1,21 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Popper from "@mui/material/Popper";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
-import IconButton from "@mui/material/IconButton";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import Box from "@mui/material/Box";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
+import IconButton from "@mui/material/IconButton";
+import Popper from "@mui/material/Popper";
+import { useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { radius, typography } from "@/theme/tokens";
 
 export interface DateFieldProps {
@@ -27,9 +33,21 @@ export interface DateFieldProps {
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
-const MONTH_FORMATTER = new Intl.DateTimeFormat("es", { month: "long", year: "numeric" });
-const DISPLAY_FORMATTER = new Intl.DateTimeFormat("es", { day: "numeric", month: "short", year: "numeric" });
-const FULL_DATE_FORMATTER = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const MONTH_FORMATTER = new Intl.DateTimeFormat("es", {
+  month: "long",
+  year: "numeric",
+});
+const DISPLAY_FORMATTER = new Intl.DateTimeFormat("es", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+const FULL_DATE_FORMATTER = new Intl.DateTimeFormat("es", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
 function parseValue(value: string): Date | null {
   if (!value) return null;
@@ -46,7 +64,11 @@ function formatValue(date: Date): string {
 }
 
 function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 // La semana arranca en lunes (convención en español) — a diferencia de
@@ -61,7 +83,15 @@ function buildMonthGrid(viewDate: Date): Date[] {
   const firstOfMonth = new Date(year, month, 1);
   const startOffset = mondayIndex(firstOfMonth);
   const gridStart = new Date(year, month, 1 - startOffset);
-  return Array.from({ length: 42 }, (_, i) => new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i));
+  return Array.from(
+    { length: 42 },
+    (_, i) =>
+      new Date(
+        gridStart.getFullYear(),
+        gridStart.getMonth(),
+        gridStart.getDate() + i,
+      ),
+  );
 }
 
 /**
@@ -80,7 +110,14 @@ function buildMonthGrid(viewDate: Date): Date[] {
  * `YYYY-MM-DD`, igual que antes — no cambia nada para quien consume
  * `DashboardProjectForm`.
  */
-export function DateField({ label, value, onChange, error, helperText, max }: DateFieldProps) {
+export function DateField({
+  label,
+  value,
+  onChange,
+  error,
+  helperText,
+  max,
+}: DateFieldProps) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const selected = parseValue(value);
@@ -106,8 +143,13 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
 
   const today = new Date();
   const maxDate = max ? parseValue(max) : null;
-  const isAfterMax = (day: Date) => Boolean(maxDate && day > maxDate && !isSameDay(day, maxDate));
-  const nextMonthStart = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+  const isAfterMax = (day: Date) =>
+    Boolean(maxDate && day > maxDate && !isSameDay(day, maxDate));
+  const nextMonthStart = new Date(
+    viewDate.getFullYear(),
+    viewDate.getMonth() + 1,
+    1,
+  );
   const days = buildMonthGrid(viewDate);
   const currentMonth = viewDate.getMonth();
   const monthLabel = MONTH_FORMATTER.format(viewDate);
@@ -118,7 +160,9 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
   }
 
   function shiftMonth(delta: number) {
-    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    setViewDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1),
+    );
   }
 
   return (
@@ -130,7 +174,9 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
           display: "block",
           fontSize: "12px",
           fontWeight: 500,
-          color: error ? theme.palette.error.main : theme.palette.text.secondary,
+          color: error
+            ? theme.palette.error.main
+            : theme.palette.text.secondary,
           mb: 0.75,
         }}
       >
@@ -160,8 +206,14 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
           px: 1.75,
           height: 40,
           cursor: "pointer",
-          transition: theme.transitions.create(["border-color"], { duration: theme.transitions.duration.shortest }),
-          "&:hover": { borderColor: error ? theme.palette.error.main : theme.palette.text.secondary },
+          transition: theme.transitions.create(["border-color"], {
+            duration: theme.transitions.duration.shortest,
+          }),
+          "&:hover": {
+            borderColor: error
+              ? theme.palette.error.main
+              : theme.palette.text.secondary,
+          },
         }}
       >
         <Box
@@ -169,12 +221,17 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
           sx={{
             fontFamily: typography.fontFamily.body,
             fontSize: "14px",
-            color: selected ? theme.palette.text.primary : theme.palette.text.secondary,
+            color: selected
+              ? theme.palette.text.primary
+              : theme.palette.text.secondary,
           }}
         >
           {selected ? DISPLAY_FORMATTER.format(selected) : "Seleccionar fecha"}
         </Box>
-        <CalendarMonthRoundedIcon fontSize="small" sx={{ color: theme.palette.text.secondary, flexShrink: 0 }} />
+        <CalendarMonthRoundedIcon
+          fontSize="small"
+          sx={{ color: theme.palette.text.secondary, flexShrink: 0 }}
+        />
       </Box>
 
       {error && helperText && (
@@ -182,7 +239,13 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
           component="p"
           id={`${labelId}-error`}
           role="alert"
-          sx={{ m: 0, mt: 0.75, ml: 1.75, fontSize: "12px", color: theme.palette.error.main }}
+          sx={{
+            m: 0,
+            mt: 0.75,
+            ml: 1.75,
+            fontSize: "12px",
+            color: theme.palette.error.main,
+          }}
         >
           {helperText}
         </Box>
@@ -218,8 +281,20 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
               p: 2,
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-              <IconButton type="button" size="small" onClick={() => shiftMonth(-1)} aria-label="Mes anterior">
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: 1.5,
+              }}
+            >
+              <IconButton
+                type="button"
+                size="small"
+                onClick={() => shiftMonth(-1)}
+                aria-label="Mes anterior"
+              >
                 <ChevronLeftRoundedIcon fontSize="small" />
               </IconButton>
               <Box
@@ -245,18 +320,37 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
               </IconButton>
             </Box>
 
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 0.5, mb: 0.5 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                gap: 0.5,
+                mb: 0.5,
+              }}
+            >
               {WEEKDAY_LABELS.map((day) => (
                 <Box
                   key={day}
-                  sx={{ textAlign: "center", fontSize: "11px", fontWeight: 500, color: theme.palette.text.secondary, py: 0.5 }}
+                  sx={{
+                    textAlign: "center",
+                    fontSize: "11px",
+                    fontWeight: 500,
+                    color: theme.palette.text.secondary,
+                    py: 0.5,
+                  }}
                 >
                   {day}
                 </Box>
               ))}
             </Box>
 
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 0.5 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, 1fr)",
+                gap: 0.5,
+              }}
+            >
               {days.map((day) => {
                 const inCurrentMonth = day.getMonth() === currentMonth;
                 const isSelected = selected ? isSameDay(day, selected) : false;
@@ -277,7 +371,9 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
                       aspectRatio: "1 / 1",
                       border: "none",
                       borderRadius: `${radius.sm}px`,
-                      backgroundColor: isSelected ? theme.palette.secondary.main : "transparent",
+                      backgroundColor: isSelected
+                        ? theme.palette.secondary.main
+                        : "transparent",
                       color: isSelected
                         ? theme.palette.secondary.contrastText
                         : inCurrentMonth
@@ -288,13 +384,21 @@ export function DateField({ label, value, onChange, error, helperText, max }: Da
                       fontFamily: typography.fontFamily.body,
                       fontWeight: isToday && !isSelected ? 700 : 500,
                       cursor: disabled ? "not-allowed" : "pointer",
-                      outline: isToday && !isSelected ? `1px solid ${theme.palette.divider}` : "none",
+                      outline:
+                        isToday && !isSelected
+                          ? `1px solid ${theme.palette.divider}`
+                          : "none",
                       outlineOffset: -1,
-                      transition: theme.transitions.create(["background-color", "color"], {
-                        duration: theme.transitions.duration.shortest,
-                      }),
+                      transition: theme.transitions.create(
+                        ["background-color", "color"],
+                        {
+                          duration: theme.transitions.duration.shortest,
+                        },
+                      ),
                       "&:hover:not(:disabled)": {
-                        backgroundColor: isSelected ? theme.palette.secondary.main : theme.palette.action.hover,
+                        backgroundColor: isSelected
+                          ? theme.palette.secondary.main
+                          : theme.palette.action.hover,
                       },
                     }}
                   >

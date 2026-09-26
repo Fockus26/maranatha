@@ -1,12 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
+import DialogTitle from "@mui/material/DialogTitle";
+import type { ReactNode } from "react";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -39,12 +39,20 @@ export function ConfirmDialog({
     // en modo oscuro MUI le suma automáticamente un overlay blanco
     // translúcido proporcional a la elevación, lo que aclara el fondo del
     // modal más de lo esperado (mismo diagnóstico que `TitheModal`, D057/D058).
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth slotProps={{ paper: { elevation: 0 } }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+      slotProps={{ paper: { elevation: 0 } }}
+    >
       {/* Feedback de cliente: el modal de confirmar (usado para eliminar
           proyecto, entre otros) se sentía "apretado" — se sube el padding
           horizontal/vertical en las 3 secciones del dialog en vez de dejar
           el default de MUI (16-20px). */}
-      <DialogTitle sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}>{title}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}>
+        {title}
+      </DialogTitle>
       <DialogContent sx={{ px: 3.5, pb: 1 }}>
         <DialogContentText>{description}</DialogContentText>
       </DialogContent>

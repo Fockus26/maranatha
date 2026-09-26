@@ -1,7 +1,7 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { radius, typography } from "@/theme/tokens";
 
@@ -24,7 +24,13 @@ export interface TimelineZigzagItemProps {
  * degradado de color por hito no se lee con la misma claridad que en la
  * lista vertical compacta de Home.
  */
-export function TimelineZigzagItem({ year, title, description, imageUrl, reverse = false }: TimelineZigzagItemProps) {
+export function TimelineZigzagItem({
+  year,
+  title,
+  description,
+  imageUrl,
+  reverse = false,
+}: TimelineZigzagItemProps) {
   const theme = useTheme();
 
   return (

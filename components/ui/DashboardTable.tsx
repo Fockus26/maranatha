@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTheme } from "@mui/material/styles";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import Skeleton from "@mui/material/Skeleton";
+import { useTheme } from "@mui/material/styles";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import { radius, secondary, semantic } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "./EmptyState";
@@ -55,10 +55,6 @@ type SortDirection = "asc" | "desc";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const GRID_COLUMNS = "minmax(0,1fr) 130px 200px 130px 96px";
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
-}
-
 function progressOf(row: DashboardProjectRow) {
   // Fase QA (functional-qa): acota a 0-100. Sin el piso en 0, un
   // `currentAmount` negativo mostraba "-80%" en la tabla; sin el techo, uno
@@ -69,11 +65,19 @@ function progressOf(row: DashboardProjectRow) {
 
 const SKELETON_ROWS = [0, 1, 2];
 
-export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }: DashboardTableProps) {
+export function DashboardTable({
+  projects,
+  onEdit,
+  onDelete,
+  loading,
+  onCreate,
+}: DashboardTableProps) {
   const theme = useTheme();
   const [sortColumn, setSortColumn] = useState<SortColumn>("deadline");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [deleteTarget, setDeleteTarget] = useState<DashboardProjectRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DashboardProjectRow | null>(
+    null,
+  );
 
   function handleSort(column: SortColumn) {
     if (sortColumn === column) {
@@ -94,9 +98,11 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
           return a.status.localeCompare(b.status) * factor;
         case "progress":
           return (progressOf(a) - progressOf(b)) * factor;
-        case "deadline":
-        default:
-          return (new Date(a.deadline).getTime() - new Date(b.deadline).getTime()) * factor;
+        default: // "deadline"
+          return (
+            (new Date(a.deadline).getTime() - new Date(b.deadline).getTime()) *
+            factor
+          );
       }
     });
   }, [projects, sortColumn, sortDirection]);
@@ -107,7 +113,13 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
   // pasarle `projects` a este componente.
   if (!loading && projects.length === 0) {
     return (
-      <Box sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: `${radius.lg}px`, backgroundColor: theme.palette.background.paper }}>
+      <Box
+        sx={{
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: `${radius.lg}px`,
+          backgroundColor: theme.palette.background.paper,
+        }}
+      >
         <EmptyState
           icon={FolderOutlinedIcon}
           title="Todavía no hay proyectos"
@@ -147,7 +159,10 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
             gridTemplateColumns: GRID_COLUMNS,
             alignItems: "center",
             borderBottom: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : theme.palette.action.hover,
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.02)"
+                : theme.palette.action.hover,
             px: 3,
             py: 1,
           }}
@@ -156,14 +171,12 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
               `<TableCell>` (que MUI dimensiona a ~14px por defecto, D0XX),
               estos encabezados heredaban el tamaño de cuerpo ambiente (16px)
               y se veían desproporcionados frente al resto de la tabla. */}
-          {(
-            [
-              { column: "title" as const, label: "Proyecto" },
-              { column: "status" as const, label: "Estado" },
-              { column: "progress" as const, label: "Progreso" },
-              { column: "deadline" as const, label: "Cierre" },
-            ]
-          ).map(({ column, label }) => (
+          {[
+            { column: "title" as const, label: "Proyecto" },
+            { column: "status" as const, label: "Estado" },
+            { column: "progress" as const, label: "Progreso" },
+            { column: "deadline" as const, label: "Cierre" },
+          ].map(({ column, label }) => (
             <Box
               key={column}
               role="columnheader"
@@ -173,12 +186,24 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                 "& .MuiTableSortLabel-root": { fontSize: 13, fontWeight: 500 },
               }}
             >
-              <TableSortLabel active={sortColumn === column} direction={sortColumn === column ? sortDirection : "asc"} onClick={() => handleSort(column)}>
+              <TableSortLabel
+                active={sortColumn === column}
+                direction={sortColumn === column ? sortDirection : "asc"}
+                onClick={() => handleSort(column)}
+              >
                 {label}
               </TableSortLabel>
             </Box>
           ))}
-          <Box role="columnheader" sx={{ textAlign: "right", fontSize: 13, fontWeight: 500, color: theme.palette.text.secondary }}>
+          <Box
+            role="columnheader"
+            sx={{
+              textAlign: "right",
+              fontSize: 13,
+              fontWeight: 500,
+              color: theme.palette.text.secondary,
+            }}
+          >
             Acciones
           </Box>
         </Box>
@@ -207,18 +232,44 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                 <Skeleton variant="text" width="70%" height={20} />
               </Box>
               <Box role="cell">
-                <Skeleton variant="rounded" width={64} height={20} sx={{ borderRadius: "20px" }} />
+                <Skeleton
+                  variant="rounded"
+                  width={64}
+                  height={20}
+                  sx={{ borderRadius: "20px" }}
+                />
               </Box>
-              <Box role="cell" sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Skeleton variant="rounded" width={80} height={5} sx={{ borderRadius: "20px" }} />
+              <Box
+                role="cell"
+                sx={{ display: "flex", alignItems: "center", gap: 2 }}
+              >
+                <Skeleton
+                  variant="rounded"
+                  width={80}
+                  height={5}
+                  sx={{ borderRadius: "20px" }}
+                />
                 <Skeleton variant="text" width={24} height={16} />
               </Box>
               <Box role="cell">
                 <Skeleton variant="text" width="60%" height={16} />
               </Box>
-              <Box role="cell" sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Skeleton variant="rounded" width={28} height={28} sx={{ borderRadius: `${radius.sm}px` }} />
-                <Skeleton variant="rounded" width={28} height={28} sx={{ borderRadius: `${radius.sm}px` }} />
+              <Box
+                role="cell"
+                sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
+              >
+                <Skeleton
+                  variant="rounded"
+                  width={28}
+                  height={28}
+                  sx={{ borderRadius: `${radius.sm}px` }}
+                />
+                <Skeleton
+                  variant="rounded"
+                  width={28}
+                  height={28}
+                  sx={{ borderRadius: `${radius.sm}px` }}
+                />
               </Box>
             </Box>
           ))
@@ -248,7 +299,18 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                     "&:last-of-type": { borderBottom: "none" },
                   }}
                 >
-                  <Box role="cell" sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.text.primary, pr: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <Box
+                    role="cell"
+                    sx={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: theme.palette.text.primary,
+                      pr: 2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {row.title}
                   </Box>
                   <Box role="cell">
@@ -266,7 +328,9 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                         // que se pasa a fondo sólido + texto blanco, mismo
                         // criterio de contraste que la píldora del topbar
                         // (D060/D061).
-                        backgroundColor: isCompleted ? semantic.successFilled : secondary[700],
+                        backgroundColor: isCompleted
+                          ? semantic.successFilled
+                          : secondary[700],
                         color: "#FFFFFF",
                       }}
                     >
@@ -280,18 +344,38 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                         value={percent}
                         aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
                         color={isCompleted ? "success" : "secondary"}
-                        sx={{ width: 80, height: 5, borderRadius: "20px", backgroundColor: theme.palette.action.hover }}
+                        sx={{
+                          width: 80,
+                          height: 5,
+                          borderRadius: "20px",
+                          backgroundColor: theme.palette.action.hover,
+                        }}
                       />
-                      <Box component="span" sx={{ fontSize: "11px", color: theme.palette.text.secondary }}>
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "11px",
+                          color: theme.palette.text.secondary,
+                        }}
+                      >
                         {Math.round(percent)}%
                       </Box>
                     </Box>
                   </Box>
-                  <Box role="cell" sx={{ fontSize: 13, color: theme.palette.text.secondary }}>
+                  <Box
+                    role="cell"
+                    sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+                  >
                     {row.deadlineLabel}
                   </Box>
                   <Box role="cell">
-                    <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        justifyContent: "flex-end",
+                      }}
+                    >
                       {/* Un proyecto completado ya no se puede editar — pedido
                           del cliente; Eliminar sigue disponible en cualquier
                           estado. */}
@@ -304,7 +388,10 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                             border: `1px solid ${theme.palette.divider}`,
                             borderRadius: `${radius.sm}px`,
                             color: theme.palette.primary.main,
-                            "&:hover": { borderColor: theme.palette.secondary.main, color: theme.palette.secondary.main },
+                            "&:hover": {
+                              borderColor: theme.palette.secondary.main,
+                              color: theme.palette.secondary.main,
+                            },
                           }}
                         >
                           <EditOutlinedIcon fontSize="small" />
@@ -318,7 +405,10 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
                           border: `1px solid ${theme.palette.divider}`,
                           borderRadius: `${radius.sm}px`,
                           color: theme.palette.text.secondary,
-                          "&:hover": { borderColor: theme.palette.error.main, color: theme.palette.error.main },
+                          "&:hover": {
+                            borderColor: theme.palette.error.main,
+                            color: theme.palette.error.main,
+                          },
                         }}
                       >
                         <DeleteOutlineIcon fontSize="small" />
@@ -339,121 +429,205 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
       <Box
         role="table"
         aria-label="Proyectos"
-        sx={{ display: { xs: "flex", sm: "none" }, flexDirection: "column", gap: 2 }}
+        sx={{
+          display: { xs: "flex", sm: "none" },
+          flexDirection: "column",
+          gap: 2,
+        }}
       >
         {loading ? (
           SKELETON_ROWS.map((key) => (
             <Box
               key={key}
-              sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: `${radius.md}px`, backgroundColor: theme.palette.background.paper, p: 3 }}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: `${radius.md}px`,
+                backgroundColor: theme.palette.background.paper,
+                p: 3,
+              }}
             >
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
                 <Skeleton variant="text" width="50%" height={20} />
-                <Skeleton variant="rounded" width={56} height={18} sx={{ borderRadius: "20px" }} />
+                <Skeleton
+                  variant="rounded"
+                  width={56}
+                  height={18}
+                  sx={{ borderRadius: "20px" }}
+                />
               </Box>
-              <Skeleton variant="rounded" height={5} sx={{ borderRadius: "20px", mb: 1.5 }} />
+              <Skeleton
+                variant="rounded"
+                height={5}
+                sx={{ borderRadius: "20px", mb: 1.5 }}
+              />
               <Skeleton variant="text" width="40%" height={16} sx={{ mb: 2 }} />
               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Skeleton variant="rounded" width={28} height={28} sx={{ borderRadius: `${radius.sm}px` }} />
-                <Skeleton variant="rounded" width={28} height={28} sx={{ borderRadius: `${radius.sm}px` }} />
+                <Skeleton
+                  variant="rounded"
+                  width={28}
+                  height={28}
+                  sx={{ borderRadius: `${radius.sm}px` }}
+                />
+                <Skeleton
+                  variant="rounded"
+                  width={28}
+                  height={28}
+                  sx={{ borderRadius: `${radius.sm}px` }}
+                />
               </Box>
             </Box>
           ))
         ) : (
-        <AnimatePresence initial={false}>
-          {sortedProjects.map((row) => {
-            const isCompleted = row.status === "completed";
-            const percent = progressOf(row);
+          <AnimatePresence initial={false}>
+            {sortedProjects.map((row) => {
+              const isCompleted = row.status === "completed";
+              const percent = progressOf(row);
 
-            return (
-              <Box
-                key={row.id}
-                role="row"
-                component={motion.div}
-                layout
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.28, ease: EASE }}
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: `${radius.md}px`,
-                  backgroundColor: theme.palette.background.paper,
-                  p: 3,
-                }}
-              >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, mb: 2 }}>
-                  <Box role="cell" sx={{ fontSize: 14, fontWeight: 600, color: theme.palette.text.primary, minWidth: 0 }}>
-                    {row.title}
+              return (
+                <Box
+                  key={row.id}
+                  role="row"
+                  component={motion.div}
+                  layout
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.28, ease: EASE }}
+                  sx={{
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: `${radius.md}px`,
+                    backgroundColor: theme.palette.background.paper,
+                    p: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Box
+                      role="cell"
+                      sx={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: theme.palette.text.primary,
+                        minWidth: 0,
+                      }}
+                    >
+                      {row.title}
+                    </Box>
+                    <Box
+                      role="cell"
+                      sx={{
+                        display: "inline-block",
+                        flexShrink: 0,
+                        fontSize: "10.5px",
+                        fontWeight: 600,
+                        borderRadius: "20px",
+                        px: 1.75,
+                        py: 0.4,
+                        whiteSpace: "nowrap",
+                        backgroundColor: isCompleted
+                          ? semantic.successFilled
+                          : secondary[700],
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      {isCompleted ? "Completado" : "Activo"}
+                    </Box>
                   </Box>
+
                   <Box
                     role="cell"
                     sx={{
-                      display: "inline-block",
-                      flexShrink: 0,
-                      fontSize: "10.5px",
-                      fontWeight: 600,
-                      borderRadius: "20px",
-                      px: 1.75,
-                      py: 0.4,
-                      whiteSpace: "nowrap",
-                      backgroundColor: isCompleted ? semantic.successFilled : secondary[700],
-                      color: "#FFFFFF",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 1.5,
                     }}
                   >
-                    {isCompleted ? "Completado" : "Activo"}
+                    <LinearProgress
+                      variant="determinate"
+                      value={percent}
+                      aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
+                      color={isCompleted ? "success" : "secondary"}
+                      sx={{
+                        flex: 1,
+                        height: 5,
+                        borderRadius: "20px",
+                        backgroundColor: theme.palette.action.hover,
+                      }}
+                    />
+                    <Box
+                      component="span"
+                      sx={{
+                        fontSize: "11px",
+                        color: theme.palette.text.secondary,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {Math.round(percent)}%
+                    </Box>
                   </Box>
-                </Box>
 
-                <Box role="cell" sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1.5 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={percent}
-                    aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
-                    color={isCompleted ? "success" : "secondary"}
-                    sx={{ flex: 1, height: 5, borderRadius: "20px", backgroundColor: theme.palette.action.hover }}
-                  />
-                  <Box component="span" sx={{ fontSize: "11px", color: theme.palette.text.secondary, flexShrink: 0 }}>
-                    {Math.round(percent)}%
+                  <Box
+                    role="cell"
+                    sx={{
+                      fontSize: 12,
+                      color: theme.palette.text.secondary,
+                      mb: 2,
+                    }}
+                  >
+                    Cierre: {row.deadlineLabel}
                   </Box>
-                </Box>
 
-                <Box role="cell" sx={{ fontSize: 12, color: theme.palette.text.secondary, mb: 2 }}>
-                  Cierre: {row.deadlineLabel}
-                </Box>
-
-                <Box role="cell" sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                  {!isCompleted && (
+                  <Box
+                    role="cell"
+                    sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
+                  >
+                    {!isCompleted && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onEdit(row.id)}
+                        sx={{
+                          border: `1px solid ${theme.palette.divider}`,
+                          borderRadius: `${radius.sm}px`,
+                          color: theme.palette.primary.main,
+                          "&:hover": {
+                            borderColor: theme.palette.secondary.main,
+                            color: theme.palette.secondary.main,
+                          },
+                        }}
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
-                      onClick={() => onEdit(row.id)}
+                      onClick={() => setDeleteTarget(row)}
                       sx={{
                         border: `1px solid ${theme.palette.divider}`,
                         borderRadius: `${radius.sm}px`,
-                        color: theme.palette.primary.main,
-                        "&:hover": { borderColor: theme.palette.secondary.main, color: theme.palette.secondary.main },
+                        color: theme.palette.text.secondary,
+                        "&:hover": {
+                          borderColor: theme.palette.error.main,
+                          color: theme.palette.error.main,
+                        },
                       }}
                     >
-                      <EditOutlinedIcon fontSize="small" />
+                      <DeleteOutlineIcon fontSize="small" />
                     </IconButton>
-                  )}
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(row)}
-                    sx={{
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: `${radius.sm}px`,
-                      color: theme.palette.text.secondary,
-                      "&:hover": { borderColor: theme.palette.error.main, color: theme.palette.error.main },
-                    }}
-                  >
-                    <DeleteOutlineIcon fontSize="small" />
-                  </IconButton>
+                  </Box>
                 </Box>
-              </Box>
-            );
-          })}
-        </AnimatePresence>
+              );
+            })}
+          </AnimatePresence>
         )}
       </Box>
 
@@ -464,7 +638,10 @@ export function DashboardTable({ projects, onEdit, onDelete, loading, onCreate }
           deleteTarget ? (
             <>
               Esta acción no se puede deshacer. Se eliminará{" "}
-              <Box component="span" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+              <Box
+                component="span"
+                sx={{ fontWeight: 700, color: theme.palette.text.primary }}
+              >
                 &quot;{deleteTarget.title}&quot;
               </Box>{" "}
               permanentemente.

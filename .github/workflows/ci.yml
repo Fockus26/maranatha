@@ -1,0 +1,51 @@
+# CI del kit (D076). El build pasa sin variables de entorno: no hay env de relleno.
+#
+# Corre SIEMPRE la suite completa: la selección de tests por grafo
+# (`bun run test:related`) es para el bucle local del agente, no sustituye a esto.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck        # next typegen + tsc (Next 16 genera LayoutProps en .next/). Astro: bunx astro check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test             # el comando vive en package.json (tests/unit, --pass-with-no-tests)
+
+      - name: Build
+        run: bun run build
+
+  # e2e opcional: primero lo afectado (feedback rápido), después todo.
+  # e2e:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with: { fetch-depth: 0 }          # --only-changed necesita la historia
+  #     - uses: oven-sh/setup-bun@v2
+  #     - run: bun install --frozen-lockfile
+  #     - run: bunx playwright install --with-deps chromium
+  #     - run: bun run build
+  #     - run: bunx playwright test --only-changed=origin/$GITHUB_BASE_REF
+  #       if: github.event_name == 'pull_request'
+  #     - run: bunx playwright test
