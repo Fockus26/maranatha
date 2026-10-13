@@ -45,6 +45,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
   return (
     <Box
       component="header"
+      data-surface="navy"
       sx={{
         position: "sticky",
         top: 0,

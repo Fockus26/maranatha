@@ -3,6 +3,7 @@ import {
   type PaletteMode,
   type ThemeOptions,
 } from "@mui/material/styles";
+import { getGlobalStyles } from "./globalStyles";
 import {
   breakpoints,
   gray,
@@ -220,6 +221,9 @@ export function getTheme(mode: PaletteMode) {
       body2: { [LARGE_SCREEN_QUERY]: { fontSize: "18px" } },
     },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: getGlobalStyles(mode),
+      },
       MuiInputLabel: {
         styleOverrides: {
           // Label flotante del campo enfocado: en oscuro `primary.main`

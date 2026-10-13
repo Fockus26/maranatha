@@ -42,6 +42,7 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
   return (
     <Box
       component="aside"
+      data-surface="navy"
       sx={{
         position: "fixed",
         top: 0,
