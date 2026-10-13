@@ -32,105 +32,121 @@
  * públicas (las mismas en toda instalación) y no son secretos.
  */
 
-import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 // Variable de la app ← campo de `supabase status -o json`. Añade aquí la que use tu proyecto
 // si tiene otro nombre (el chequeo de seguridad te avisará si falta alguna).
 const MAPEO: Record<string, string> = {
-  NEXT_PUBLIC_SUPABASE_URL: 'API_URL',
-  SUPABASE_URL: 'API_URL',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'ANON_KEY',
-  SUPABASE_ANON_KEY: 'ANON_KEY',
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'PUBLISHABLE_KEY',
-  SUPABASE_PUBLISHABLE_KEY: 'PUBLISHABLE_KEY',
-  SUPABASE_SERVICE_ROLE_KEY: 'SERVICE_ROLE_KEY',
-  SUPABASE_SECRET_KEY: 'SECRET_KEY',
-  DATABASE_URL: 'DB_URL',
-  DIRECT_URL: 'DB_URL',
-}
+  NEXT_PUBLIC_SUPABASE_URL: "API_URL",
+  SUPABASE_URL: "API_URL",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ANON_KEY",
+  SUPABASE_ANON_KEY: "ANON_KEY",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "PUBLISHABLE_KEY",
+  SUPABASE_PUBLISHABLE_KEY: "PUBLISHABLE_KEY",
+  SUPABASE_SERVICE_ROLE_KEY: "SERVICE_ROLE_KEY",
+  SUPABASE_SECRET_KEY: "SECRET_KEY",
+  DATABASE_URL: "DB_URL",
+  DIRECT_URL: "DB_URL",
+};
 
-const args = process.argv.slice(2)
-const puerto = args[args.indexOf('--port') + 1]
-if (!args.includes('--port') || !/^\d+$/.test(puerto ?? '')) {
-  console.error('Uso: node scripts/qa-local.ts --port <puerto> [--no-reset]')
-  process.exit(2)
+const args = process.argv.slice(2);
+const puerto = args[args.indexOf("--port") + 1];
+if (!args.includes("--port") || !/^\d+$/.test(puerto ?? "")) {
+  console.error("Uso: node scripts/qa-local.ts --port <puerto> [--no-reset]");
+  process.exit(2);
 }
-const reset = !args.includes('--no-reset')
+const reset = !args.includes("--no-reset");
 
 function leerEnv(archivo: string): Record<string, string> {
-  if (!existsSync(archivo)) return {}
-  const salida: Record<string, string> = {}
-  for (const linea of readFileSync(archivo, 'utf8').split(/\r?\n/)) {
-    const m = linea.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/)
-    if (m) salida[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2')
+  if (!existsSync(archivo)) return {};
+  const salida: Record<string, string> = {};
+  for (const linea of readFileSync(archivo, "utf8").split(/\r?\n/)) {
+    const m = linea.match(
+      /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/,
+    );
+    if (m) salida[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
   }
-  return salida
+  return salida;
 }
 
 function supabase(...a: string[]): string {
-  const r = spawnSync('supabase', a, { encoding: 'utf8', shell: process.platform === 'win32' })
+  const r = spawnSync("supabase", a, {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  });
   if (r.status !== 0) {
-    const detalle = (r.stderr || r.stdout || '').trim()
-    const docker = /docker|daemon|pipe/i.test(detalle) ? '\n→ ¿Está abierto Docker Desktop?' : ''
-    throw new Error(`supabase ${a.join(' ')} falló:\n${detalle}${docker}`)
+    const detalle = (r.stderr || r.stdout || "").trim();
+    const docker = /docker|daemon|pipe/i.test(detalle)
+      ? "\n→ ¿Está abierto Docker Desktop?"
+      : "";
+    throw new Error(`supabase ${a.join(" ")} falló:\n${detalle}${docker}`);
   }
-  return r.stdout
+  return r.stdout;
 }
 
 // No vuelve: el script vive mientras viva el servidor.
 function arrancarDev(env: NodeJS.ProcessEnv): Promise<never> {
-  const hijo = spawn('bun', ['run', 'dev', '--', '--port', puerto], {
-    stdio: 'inherit',
+  const hijo = spawn("bun", ["run", "dev", "--", "--port", puerto], {
+    stdio: "inherit",
     env,
-    shell: process.platform === 'win32',
-  })
-  for (const s of ['SIGINT', 'SIGTERM'] as const) process.on(s, () => hijo.kill(s))
-  hijo.on('exit', (code) => process.exit(code ?? 0))
-  return new Promise<never>(() => {})
+    shell: process.platform === "win32",
+  });
+  for (const s of ["SIGINT", "SIGTERM"] as const)
+    process.on(s, () => hijo.kill(s));
+  hijo.on("exit", (code) => process.exit(code ?? 0));
+  return new Promise<never>(() => {});
 }
 
 // 1. ¿Hay algo que apunte a un Supabase remoto?
-const envArchivos = readdirSync('.').filter((f) => /^\.env/.test(f) && f !== '.env.example')
+const envArchivos = readdirSync(".").filter(
+  (f) => /^\.env/.test(f) && f !== ".env.example",
+);
 const remotas = envArchivos.flatMap((f) =>
   Object.entries(leerEnv(f))
     .filter(([, v]) => /\.supabase\.(co|com)/i.test(v))
     .map(([k]) => ({ archivo: f, clave: k })),
-)
+);
 
-if (!existsSync('supabase/config.toml')) {
+if (!existsSync("supabase/config.toml")) {
   if (remotas.length) {
     console.error(
-      'Hay variables que apuntan a un Supabase remoto pero el proyecto no tiene supabase/ local:\n' +
-        remotas.map((r) => `  ${r.archivo}: ${r.clave}`).join('\n') +
-        '\nLa QA no corre contra la base real. Hace falta `supabase init` y las migraciones en el repo (backend-build).',
-    )
-    process.exit(1)
+      "Hay variables que apuntan a un Supabase remoto pero el proyecto no tiene supabase/ local:\n" +
+        remotas.map((r) => `  ${r.archivo}: ${r.clave}`).join("\n") +
+        "\nLa QA no corre contra la base real. Hace falta `supabase init` y las migraciones en el repo (backend-build).",
+    );
+    process.exit(1);
   }
-  console.log('Sin supabase/config.toml: no hay base externa que sustituir. Servidor normal.')
-  await arrancarDev(process.env)
+  console.log(
+    "Sin supabase/config.toml: no hay base externa que sustituir. Servidor normal.",
+  );
+  await arrancarDev(process.env);
 }
 
-const sinCubrir = remotas.filter((r) => !(r.clave in MAPEO))
+const sinCubrir = remotas.filter((r) => !(r.clave in MAPEO));
 if (sinCubrir.length) {
   console.error(
-    'Estas variables apuntan a Supabase remoto y el script no las sobrescribe (añádelas a MAPEO):\n' +
-      sinCubrir.map((r) => `  ${r.archivo}: ${r.clave}`).join('\n'),
-  )
-  process.exit(1)
+    "Estas variables apuntan a Supabase remoto y el script no las sobrescribe (añádelas a MAPEO):\n" +
+      sinCubrir.map((r) => `  ${r.archivo}: ${r.clave}`).join("\n"),
+  );
+  process.exit(1);
 }
 
 // 2. Pila local y base limpia.
-console.log('… supabase start')
-supabase('start')
+console.log("… supabase start");
+supabase("start");
 if (reset) {
-  console.log('… supabase db reset (migraciones + seed)')
-  supabase('db', 'reset')
+  console.log("… supabase db reset (migraciones + seed)");
+  supabase("db", "reset");
 }
-const estado = JSON.parse(supabase('status', '-o', 'json')) as Record<string, string>
-const api = estado.API_URL
-const claveServicio = estado.SERVICE_ROLE_KEY
-if (!api || !claveServicio) throw new Error('supabase status no devolvió API_URL / SERVICE_ROLE_KEY')
+const estado = JSON.parse(supabase("status", "-o", "json")) as Record<
+  string,
+  string
+>;
+const api = estado.API_URL;
+const claveServicio = estado.SERVICE_ROLE_KEY;
+if (!api || !claveServicio)
+  throw new Error("supabase status no devolvió API_URL / SERVICE_ROLE_KEY");
 
 // 3. Cuentas de prueba.
 async function asignarRol(id: string, rol: string): Promise<void> {
@@ -138,36 +154,41 @@ async function asignarRol(id: string, rol: string): Promise<void> {
   // una tabla, haz aquí el upsert con la API REST local, p. ej.:
   //   await fetch(`${api}/rest/v1/profiles`, { method: 'POST', headers: { ...cabeceras,
   //     Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({ id, role: rol }) })
-  void id
-  void rol
+  void id;
+  void rol;
 }
 
 const cabeceras = {
   apikey: claveServicio,
   Authorization: `Bearer ${claveServicio}`,
-  'Content-Type': 'application/json',
-}
-const pruebas = leerEnv('.env.test.local')
+  "Content-Type": "application/json",
+};
+const pruebas = leerEnv(".env.test.local");
 const cuentas = Object.keys(pruebas)
   .map((k) => k.match(/^(?:([A-Z0-9_]+)_)?EMAIL_TEST$/))
   .filter((m): m is RegExpMatchArray => m !== null)
   .map((m) => {
-    const prefijo = m[1] ? `${m[1]}_` : ''
+    const prefijo = m[1] ? `${m[1]}_` : "";
     return {
-      rol: m[1] ? m[1].toLowerCase() : 'user',
+      rol: m[1] ? m[1].toLowerCase() : "user",
       email: pruebas[`${prefijo}EMAIL_TEST`],
       password: pruebas[`${prefijo}PASSWORD_TEST`],
-    }
-  })
+    };
+  });
 
-if (!cuentas.length) console.warn('! .env.test.local sin *_EMAIL_TEST: la QA solo podrá probar lo público.')
+if (!cuentas.length)
+  console.warn(
+    "! .env.test.local sin *_EMAIL_TEST: la QA solo podrá probar lo público.",
+  );
 for (const c of cuentas) {
   if (!c.email || !c.password) {
-    console.warn(`! rol ${c.rol}: falta el correo o la contraseña en .env.test.local; se salta`)
-    continue
+    console.warn(
+      `! rol ${c.rol}: falta el correo o la contraseña en .env.test.local; se salta`,
+    );
+    continue;
   }
   const r = await fetch(`${api}/auth/v1/admin/users`, {
-    method: 'POST',
+    method: "POST",
     headers: cabeceras,
     body: JSON.stringify({
       email: c.email,
@@ -175,26 +196,32 @@ for (const c of cuentas) {
       email_confirm: true,
       app_metadata: { role: c.rol },
     }),
-  })
+  });
   if (r.ok) {
-    const { id } = (await r.json()) as { id: string }
-    await asignarRol(id, c.rol)
-    console.log(`  + cuenta de prueba: rol ${c.rol}`)
+    const { id } = (await r.json()) as { id: string };
+    await asignarRol(id, c.rol);
+    console.log(`  + cuenta de prueba: rol ${c.rol}`);
   } else if (r.status === 422 && !reset) {
-    console.log(`  = cuenta de prueba: rol ${c.rol} (ya existía)`)
+    console.log(`  = cuenta de prueba: rol ${c.rol} (ya existía)`);
   } else {
-    throw new Error(`No se pudo crear la cuenta del rol ${c.rol}: ${r.status} ${await r.text()}`)
+    throw new Error(
+      `No se pudo crear la cuenta del rol ${c.rol}: ${r.status} ${await r.text()}`,
+    );
   }
 }
 
 // 4. Servidor apuntando a la pila local.
-const env: NodeJS.ProcessEnv = { ...process.env, QA_LOCAL: '1' }
+const env: NodeJS.ProcessEnv = { ...process.env, QA_LOCAL: "1" };
 for (const [variable, campo] of Object.entries(MAPEO)) {
-  if (estado[campo]) env[variable] = estado[campo]
+  if (estado[campo]) env[variable] = estado[campo];
 }
 // Maranatha: el admin no va por rol sino por la lista ADMIN_EMAILS (lib/auth/admin.ts).
-const admins = cuentas.filter((c) => c.rol === 'admin' && c.email).map((c) => c.email)
-if (admins.length) env.ADMIN_EMAILS = admins.join(',')
-console.log(`Base local: ${api}${estado.MAILPIT_URL ? ` · correos en ${estado.MAILPIT_URL}` : ''}`)
-console.log(`… bun run dev en el puerto ${puerto}`)
-await arrancarDev(env)
+const admins = cuentas
+  .filter((c) => c.rol === "admin" && c.email)
+  .map((c) => c.email);
+if (admins.length) env.ADMIN_EMAILS = admins.join(",");
+console.log(
+  `Base local: ${api}${estado.MAILPIT_URL ? ` · correos en ${estado.MAILPIT_URL}` : ""}`,
+);
+console.log(`… bun run dev en el puerto ${puerto}`);
+await arrancarDev(env);
