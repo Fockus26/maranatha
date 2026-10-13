@@ -8,7 +8,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
 **Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `prompts/ACTUALIZAR-KIT.md` del kit) ·
-**Despliegue:** Vercel (pruebas, rama `vercel`) · VPS Hetzner (producción, rama `vps`)
+**Despliegue:** hoy solo Vercel (rama `vercel`); el VPS (rama `vps`) está previsto, sin uso aún
 
 ---
 
