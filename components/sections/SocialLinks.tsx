@@ -1,5 +1,8 @@
 "use client";
 
+import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded";
+import CollectionsRoundedIcon from "@mui/icons-material/CollectionsRounded";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import PlayCircleRoundedIcon from "@mui/icons-material/PlayCircleRounded";
 import Box from "@mui/material/Box";
@@ -9,9 +12,14 @@ import { alpha } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import {
+  formatCount,
+  InstagramPostDialog,
+} from "@/components/ui/InstagramPostDialog";
 import { Reveal } from "@/components/ui/Reveal";
 import { SocialLinkCard } from "@/components/ui/SocialLinkCard";
-import type { InstagramPost } from "@/lib/instagram";
+import type { InstagramFeed, InstagramPost } from "@/lib/instagram";
+import { gray } from "@/theme/tokens";
 
 /**
  * Sección "Redes Sociales" (fase 06) — componente + datos en un solo
@@ -33,7 +41,21 @@ import type { InstagramPost } from "@/lib/instagram";
  * (`postsByAccount`, resuelto en `app/page.tsx` desde `lib/instagram.ts`) se
  * muestran los posts reales — reels incluidos, con badge de video y link al
  * post en Instagram. Sin feed configurado, las celdas son ventanas al perfil.
+ *
+ * Feed completo de Behold: las portadas usan `srcSet` (400–2000 px) en vez de
+ * la versión de 400 px, con el color dominante de fondo mientras cargan. Cada
+ * celda abre `InstagramPostDialog` (carrusel completo, reels reproducibles,
+ * likes/comentarios y enlace a Instagram para interactuar). El panel de la
+ * cuenta muestra la foto de perfil y los seguidores.
  */
+
+/** 2 columnas en móvil, 4 desde md, dentro de `Container lg` (1200 px). */
+const COVER_SIZES = "(min-width: 1200px) 280px, (min-width: 900px) 23vw, 50vw";
+
+const overlayIconSx = {
+  color: gray[50],
+  filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+} as const;
 
 const IG = "https://www.instagram.com";
 
@@ -77,15 +99,18 @@ const ACCOUNTS = [
 ] as const;
 
 export function SocialLinks({
-  postsByAccount,
+  feedsByAccount,
 }: {
-  postsByAccount?: Record<string, InstagramPost[]>;
+  feedsByAccount?: Record<string, InstagramFeed>;
 }) {
   const [activeId, setActiveId] = useState<(typeof ACCOUNTS)[number]["id"]>(
     ACCOUNTS[0].id,
   );
   const active = ACCOUNTS.find((a) => a.id === activeId) ?? ACCOUNTS[0];
-  const posts = postsByAccount?.[active.id] ?? [];
+  const feed = feedsByAccount?.[active.id];
+  const posts = feed?.posts ?? [];
+  const profile = feed?.profile ?? null;
+  const [openPost, setOpenPost] = useState<InstagramPost | null>(null);
 
   return (
     <Box component="section" id="redes" sx={{ py: { xs: 8, md: 12 } }}>
@@ -229,6 +254,12 @@ export function SocialLinks({
                     href={active.href}
                     icon={InstagramIcon}
                     ctaLabel="Seguir"
+                    avatarUrl={profile?.profilePictureUrl}
+                    meta={
+                      profile?.followersCount !== undefined
+                        ? `${formatCount(profile.followersCount)} seguidores`
+                        : undefined
+                    }
                   />
                 </motion.div>
               </AnimatePresence>
@@ -253,68 +284,145 @@ export function SocialLinks({
               }}
             >
               {posts.length > 0
-                ? posts.map((post) => (
-                    <Box
-                      key={post.id}
-                      component="a"
-                      href={post.permalink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={
-                        post.caption
-                          ? `${post.isReel ? "Reel" : "Publicación"} de Instagram: ${post.caption.slice(0, 80)}`
-                          : `${post.isReel ? "Reel" : "Publicación"} de Instagram de ${active.label}`
-                      }
-                      sx={{
-                        position: "relative",
-                        display: "block",
-                        aspectRatio: "4 / 5",
-                        borderRadius: "10px",
-                        overflow: "hidden",
-                        border: "1px solid",
-                        borderColor: "divider",
-                        backgroundColor: "action.hover",
-                        transition: "border-color 0.2s ease",
-                        "&:hover": { borderColor: "secondary.main" },
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={post.thumbnail}
-                        alt=""
-                        loading="lazy"
+                ? posts.map((post) => {
+                    const kind = post.isReel
+                      ? "Reel"
+                      : post.isVideo
+                        ? "Video"
+                        : post.isCarousel
+                          ? `Álbum de ${post.media.length} elementos`
+                          : "Publicación";
+                    const hasStats =
+                      post.likeCount !== undefined ||
+                      post.commentsCount !== undefined;
+                    return (
+                      <ButtonBase
+                        key={post.id}
+                        onClick={() => setOpenPost(post)}
+                        aria-haspopup="dialog"
+                        aria-label={
+                          post.caption
+                            ? `${kind} de Instagram: ${post.caption.slice(0, 80)}`
+                            : `${kind} de Instagram de ${active.label}`
+                        }
                         sx={{
-                          position: "absolute",
-                          inset: 0,
+                          position: "relative",
+                          display: "block",
                           width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
+                          aspectRatio: "4 / 5",
+                          borderRadius: "10px",
+                          overflow: "hidden",
+                          border: "1px solid",
+                          borderColor: "divider",
+                          backgroundColor: post.placeholder ?? "action.hover",
+                          transition: "border-color 0.2s ease",
+                          "&:hover, &.Mui-focusVisible": {
+                            borderColor: "secondary.main",
+                          },
+                          "&.Mui-focusVisible": {
+                            outline: "2px solid",
+                            outlineColor: "secondary.main",
+                            outlineOffset: "2px",
+                          },
+                          "&:hover .ig-stats, &.Mui-focusVisible .ig-stats": {
+                            opacity: 1,
+                          },
                         }}
-                      />
-                      {post.isVideo && (
-                        <PlayCircleRoundedIcon
+                      >
+                        <Box
+                          component="img"
+                          src={post.cover.src}
+                          srcSet={post.cover.srcSet || undefined}
+                          sizes={post.cover.srcSet ? COVER_SIZES : undefined}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
                           sx={{
                             position: "absolute",
-                            top: 8,
-                            right: 8,
-                            fontSize: 20,
-                            color: "#F5F6FA",
-                            filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
                           }}
                         />
-                      )}
-                      <InstagramIcon
-                        sx={{
-                          position: "absolute",
-                          bottom: 8,
-                          right: 8,
-                          fontSize: 16,
-                          color: "#F5F6FA",
-                          filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
-                        }}
-                      />
-                    </Box>
-                  ))
+                        {post.isVideo && (
+                          <PlayCircleRoundedIcon
+                            sx={{
+                              ...overlayIconSx,
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                              fontSize: 20,
+                            }}
+                          />
+                        )}
+                        {post.isCarousel && (
+                          <CollectionsRoundedIcon
+                            sx={{
+                              ...overlayIconSx,
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                              fontSize: 18,
+                            }}
+                          />
+                        )}
+                        <Box
+                          className="ig-stats"
+                          aria-hidden
+                          sx={{
+                            position: "absolute",
+                            insetInline: 0,
+                            bottom: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                            px: 1.25,
+                            pt: 3,
+                            pb: 1,
+                            color: gray[50],
+                            fontSize: 13,
+                            fontWeight: 600,
+                            background:
+                              "linear-gradient(to top, rgba(6,10,29,0.75), transparent)",
+                            opacity: hasStats ? { xs: 1, md: 0 } : 1,
+                            transition: "opacity 0.2s ease",
+                            "@media (hover: none)": { opacity: 1 },
+                          }}
+                        >
+                          {post.likeCount !== undefined && (
+                            <Box
+                              component="span"
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                              }}
+                            >
+                              <FavoriteRoundedIcon sx={{ fontSize: 16 }} />
+                              {formatCount(post.likeCount)}
+                            </Box>
+                          )}
+                          {post.commentsCount !== undefined && (
+                            <Box
+                              component="span"
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                              }}
+                            >
+                              <ChatBubbleRoundedIcon sx={{ fontSize: 15 }} />
+                              {formatCount(post.commentsCount)}
+                            </Box>
+                          )}
+                          <InstagramIcon
+                            sx={{ ...overlayIconSx, fontSize: 16, ml: "auto" }}
+                          />
+                        </Box>
+                      </ButtonBase>
+                    );
+                  })
                 : active.gradients.map((gradient, i) => (
                     <Box
                       key={`${active.id}-${i}`}
@@ -357,6 +465,14 @@ export function SocialLinks({
           </AnimatePresence>
         </Reveal>
       </Container>
+
+      <InstagramPostDialog
+        post={openPost}
+        accountLabel={active.label}
+        handle={active.handle}
+        profile={profile}
+        onClose={() => setOpenPost(null)}
+      />
     </Box>
   );
 }
