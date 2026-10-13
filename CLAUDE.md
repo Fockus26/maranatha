@@ -131,7 +131,7 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 - **MUI antes que reimplementar** un primitivo.
 - **Pagos:** todo lo que llega del cliente se revalida en el servidor (`app/actions/`); la
   clave secreta de Supabase solo en código `server-only` (`lib/supabase/admin.ts`).
-- **Migraciones SQL** en `supabase/migrations/` numeradas; aplicarlas es acción manual de César
+- **Migraciones SQL** en `supabase/migrations/` con prefijo de fecha (`supabase migration new <nombre>`), igual que el historial remoto; aplicarlas es acción manual de César
   (se anota en el PR).
 
 ## Cuándo parar y preguntar

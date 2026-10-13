@@ -10,7 +10,7 @@ import type {
 } from "./schema";
 
 /**
- * Acceso a la tabla `payments` (supabase/migrations/0001_payments.sql).
+ * Acceso a la tabla `payments` (supabase/migrations/20260923230207_payments.sql).
  * Solo servidor. Toda función devuelve un `Result` — los errores esperados
  * (duplicado, no encontrado) se modelan; lo inesperado se registra en el
  * servidor y sale como `db_error` sin detalles internos.
