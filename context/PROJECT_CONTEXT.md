@@ -94,6 +94,26 @@ PENDIENTE (no quedó registrado).
 - [ ] Buscador
 - [ ] Multi-idioma
 
+## Repo y despliegue
+
+- Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
+- Vercel: pruebas, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
+- Producción: VPS Hetzner con Docker, rama `vps` (D071, D072) · Previews: los de Vercel
+- DNS gestionado por: por confirmar con César
+- Mantenimiento: no aplica (no hay página de mantenimiento)
+
+## Assets de marca
+
+| Pieza | Estado | Dónde / nota |
+|---|---|---|
+| Logo | por confirmar: ¿lo tiene el cliente? | no hay SVG en `public/` ni `design/` |
+| Icono / isotipo | provisional, generado en código | `app/icon.tsx` (monograma sobre navy) |
+| Favicon | existe | `app/favicon.ico` |
+| Apple touch icon | existe, generado en código | `app/apple-icon.tsx` |
+| Imagen Open Graph | existe, generada en código | `app/opengraph-image.tsx` |
+
+Detalle de tamaños y archivos: `reference/BRAND-ASSETS.md` del kit.
+
 ## Track de fases
 
 **Producto** — Razón: además del sitio hay auth, pagos con persistencia y un panel de

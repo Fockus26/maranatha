@@ -7,6 +7,8 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
+**Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `prompts/ACTUALIZAR-KIT.md` del kit) ·
+**Despliegue:** Vercel (pruebas, rama `vercel`) · VPS Hetzner (producción, rama `vps`)
 
 ---
 
@@ -93,7 +95,7 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 
 En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS, TYPOGRAPHY,
 decisions/, GIT_STATE — más `phases/` y `deploy/`.
-Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, `*_INVENTORY`, PHASE_LOG/,
+Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
 plans/, y `.env*`.
 Los slots del pool de worktrees (`orchestrate`, `..\maranatha-wt\wtN`) traen los `.env*`
 copiados, pero **no** `context/` local: se lee en la carpeta principal
@@ -134,6 +136,8 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 - Algo rompe una regla de accesibilidad → gana la regla, se escala.
 - Problema en código ya cerrado → se reporta, no se arregla dentro de la unidad actual.
 - Archivo sin uso → se señala, **no se borra**.
+- César corrige algo hecho según el kit, pide lo mismo dos veces o el kit no dice qué hacer →
+  fila en `context/KIT_FEEDBACK.md` (o +1 en "Veces"), sin preguntar; el informe sigue su formato.
 
 ---
 
