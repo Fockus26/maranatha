@@ -20,19 +20,20 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 |---|---|
 | toca UI (componente, sección, página, estilos) | `context/DESIGN_RULES.md`, y `COLORS.md` / `DESIGN_TOKENS.md` / `TYPOGRAPHY.md` solo si toca color, espaciado o tipo |
 | toca datos, auth, pagos o API | `context/PROJECT_CONTEXT.md` › Stack técnico, y `lib/payments/` |
-| toca el deploy (Vercel, VPS, Docker) | `deploy/README.md` y `context/decisions/02-deploy.md` |
+| toca el deploy (Vercel, VPS, Docker) | `deploy/README.md` y `context/decisions/D071-*.md` a `D073-*.md` |
 | abre o cierra una unidad | skill `git-flow` + `context/GIT_STATE.md` |
 | llega con un prompt de orquestador | **solo** lo que el prompt cite: ya trae rutas, líneas y decisiones |
 
-**Buscar, no leer:** `DECISIONS_INDEX.md`, `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`,
-`decisions/`. Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
+**Buscar, no leer:** `decisions/` (un archivo por decisión), `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`.
+Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
 
 ```bash
-grep -n "modal\|navbar" context/DECISIONS_INDEX.md   # ¿ya se decidió algo sobre esto? No lo re-litigues
+grep -rhi "^# D.*modal" context/decisions/            # ¿ya se decidió algo sobre esto? No lo re-litigues
 grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
 ```
 
-Los comentarios del código citan decisiones por ID (`D023`, `D067`…): búscalas en el índice.
+Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
+Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
 ---
 
@@ -91,7 +92,7 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 ### Qué va al repo y qué es local
 
 En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS, TYPOGRAPHY,
-DECISIONS_INDEX, decisions/, GIT_STATE — más `phases/` y `deploy/`.
+decisions/, GIT_STATE — más `phases/` y `deploy/`.
 Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, `*_INVENTORY`, PHASE_LOG/,
 plans/, y `.env*`.
 Los slots del pool de worktrees (`orchestrate`, `..\maranatha-wt\wtN`) traen los `.env*`
