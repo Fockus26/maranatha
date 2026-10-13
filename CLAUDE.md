@@ -60,9 +60,13 @@ bun run shots:publish        # las sube a la rama pr-shots e imprime el markdown
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
-**Servidor de desarrollo:** lo levanta César. Excepción solo si él la autoriza para una tanda
-(cada agente el suyo, en segundo plano, en su puerto). Build, typecheck, lint y tests sí se
-corren sin preguntar.
+**Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
+`functional-qa`) siempre, y los workers si César lo autoriza para una tanda (cada uno en su
+puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
+
+**QA contra base local:** `bun run qa:local -- --port <p>` levanta Supabase en Docker
+(migraciones + seed), crea las cuentas de `.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`)
+y arranca el servidor apuntando a lo local, con `ADMIN_EMAILS` = esas cuentas. Nunca contra la base real.
 
 **Scripts con Playwright se corren con `node`, no con `bun`:** en Windows, Playwright bajo
 Bun se cuelga al lanzar Chromium.
@@ -109,7 +113,8 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 | `a11y` | Siempre que se toque UI, antes de pedir revisión |
 | `seo` | Cierre de sección con contenido · cierre de página |
 | `git-flow` | Al abrir y al cerrar cada unidad |
-| `orchestrate` | Llega una lista de varias cosas a la vez |
+| `orchestrate` | Llega una lista, o una fase se hace en olas (una ola por sesión) |
+| `wave-qa` | Lo lanza `orchestrate` con la ola mergeada, antes de cerrarla |
 | `design-qa` / `functional-qa` | Al cerrar una página / un flujo completo |
 
 ---
