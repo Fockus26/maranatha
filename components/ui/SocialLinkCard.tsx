@@ -19,6 +19,10 @@ export interface SocialLinkCardProps {
    * Por defecto `false`: se comporta exactamente igual que antes (D013).
    */
   bare?: boolean;
+  /** Foto de perfil real (feed de Behold); si falta, se muestra `icon`. */
+  avatarUrl?: string;
+  /** Dato extra tras el handle, p. ej. "7,3 mil seguidores". */
+  meta?: string;
 }
 
 export function SocialLinkCard({
@@ -28,6 +32,8 @@ export function SocialLinkCard({
   icon: Icon,
   ctaLabel,
   bare = false,
+  avatarUrl,
+  meta,
 }: SocialLinkCardProps) {
   const theme = useTheme();
 
@@ -60,13 +66,27 @@ export function SocialLinkCard({
             t.palette.mode === "light" ? "primary.50" : "primary.dark",
         }}
       >
-        <Icon
-          sx={{
-            fontSize: 20,
-            color: (t) =>
-              t.palette.mode === "light" ? "primary.main" : "primary.light",
-          }}
-        />
+        {avatarUrl ? (
+          <Box
+            component="img"
+            src={avatarUrl}
+            alt=""
+            sx={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "inherit",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <Icon
+            sx={{
+              fontSize: 20,
+              color: (t) =>
+                t.palette.mode === "light" ? "primary.main" : "primary.light",
+            }}
+          />
+        )}
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -92,6 +112,7 @@ export function SocialLinkCard({
           }}
         >
           {handle}
+          {meta && ` · ${meta}`}
         </Typography>
       </Box>
 

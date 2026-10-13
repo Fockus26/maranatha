@@ -10,7 +10,7 @@ import { ServiceAreas } from "@/components/sections/ServiceAreas";
 import { SocialLinks } from "@/components/sections/SocialLinks";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { PhotoAnchorBand } from "@/components/ui/PhotoAnchorBand";
-import { getAllInstagramPosts } from "@/lib/instagram";
+import { getAllInstagramFeeds } from "@/lib/instagram";
 import { organizationJsonLd, sermonsJsonLd, webSiteJsonLd } from "@/lib/jsonLd";
 import { getLatestSermons } from "@/lib/youtube";
 
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
  * stat) placeholder, mismo criterio que el resto del sitio.
  */
 export default async function Home() {
-  const [sermons, instagramPosts] = await Promise.all([
+  const [sermons, instagramFeeds] = await Promise.all([
     getLatestSermons(3),
-    getAllInstagramPosts(4),
+    getAllInstagramFeeds(4),
   ]);
   const sermonsLd = sermonsJsonLd(sermons);
 
@@ -54,7 +54,7 @@ export default async function Home() {
         />
         <Leaders />
         <Sermons videos={sermons} />
-        <SocialLinks postsByAccount={instagramPosts} />
+        <SocialLinks feedsByAccount={instagramFeeds} />
         <Agenda />
         <PhotoAnchorBand
           eyebrow="Nuestra historia"
