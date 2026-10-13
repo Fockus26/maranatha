@@ -93,6 +93,33 @@ PENDIENTE (no quedó registrado).
 - [ ] CMS / blog
 - [ ] Buscador
 - [ ] Multi-idioma
+- [ ] Correos que manda la app (no aplica, ver § "Correos")
+
+## Repo y despliegue
+
+- Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
+- Vercel: pruebas, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
+- Producción: VPS Hetzner con Docker, rama `vps` (D071, D072) · Previews: los de Vercel
+- DNS gestionado por: por confirmar con César
+- Mantenimiento: no aplica (no hay página de mantenimiento)
+
+## Assets de marca
+
+| Pieza | Estado | Dónde / nota |
+|---|---|---|
+| Logo | por confirmar: ¿lo tiene el cliente? | no hay SVG en `public/` ni `design/` |
+| Icono / isotipo | provisional, generado en código | `app/icon.tsx` (monograma sobre navy) |
+| Favicon | existe | `app/favicon.ico` |
+| Apple touch icon | existe, generado en código | `app/apple-icon.tsx` |
+| Imagen Open Graph | existe, generada en código | `app/opengraph-image.tsx` |
+
+Detalle de tamaños y archivos: `reference/BRAND-ASSETS.md` del kit.
+
+## Correos
+
+No aplica: la app no manda correos. Las cuentas del dashboard se crean a mano en Supabase y el
+login es con contraseña, sin recuperación por correo. Si eso cambia, se diseña entonces
+(`reference/EMAIL-TEMPLATES.md` del kit).
 
 ## Track de fases
 

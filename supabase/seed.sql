@@ -1,0 +1,3 @@
+-- Seed mínimo para la base local (bun run qa:local). Sin datos personales.
+-- Las cuentas de prueba no van aquí: qa-local.ts las crea desde .env.test.local.
+-- Los pagos de prueba los crea la QA desde el sitio, igual que un visitante.

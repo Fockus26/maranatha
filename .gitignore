@@ -57,3 +57,4 @@ next-env.d.ts
 /context/*_INVENTORY.md
 /context/PHASE_LOG/
 /context/plans/
+/context/KIT_FEEDBACK.md

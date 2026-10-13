@@ -7,6 +7,8 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
+**Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `prompts/ACTUALIZAR-KIT.md` del kit) ·
+**Despliegue:** Vercel (pruebas, rama `vercel`) · VPS Hetzner (producción, rama `vps`)
 
 ---
 
@@ -20,19 +22,20 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 |---|---|
 | toca UI (componente, sección, página, estilos) | `context/DESIGN_RULES.md`, y `COLORS.md` / `DESIGN_TOKENS.md` / `TYPOGRAPHY.md` solo si toca color, espaciado o tipo |
 | toca datos, auth, pagos o API | `context/PROJECT_CONTEXT.md` › Stack técnico, y `lib/payments/` |
-| toca el deploy (Vercel, VPS, Docker) | `deploy/README.md` y `context/decisions/02-deploy.md` |
+| toca el deploy (Vercel, VPS, Docker) | `deploy/README.md` y `context/decisions/D071-*.md` a `D073-*.md` |
 | abre o cierra una unidad | skill `git-flow` + `context/GIT_STATE.md` |
 | llega con un prompt de orquestador | **solo** lo que el prompt cite: ya trae rutas, líneas y decisiones |
 
-**Buscar, no leer:** `DECISIONS_INDEX.md`, `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`,
-`decisions/`. Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
+**Buscar, no leer:** `decisions/` (un archivo por decisión), `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`.
+Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
 
 ```bash
-grep -n "modal\|navbar" context/DECISIONS_INDEX.md   # ¿ya se decidió algo sobre esto? No lo re-litigues
+grep -rhi "^# D.*modal" context/decisions/            # ¿ya se decidió algo sobre esto? No lo re-litigues
 grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
 ```
 
-Los comentarios del código citan decisiones por ID (`D023`, `D067`…): búscalas en el índice.
+Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
+Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
 ---
 
@@ -57,9 +60,13 @@ bun run shots:publish        # las sube a la rama pr-shots e imprime el markdown
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
-**Servidor de desarrollo:** lo levanta César. Excepción solo si él la autoriza para una tanda
-(cada agente el suyo, en segundo plano, en su puerto). Build, typecheck, lint y tests sí se
-corren sin preguntar.
+**Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
+`functional-qa`) siempre, y los workers si César lo autoriza para una tanda (cada uno en su
+puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
+
+**QA contra base local:** `bun run qa:local -- --port <p>` levanta Supabase en Docker
+(migraciones + seed), crea las cuentas de `.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`)
+y arranca el servidor apuntando a lo local, con `ADMIN_EMAILS` = esas cuentas. Nunca contra la base real.
 
 **Scripts con Playwright se corren con `node`, no con `bun`:** en Windows, Playwright bajo
 Bun se cuelga al lanzar Chromium.
@@ -91,8 +98,8 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 ### Qué va al repo y qué es local
 
 En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS, TYPOGRAPHY,
-DECISIONS_INDEX, decisions/, GIT_STATE — más `phases/` y `deploy/`.
-Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, `*_INVENTORY`, PHASE_LOG/,
+decisions/, GIT_STATE — más `phases/` y `deploy/`.
+Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
 plans/, y `.env*`.
 Los slots del pool de worktrees (`orchestrate`, `..\maranatha-wt\wtN`) traen los `.env*`
 copiados, pero **no** `context/` local: se lee en la carpeta principal
@@ -106,7 +113,8 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 | `a11y` | Siempre que se toque UI, antes de pedir revisión |
 | `seo` | Cierre de sección con contenido · cierre de página |
 | `git-flow` | Al abrir y al cerrar cada unidad |
-| `orchestrate` | Llega una lista de varias cosas a la vez |
+| `orchestrate` | Llega una lista, o una fase se hace en olas (una ola por sesión) |
+| `wave-qa` | Lo lanza `orchestrate` con la ola mergeada, antes de cerrarla |
 | `design-qa` / `functional-qa` | Al cerrar una página / un flujo completo |
 
 ---
@@ -133,6 +141,8 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 - Algo rompe una regla de accesibilidad → gana la regla, se escala.
 - Problema en código ya cerrado → se reporta, no se arregla dentro de la unidad actual.
 - Archivo sin uso → se señala, **no se borra**.
+- César corrige algo hecho según el kit, pide lo mismo dos veces o el kit no dice qué hacer →
+  fila en `context/KIT_FEEDBACK.md` (o +1 en "Veces"), sin preguntar; el informe sigue su formato.
 
 ---
 
