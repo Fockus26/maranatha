@@ -15,6 +15,7 @@ import Link from "@mui/material/Link";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import type {
   InstagramMedia,
@@ -28,7 +29,10 @@ import { gray, primary, radius } from "@/theme/tokens";
  * `lib/instagram.ts`). Se abre desde la grilla de `SocialLinks`.
  *
  * - Carruseles: todas las fotos/videos del álbum, con flechas, contador y
- *   flechas del teclado.
+ *   flechas del teclado. Transición deslizante entre elementos (solo
+ *   fundido con `prefers-reduced-motion`) y deslizar con el dedo en fotos.
+ * - El escenario toma la proporción del contenido (1:1 en fotos y álbumes,
+ *   9:16 en reels) y el medio lo cubre entero: sin franjas de fondo.
  * - Reels y videos: se reproducen aquí con los controles nativos (sin
  *   autoplay). Si el `.mp4` del CDN de Instagram ya caducó, se ofrece abrir
  *   el post en Instagram.
@@ -36,7 +40,10 @@ import { gray, primary, radius } from "@/theme/tokens";
  *   que dar like o comentar se hace en Instagram (botón al pie).
  */
 
-const IMAGE_SIZES = "(min-width: 900px) 560px, 100vw";
+const IMAGE_SIZES = "(min-width: 900px) 640px, 100vw";
+
+/** Desplazamiento mínimo (px) para que un deslizamiento cambie de foto. */
+const SWIPE_PX = 60;
 
 export function formatCount(n: number): string {
   return new Intl.NumberFormat("es-VE", {
@@ -76,7 +83,12 @@ function MediaSlide({
         preload="metadata"
         aria-label={label}
         onError={() => setFailed(true)}
-        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+        sx={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
       />
     );
   }
@@ -90,7 +102,13 @@ function MediaSlide({
         srcSet={media.image.srcSet || undefined}
         sizes={media.image.srcSet ? IMAGE_SIZES : undefined}
         alt={label}
-        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+        draggable={false}
+        sx={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
       />
       {failed && (
         <Box
@@ -138,13 +156,15 @@ export function InstagramPostDialog({
 }: InstagramPostDialogProps) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const [index, setIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
+  // `direction`: 1 avanza, -1 retrocede — decide hacia dónde se desliza.
+  const [[index, direction], setSlide] = useState<[number, number]>([0, 0]);
   const [prevPostId, setPrevPostId] = useState(post?.id);
 
   // Al abrir otro post, vuelve a la primera diapositiva.
   if (post?.id !== prevPostId) {
     setPrevPostId(post?.id);
-    setIndex(0);
+    setSlide([0, 0]);
   }
 
   if (!post) return <Dialog open={false} onClose={onClose} />;
@@ -154,7 +174,11 @@ export function InstagramPostDialog({
   const kind = post.isReel ? "Reel" : post.isVideo ? "Video" : "Publicación";
   const date = formatDate(post.timestamp);
   const go = (delta: number) =>
-    setIndex((i) => Math.max(0, Math.min(total - 1, i + delta)));
+    setSlide(([i]) => [Math.max(0, Math.min(total - 1, i + delta)), delta]);
+  // Proporción del escenario: los tamaños de Behold son cuadrados; los reels,
+  // verticales. Fija por post para que el diálogo no salte entre diapositivas.
+  const aspect = post.isVideo ? "9 / 16" : "1 / 1";
+  const canSwipe = total > 1 && current.type === "image";
   const slideLabel =
     total > 1
       ? `${kind} de ${accountLabel}, elemento ${index + 1} de ${total}`
@@ -188,7 +212,7 @@ export function InstagramPostDialog({
         sx={{
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
-          height: { md: "min(640px, 85vh)" },
+          height: { md: "min(640px, 85vh, calc(100vw - 424px))" },
           minHeight: { xs: "100%", md: "auto" },
         }}
       >
@@ -197,26 +221,56 @@ export function InstagramPostDialog({
           sx={{
             position: "relative",
             flexShrink: 0,
-            width: { xs: "100%", md: "min(560px, 55vw)" },
-            height: { xs: "min(100vw, 60vh)", md: "100%" },
+            overflow: "hidden",
+            aspectRatio: aspect,
+            width: { xs: "100%", md: "auto" },
+            // Altura explícita (no 100%) para que el ancho intrínseco del diálogo
+            // salga del aspect-ratio; el último término evita desbordar en md.
+            height: { md: "min(640px, 85vh, calc(100vw - 424px))" },
             backgroundColor: current.placeholder ?? primary[900],
             transition: "background-color 0.3s ease",
           }}
         >
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              backgroundColor: primary[900],
-            }}
-          >
-            <MediaSlide
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
               key={current.id}
-              media={current}
-              permalink={post.permalink}
-              label={slideLabel}
-            />
-          </Box>
+              custom={direction}
+              variants={{
+                enter: (d: number) =>
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { x: d >= 0 ? "100%" : "-100%" },
+                center: { x: 0, opacity: 1 },
+                exit: (d: number) =>
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { x: d >= 0 ? "-100%" : "100%" },
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+              drag={canSwipe ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.25}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -SWIPE_PX) go(1);
+                else if (info.offset.x > SWIPE_PX) go(-1);
+              }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                touchAction: canSwipe ? "pan-y" : "auto",
+                cursor: canSwipe ? "grab" : "auto",
+              }}
+            >
+              <MediaSlide
+                media={current}
+                permalink={post.permalink}
+                label={slideLabel}
+              />
+            </motion.div>
+          </AnimatePresence>
 
           {total > 1 && (
             <>
@@ -244,6 +298,7 @@ export function InstagramPostDialog({
                   position: "absolute",
                   top: 12,
                   left: 12,
+                  zIndex: 1,
                   px: 1.25,
                   py: 0.25,
                   borderRadius: "999px",
@@ -440,6 +495,7 @@ function navButtonSx(side: "left" | "right") {
     top: "50%",
     [side]: 8,
     transform: "translateY(-50%)",
+    zIndex: 1,
     backgroundColor: "rgba(6, 10, 29, 0.6)",
     color: gray[50],
     "&:hover": { backgroundColor: "rgba(6, 10, 29, 0.85)" },
