@@ -2,10 +2,10 @@
 
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { primary, secondary } from "@/theme/tokens";
 import { DASHBOARD_CONTENT_SX } from "./DashboardShell";
@@ -80,26 +80,18 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
               flexShrink: 0,
             }}
           >
-            <Box
-              sx={{
-                width: 18,
-                height: 18,
-                borderRadius: "4px",
-                bgcolor: "secondary.main",
-              }}
+            <Logo
+              variant="mark"
+              tone="inverse"
+              size={32}
+              sx={{ display: { xs: "inline-flex", sm: "none" } }}
             />
-            <Typography
-              component="span"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 600,
-                fontSize: 14,
-                color: ON_DARK,
-                display: { xs: "none", sm: "inline" },
-              }}
-            >
-              Iglesia Maranatha
-            </Typography>
+            <Logo
+              variant="compact"
+              tone="inverse"
+              size={32}
+              sx={{ display: { xs: "none", sm: "inline-flex" } }}
+            />
           </Box>
 
           {/* Fase 08: padding horizontal de las píldoras y gap entre ellas se

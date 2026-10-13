@@ -44,9 +44,7 @@ export async function generateMetadata({
       title: `${project.title} | Iglesia Maranatha`,
       description: project.description,
       url: `${SITE_URL}${path}`,
-      images: [
-        { url: project.imageUrl, width: 1200, height: 800, alt: project.title },
-      ],
+      // La imagen la pone `opengraph-image.tsx` de esta carpeta (D078).
     },
   };
 }

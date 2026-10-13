@@ -3,9 +3,10 @@
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { primary } from "@/theme/tokens";
 
@@ -55,26 +56,8 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
         borderRight: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, px: 3, py: 3 }}>
-        <Box
-          sx={{
-            width: 18,
-            height: 18,
-            borderRadius: "4px",
-            bgcolor: "secondary.main",
-          }}
-        />
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 600,
-            fontSize: 14,
-            color: ON_DARK,
-          }}
-        >
-          Iglesia
-        </Typography>
+      <Box sx={{ px: 3, py: 3 }}>
+        <Logo tone="inverse" size={40} />
       </Box>
 
       <Box

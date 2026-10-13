@@ -130,3 +130,18 @@ export const zIndex = {
   modal: 410,
   toast: 500,
 } as const;
+
+// Imagen Open Graph (1200×630, D078). Es una imagen, no la web: sus tamaños
+// quedan fuera de la escala tipográfica.
+export const og = {
+  width: 1200,
+  height: 630,
+  safeX: 80, // margen de seguridad lateral
+  safeY: 64, // margen de seguridad vertical
+  title: 72,
+  titleProject: 64,
+  subtitle: 28,
+  footer: 22,
+  photoWidth: 400, // foto de portada del proyecto, a la derecha
+  patternStep: 28, // líneas diagonales del patrón, cada N px
+} as const;
