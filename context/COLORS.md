@@ -19,7 +19,7 @@
 | error.main | `#C62828` (errorOnLight) | errores, helpers inválidos | paper → 5.6:1 |
 | info.main | `#3B9EF5` | informativo | blanco encima → 2.8:1 ✗ |
 | divider | `#CBD0E0` (gray 200) | separadores decorativos | fondo → 1.4:1 (decorativo, no borde de input) |
-| selection.bg / selection.text | — / — | `::selection` | sin definir (pendiente, fase 02) |
+| selection.bg / selection.text | `#FDC48A` / `#12131F` | `::selection` (D077) | 11.8:1 |
 
 ## Dark mode
 
@@ -37,7 +37,7 @@
 | error.main | `#F87171` (errorOnDark) | errores | paper → 5.8:1 · con texto encima va gray 900 |
 | info.main | `#3B9EF5` | informativo | blanco encima → 2.8:1 ✗ |
 | divider | `#2F3448` (gray 700) | separadores decorativos | fondo → 1.6:1 (decorativo) |
-| selection.bg / selection.text | — / — | `::selection` | sin definir |
+| selection.bg / selection.text | `#8A3B03` / `#FFFFFF` | `::selection` (D077, también navy) | 7.8:1 |
 
 ## Notas de contraste
 

@@ -55,6 +55,44 @@ export const semantic = {
   info: "#3B9EF5",
 } as const;
 
+// `::selection` por modo (adenda de diseño). Ratio = texto sobre el relleno.
+// Se distingue del foco (anillo `secondary[500]` de 2px) por forma y
+// luminosidad, y de los enlaces porque estos conservan el subrayado.
+export const selection = {
+  light: { bg: secondary[200], text: gray[900] }, // 11.8:1
+  // Oscuro y piezas navy fijas (D025) comparten el par.
+  dark: { bg: secondary[800], text: "#FFFFFF" }, // 7.8:1
+} as const;
+
+// Barra de scroll (adenda de diseño). Ratios del thumb contra su track,
+// mínimo 3:1 en todos los estados.
+export const scrollbar = {
+  size: { page: 12, inner: 8 }, // ancho del riel, px
+  // Borde transparente del thumb (reposo → hover/activo): 12 − 2·3 = 6px
+  // visibles que crecen a 8px.
+  inset: { page: 3, pageHover: 2, inner: 2, innerHover: 1 },
+  minThumb: 48,
+  light: {
+    track: gray[100],
+    thumb: gray[500], // 4.8:1
+    hover: gray[600], // 7.2:1
+    active: primary[700], // 13.7:1
+  },
+  dark: {
+    track: gray[800],
+    thumb: gray[400], // 4.5:1
+    hover: gray[300], // 7.3:1
+    active: gray[200], // 10.5:1
+  },
+  // Sidebar, topbar y menú móvil navy fijos (D025).
+  navy: {
+    track: primary[800],
+    thumb: primary[300], // 6.1:1
+    hover: primary[200], // 9.1:1
+    active: secondary[500], // 6.5:1
+  },
+} as const;
+
 export const typography = {
   fontFamily: {
     heading: "var(--font-heading), sans-serif",

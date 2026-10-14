@@ -160,49 +160,7 @@ body,
 }
 
 /*
- * Scroll personalizado (pedido del cliente) — aplica a toda la página y,
- * como no está acotado a un selector específico, también al scroll interno
- * del modal (`DashboardProjectModal`, `DialogContent` ya trae
- * `overflow-y: auto` de MUI por defecto).
- *
- * `[data-color-mode]` no es el `prefers-color-scheme` del sistema: es el
- * modo REAL que ya usa el resto de la app (toggle + cookie, D053), que
- * `ThemeRegistry.tsx` sincroniza en `<html>` en cada cambio — así el
- * scrollbar coincide con el modo elegido aunque difiera de la preferencia
- * del sistema operativo.
+ * Scroll personalizado y `::selection`: viven en `theme/globalStyles.ts`
+ * (MuiCssBaseline) para leer los tokens de `theme/tokens.ts` y seguir el modo
+ * real del toggle (D053). Ver la adenda de diseño en el HANDOFF.
  */
-:root {
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: rgba(6, 10, 29, 0.18);
-  --scrollbar-thumb-hover: rgba(6, 10, 29, 0.32);
-}
-
-[data-color-mode="dark"] {
-  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 20px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
-}
