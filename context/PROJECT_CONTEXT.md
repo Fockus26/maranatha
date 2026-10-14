@@ -98,16 +98,15 @@ PENDIENTE (no quedó registrado).
 ## Repo y despliegue
 
 - Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
-- Vercel: pruebas, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
-- Producción: VPS Hetzner con Docker, rama `vps` (D071, D072) · Previews: los de Vercel
-- DNS gestionado por: por confirmar con César
+- Vercel: hoy el único despliegue, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
+- Producción: VPS Hetzner con Docker, rama `vps` (D071, D072), previsto pero aún sin uso · Previews: los de Vercel
 - Mantenimiento: no aplica (no hay página de mantenimiento)
 
 ## Assets de marca
 
 | Pieza | Estado | Dónde / nota |
 |---|---|---|
-| Logo | por confirmar: ¿lo tiene el cliente? | no hay SVG en `public/` ni `design/` |
+| Logo | lo tiene el cliente, aún no lo entrega | provisional de Claude Design mientras tanto (fila en CONTENT_CHECKLIST) |
 | Icono / isotipo | provisional, generado en código | `app/icon.tsx` (monograma sobre navy) |
 | Favicon | existe | `app/favicon.ico` |
 | Apple touch icon | existe, generado en código | `app/apple-icon.tsx` |
