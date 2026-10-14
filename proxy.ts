@@ -1,5 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  bypassesMaintenance,
+  MAINTENANCE_PATH,
+  maintenanceOn,
+  retryAfterSeconds,
+} from "@/lib/maintenance";
 
 /**
  * Proxy (antes `middleware.ts` — renombrado en Next.js 16).
@@ -72,16 +78,41 @@ async function withSession(
   return response;
 }
 
+/**
+ * 3. Mantenimiento (D079): con `MAINTENANCE_MODE=1` el sitio público se
+ *    reescribe a `/mantenimiento` con 503 + `Retry-After`. El panel, la API
+ *    (webhooks de pago) y los archivos estáticos siguen funcionando.
+ */
+function maintenance(req: NextRequest, pathname: string): NextResponse | null {
+  if (!maintenanceOn()) {
+    // Fuera de mantenimiento, la pantalla no tiene sentido.
+    return pathname === MAINTENANCE_PATH
+      ? NextResponse.redirect(new URL("/", req.url))
+      : null;
+  }
+  if (bypassesMaintenance(pathname)) return null;
+  const res = NextResponse.rewrite(new URL(MAINTENANCE_PATH, req.url), {
+    status: 503,
+  });
+  res.headers.set("Retry-After", String(retryAfterSeconds()));
+  res.headers.set("Cache-Control", "no-store");
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const host = (req.headers.get("host") ?? "").split(":")[0].toLowerCase();
+
+  if (!ADMIN_HOST || host !== ADMIN_HOST) {
+    const res = maintenance(req, pathname);
+    if (res) return res;
+  }
 
   if (!ADMIN_HOST) {
     if (isDashboardPath(pathname))
       return withSession(req, NextResponse.next({ request: req }), pathname);
     return NextResponse.next();
   }
-
-  const host = (req.headers.get("host") ?? "").split(":")[0].toLowerCase();
 
   if (host === ADMIN_HOST) {
     // La raíz del subdominio muestra el dashboard sin exponer /dashboard.
