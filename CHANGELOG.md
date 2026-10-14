@@ -1,5 +1,16 @@
 # maranatha
 
+## 0.3.0
+
+### Minor Changes
+
+- c09d5c7: Nuevas pantallas para cuando una página no existe, algo falla, no hay conexión o el sitio está en mantenimiento: explican qué pasó y cómo seguir, y en los errores muestran un código para escribir a soporte.
+- 2dbc7ba: Nuevo logo provisional de la iglesia en el menú, el pie de página y el panel, con su icono para el navegador y el teléfono. Al compartir el sitio o un proyecto en redes ahora se ve una imagen con el logo y el título.
+
+### Patch Changes
+
+- 7f34786: La selección de texto y la barra de scroll usan los colores de la iglesia en modo claro y oscuro, con mejor contraste, y la página ya no se mueve de lado cuando aparece la barra.
+
 ## 0.2.0
 
 ### Minor Changes
