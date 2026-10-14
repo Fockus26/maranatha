@@ -4,6 +4,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import { Box, Container, IconButton } from "@mui/material";
 import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
 
 // Fase 10 (QA): antes solo tenía 3 de las 5 anclas de Home — se completa
 // con Prédicas y Redes para que coincida con `HOME_ANCHOR_ITEMS`
@@ -116,31 +117,7 @@ export default function Footer() {
           }}
         >
           <Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: "4px",
-                  bgcolor: "primary.main",
-                }}
-              />
-              <Box
-                component="span"
-                sx={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  "@media (min-width:1920px)": { fontSize: "15px" },
-                  color: (t) =>
-                    t.palette.mode === "dark"
-                      ? t.palette.primary.light
-                      : t.palette.primary.main,
-                }}
-              >
-                Iglesia
-              </Box>
-            </Box>
+            <Logo size={40} sx={{ mb: 1.5 }} />
             <Box
               component="p"
               sx={{

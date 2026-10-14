@@ -15,7 +15,9 @@ import {
 import { motion } from "framer-motion";
 import Link from "next/link";
 import * as React from "react";
+import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { SITE_NAME } from "@/lib/siteConfig";
 import { useTitheModal } from "@/lib/titheModalStore";
 import MobileMenuOverlay from "./MobileMenuOverlay";
 import {
@@ -115,36 +117,14 @@ export default function Navbar() {
             <Box
               component={Link}
               href="/"
+              aria-label={`${SITE_NAME}, ir al inicio`}
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
                 textDecoration: "none",
               }}
             >
-              <Box
-                sx={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "4px",
-                  bgcolor: "primary.main",
-                }}
-              />
-              <Box
-                component="span"
-                sx={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  "@media (min-width:1920px)": { fontSize: "16px" },
-                  color: (t) =>
-                    t.palette.mode === "dark"
-                      ? t.palette.primary.light
-                      : t.palette.primary.main,
-                }}
-              >
-                Iglesia
-              </Box>
+              <Logo variant="responsive" size={{ xs: 32, sm: 40 }} />
             </Box>
 
             {/* Links de escritorio: anclas + páginas */}

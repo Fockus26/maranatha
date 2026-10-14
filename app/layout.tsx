@@ -23,6 +23,24 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  // Marca provisional (D078): todo sale de `public/brand/`. El favicon SVG
+  // cambia a la versión inversa en navegadores oscuros (el tile navy se pierde
+  // sobre una pestaña oscura); `app/favicon.ico` queda de respaldo.
+  icons: {
+    icon: [
+      {
+        url: "/brand/logo-mark.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/brand/logo-mark-inverse.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: { url: "/brand/apple-touch-icon.png", sizes: "180x180" },
+  },
   openGraph: {
     type: "website",
     locale: SITE_LOCALE,

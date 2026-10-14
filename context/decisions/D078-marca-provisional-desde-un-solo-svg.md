@@ -1,0 +1,6 @@
+# D078 · Marca · Logo provisional; icono, favicon y OG salen de `public/brand/logo-mark.svg` · Implementado
+
+**Decisión:** logo provisional (M de trazo redondo con punto naranja, tile navy) mientras el cliente entrega el real. Fuente única: `public/brand/logo-mark.svg` (+ `-inverse` para oscuro y navy). `components/brand/Logo.tsx` compone el símbolo con el texto en Sora; el favicon SVG se declara en `app/layout.tsx` (claro/oscuro por `prefers-color-scheme`); `bun run brand:icons` (Playwright) genera `app/favicon.ico`, el apple touch icon y los PNG del manifest; las OG (`lib/og.tsx`) leen el SVG en el build.
+**Por qué:** adenda de diseño; cambiar al logo real tiene que ser reemplazar archivos, no rehacer componentes. Se quitan `app/icon.tsx` y `app/apple-icon.tsx` (cuadrado naranja de relleno).
+**Detalle:** la OG del proyecto lleva etiqueta "PROYECTO", título y la foto de portada, sin progreso de recaudación (las redes cachean días). Sora se descarga de Google Fonts al generar la OG; si falla, usa la fuente por defecto sin romper el build. Tokens nuevos: `og` en `theme/tokens.ts` (tamaños fuera de la escala web, solo para la imagen).
+**Nota de estado:** Implementado (`feat/marca-provisional`)
