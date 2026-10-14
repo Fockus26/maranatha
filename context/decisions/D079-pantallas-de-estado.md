@@ -1,0 +1,6 @@
+# D079 · Estados · Pantallas 404/500/sin conexión/mantenimiento con un solo componente · Implementado
+
+**Decisión:** `components/status/StatusScreen.tsx` (copy en `statusCopy.ts`) cubre 404 de visitante y de admin (`app/not-found.tsx`, detecta la sesión con `getAdmin`), 500 con el código del `digest` y botón copiar (`app/error.tsx`, `app/global-error.tsx`), sin conexión (lo muestra `error.tsx` si `navigator.onLine` es falso y reintenta solo al volver la red) y mantenimiento (`/mantenimiento`, el proxy reescribe el sitio público con 503 + `Retry-After` cuando `MAINTENANCE_MODE=1`; `MAINTENANCE_UNTIL` da la hora).
+**Por qué:** adenda de diseño; no existían pantallas propias (salían las de Next).
+**Detalle:** el botón secundario va `outlined` con `gray[300]` en oscuro porque el `outlined` primario del tema da 3.8:1. La caja "lo que estabas llenando está a salvo" solo aparece con `savedDraft`, y hoy el reporte de pago no guarda borradores: no se muestra hasta que exista esa persistencia. El panel, la API y los archivos no pasan a mantenimiento. Sin service worker, "sin conexión" solo cubre fallos dentro de una sesión ya cargada.
+**Nota de estado:** Implementado (`feat/pantallas-estado`)
