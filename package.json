@@ -17,7 +17,9 @@
     "typecheck": "next typegen && tsc --noEmit",
     "shots": "node scripts/pr-screenshots.ts .pr-shots.json",
     "qa:local": "node scripts/qa-local.ts",
-    "brand:icons": "node scripts/brand-icons.ts"
+    "brand:icons": "node scripts/brand-icons.ts",
+    "context:restore": "bash scripts/context-backup.sh --restore",
+    "context:backup": "bash scripts/context-backup.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
