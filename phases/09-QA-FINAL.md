@@ -28,7 +28,7 @@ Los dos agentes de QA pueden correr en paralelo: auditan cosas distintas y no se
 - [ ] Pantallas de estado y assets de marca revisados (`design-qa` §8b; tarjeta OG sobre la
       URL desplegada).
 - [ ] `CURRENT_PHASE.md` y `PHASE_LOG/09-qa.md` cerrados.
-- [ ] **Informe para el kit** generado desde `context/KIT_FEEDBACK.md` y entregado a César.
+- [ ] **Feedback del kit** enviado con `/kit-feedback` (PR en el repo del kit), si hay filas sin enviar.
 
 ## Entrega
 

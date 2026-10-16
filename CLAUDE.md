@@ -7,7 +7,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
-**Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `prompts/ACTUALIZAR-KIT.md` del kit) ·
+**Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `/kit-update`) ·
 **Despliegue:** hoy solo Vercel (rama `vercel`); el VPS (rama `vps`) está previsto, sin uso aún
 
 ---
@@ -61,8 +61,7 @@ bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
 **Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
-`functional-qa`) siempre, y los workers si César lo autoriza para una tanda (cada uno en su
-puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
+`functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
 
 **QA contra base local:** `bun run qa:local -- --port <p>` levanta Supabase en Docker
 (migraciones + seed), crea las cuentas de `.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`)
@@ -99,12 +98,11 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 
 En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS, TYPOGRAPHY,
 decisions/, GIT_STATE — más `phases/` y `deploy/`.
-Local (gitignored): `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
-plans/, y `.env*`.
-Los slots del pool de worktrees (`orchestrate`, `..\maranatha-wt\wtN`) traen los `.env*`
-copiados, pero **no** `context/` local: se lee en la carpeta principal
-(`C:\Users\Admin\Documents\Work\maranatha`). Un subagente en un slot puede no tener permiso de
-escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
+Local: `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
+plans/ (respaldo: `bun run context:backup`). `.env.local` se baja de Vercel, no a mano.
+Los slots del pool (`..\maranatha-wt\wtN`) traen los `.env*`, pero **no** `context/` local:
+se lee en la carpeta principal (`C:\Users\Admin\Documents\Work\maranatha`). Sin permiso de escritura ahí, el
+subagente los devuelve en su informe.
 
 ### Puertas de calidad
 
@@ -137,12 +135,12 @@ escritura ahí: entonces los devuelve en su informe y el orquestador los copia.
 ## Cuándo parar y preguntar
 
 - Decisión visual nueva → 3 opciones con ventaja y desventaja real, y se espera.
-  (Un worker en segundo plano no puede esperar: elige lo conservador y lo explica en el PR.)
+  (Un worker en segundo plano elige lo conservador y lo explica en el PR.)
 - Algo rompe una regla de accesibilidad → gana la regla, se escala.
 - Problema en código ya cerrado → se reporta, no se arregla dentro de la unidad actual.
 - Archivo sin uso → se señala, **no se borra**.
 - César corrige algo hecho según el kit, pide lo mismo dos veces o el kit no dice qué hacer →
-  fila en `context/KIT_FEEDBACK.md` (o +1 en "Veces"), sin preguntar; el informe sigue su formato.
+  fila en `context/KIT_FEEDBACK.md` (o +1 en "Veces"), sin preguntar. Va al kit con `/kit-feedback`.
 
 ---
 
