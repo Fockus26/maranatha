@@ -101,6 +101,7 @@ PENDIENTE (no quedó registrado).
 - Vercel: hoy el único despliegue, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
 - Producción: VPS Hetzner con Docker, rama `vps` (D071, D072), previsto pero aún sin uso · Previews: los de Vercel
 - Mantenimiento: no aplica (no hay página de mantenimiento)
+- Secretos duplicados en GitHub (se reponen si cambian en Vercel): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (`deploy-vps.yml`)
 
 ## Assets de marca
 

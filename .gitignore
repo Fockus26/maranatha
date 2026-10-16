@@ -58,3 +58,9 @@ next-env.d.ts
 /context/PHASE_LOG/
 /context/plans/
 /context/KIT_FEEDBACK.md
+
+# QA scripts and logs (web-agent-kit)
+.qa/
+
+# Claude Desktop worktrees (web-agent-kit)
+.claude/worktrees/

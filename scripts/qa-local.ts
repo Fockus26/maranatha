@@ -1,73 +1,133 @@
 /**
- * Servidor de QA contra una base LOCAL — nunca contra la de verdad.
+ * QA server against a LOCAL database — never against the real one.
  *
- * Uso (con node; Node ≥ 23.6):
+ * Usage (with node; Node ≥ 23.6):
  *   node scripts/qa-local.ts --port 4301            (= bun run qa:local -- --port 4301)
- *   node scripts/qa-local.ts --port 4301 --no-reset (conserva los datos de la corrida anterior)
+ *   node scripts/qa-local.ts --port 4301 --no-reset (keeps the previous run's data)
+ *   node scripts/qa-local.ts --port 4301 --offline  (no Docker or database: guest only)
  *
- * Qué hace:
- *   1. `supabase start` (Docker Desktop abierto): la pila local del proyecto.
- *   2. `supabase db reset`: base vacía con las migraciones y el seed del árbol actual (en un
- *      slot del pool, las de `main`). La base local es desechable: no guardes nada en ella.
- *   3. Crea las cuentas de prueba de `.env.test.local` en esa base (Auth de la pila local):
- *        EMAIL_TEST / PASSWORD_TEST              → rol "user"
- *        ADMIN_EMAIL_TEST / ADMIN_PASSWORD_TEST  → rol "admin"
- *        <ROL>_EMAIL_TEST / <ROL>_PASSWORD_TEST  → rol "<rol>"
- *      El rol va a `app_metadata.role`. Si el proyecto guarda el rol en otro sitio (una tabla
- *      `profiles`), adapta `asignarRol` abajo: es la única parte propia de cada proyecto.
- *   4. Levanta `bun run dev -- --port <puerto>` con las variables de Supabase apuntando a la
- *      pila local. Van por process.env, que en Next gana a `.env.local`: no se escribe
- *      ningún archivo y el slot queda limpio.
+ * What it does:
+ *   1. `supabase start` (Docker Desktop running): the project's local stack.
+ *   2. `supabase db reset`: an empty database with the current tree's migrations and seed
+ *      (in a pool slot, `main`'s). The local database is disposable: keep nothing in it.
+ *   3. Creates the `.env.test.local` test accounts in that database (local stack's Auth):
+ *        EMAIL_TEST / PASSWORD_TEST              → role "user"
+ *        ADMIN_EMAIL_TEST / ADMIN_PASSWORD_TEST  → role "admin"
+ *        <ROLE>_EMAIL_TEST / <ROLE>_PASSWORD_TEST → role "<role>"
+ *      The role goes to `app_metadata.role`. If the project decides it some other way, that
+ *      is the only project-specific part:
+ *        - role in a table (`profiles`) or access through a subscription/plan → `assignRole`;
+ *        - role by a list of emails in a variable (`ADMIN_EMAILS`) → `ROLE_BY_ENV`.
+ *   4. Starts `bun run dev -- --port <port>` with the Supabase variables pointing at the
+ *      local stack. They go through process.env, which beats the `.env*` files in both Next
+ *      and Vite (Astro, SvelteKit…): no file is written and the slot stays clean.
  *
- * Seguro: antes de arrancar, si alguna variable de `.env*` apunta a un Supabase remoto
- * (`*.supabase.co`) y este script no la sobrescribe, se aborta. Mejor no arrancar que
- * probar contra la base real por una variable con un nombre distinto.
+ * With `--offline` (a machine without Docker, or a project still without
+ * `supabase/config.toml` or migrations): no database is started. The Supabase variables are
+ * pointed at a dead address (127.0.0.1:9) and the server starts: testing is as a guest, and
+ * whatever needs data fails instead of touching the real database.
  *
- * Los correos que mande la app (registro, recuperación) no salen: los recoge Mailpit
- * (la URL se imprime al arrancar).
+ * Before starting it checks the port is free: if not, it aborts (the server would jump to
+ * the next one without warning and could land on another pool slot's). To stop it on
+ * Windows: `taskkill /PID <this script's pid> /T /F` (with /T the server goes down too; a
+ * plain kill leaves the child orphaned on the port).
  *
- * Sin `supabase/config.toml` (el proyecto no usa Supabase): arranca el servidor normal.
+ * Safety: before starting, if any `.env*` variable points to a remote Supabase
+ * (`*.supabase.co`) and this script does not override it, it aborts. Better not to start
+ * than to test against the real database because of a variable with a different name.
  *
- * Las contraseñas de prueba no se imprimen nunca. Las claves locales de la pila sí son
- * públicas (las mismas en toda instalación) y no son secretos.
+ * Emails the app sends (sign-up, recovery) do not go out: Mailpit collects them (the URL is
+ * printed at startup).
+ *
+ * Without `supabase/config.toml` (the project does not use Supabase): the normal server starts.
+ *
+ * Test passwords are never printed. The stack's local keys are public (the same on every
+ * install) and are not secrets.
+ *
+ * (Projects from before kit 3.8.0 have this script in Spanish: MAPEO = ENV_MAP,
+ * ROL_POR_ENV = ROLE_BY_ENV, asignarRol = assignRole.)
  */
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { connect } from "node:net";
 
-// Variable de la app ← campo de `supabase status -o json`. Añade aquí la que use tu proyecto
-// si tiene otro nombre (el chequeo de seguridad te avisará si falta alguna).
-const MAPEO: Record<string, string> = {
-  NEXT_PUBLIC_SUPABASE_URL: "API_URL",
-  SUPABASE_URL: "API_URL",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ANON_KEY",
-  SUPABASE_ANON_KEY: "ANON_KEY",
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "PUBLISHABLE_KEY",
-  SUPABASE_PUBLISHABLE_KEY: "PUBLISHABLE_KEY",
+// App variable ← field of `supabase status -o json`, for Next (NEXT_PUBLIC_*), Vite (VITE_*)
+// and Astro (PUBLIC_*). Add the one your project uses here if it has another name (the
+// safety check will tell you if one is missing).
+const ENV_MAP: Record<string, string> = {};
+for (const prefix of ["", "NEXT_PUBLIC_", "PUBLIC_", "VITE_"]) {
+  ENV_MAP[`${prefix}SUPABASE_URL`] = "API_URL";
+  ENV_MAP[`${prefix}SUPABASE_ANON_KEY`] = "ANON_KEY";
+  ENV_MAP[`${prefix}SUPABASE_PUBLISHABLE_KEY`] = "PUBLISHABLE_KEY";
+}
+Object.assign(ENV_MAP, {
   SUPABASE_SERVICE_ROLE_KEY: "SERVICE_ROLE_KEY",
   SUPABASE_SECRET_KEY: "SECRET_KEY",
   DATABASE_URL: "DB_URL",
   DIRECT_URL: "DB_URL",
+});
+
+// Role decided by a list of emails in an environment variable (e.g. the app treats an email
+// in ADMIN_EMAILS as admin): role → variable. The script fills it with that role's test
+// emails when starting the server. Empty if the role lives in the database.
+const ROLE_BY_ENV: Record<string, string> = {
+  admin: "ADMIN_EMAILS", // Maranatha: el admin va por la lista ADMIN_EMAILS (lib/auth/admin.ts)
 };
 
 const args = process.argv.slice(2);
-const puerto = args[args.indexOf("--port") + 1];
-if (!args.includes("--port") || !/^\d+$/.test(puerto ?? "")) {
-  console.error("Uso: node scripts/qa-local.ts --port <puerto> [--no-reset]");
+const port = args[args.indexOf("--port") + 1];
+if (!args.includes("--port") || !/^\d+$/.test(port ?? "")) {
+  console.error(
+    "Usage: node scripts/qa-local.ts --port <port> [--no-reset] [--offline]",
+  );
   process.exit(2);
 }
 const reset = !args.includes("--no-reset");
+const offline = args.includes("--offline");
 
-function leerEnv(archivo: string): Record<string, string> {
-  if (!existsSync(archivo)) return {};
-  const salida: Record<string, string> = {};
-  for (const linea of readFileSync(archivo, "utf8").split(/\r?\n/)) {
-    const m = linea.match(
+// An error at any step ends the process with a message, instead of leaving it hanging.
+function abort(message: string): never {
+  console.error(message);
+  if (!offline)
+    console.error(
+      "→ Without Docker or a local database, you can test as a guest with --offline.",
+    );
+  process.exit(1);
+}
+
+// Taken = something answers on IPv4 or IPv6: some servers (Astro) listen only on [::1], and
+// then binding 127.0.0.1 would succeed even though the port is in use.
+function answers(host: string, p: number): Promise<boolean> {
+  return new Promise((done) => {
+    const s = connect({ host, port: p });
+    s.setTimeout(1000);
+    s.once("connect", () => (s.destroy(), done(true)));
+    s.once("timeout", () => (s.destroy(), done(false)));
+    s.once("error", () => done(false));
+  });
+}
+const taken =
+  (await answers("127.0.0.1", Number(port))) ||
+  (await answers("::1", Number(port)));
+if (taken) {
+  console.error(
+    `Port ${port} is taken (a previous server of this slot?). Not starting on another one:\n` +
+      "the server would jump to the next free port, which may be another slot's. Stop the process using it.",
+  );
+  process.exit(1);
+}
+
+function readEnv(file: string): Record<string, string> {
+  if (!existsSync(file)) return {};
+  const out: Record<string, string> = {};
+  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    const m = line.match(
       /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/,
     );
-    if (m) salida[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
+    if (m) out[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
   }
-  return salida;
+  return out;
 }
 
 function supabase(...a: string[]): string {
@@ -76,152 +136,187 @@ function supabase(...a: string[]): string {
     shell: process.platform === "win32",
   });
   if (r.status !== 0) {
-    const detalle = (r.stderr || r.stdout || "").trim();
-    const docker = /docker|daemon|pipe/i.test(detalle)
-      ? "\n→ ¿Está abierto Docker Desktop?"
+    const detail = (r.stderr || r.stdout || "").trim();
+    const docker = /docker|daemon|pipe/i.test(detail)
+      ? "\n→ Is Docker Desktop running?"
       : "";
-    throw new Error(`supabase ${a.join(" ")} falló:\n${detalle}${docker}`);
+    abort(`supabase ${a.join(" ")} failed:\n${detail}${docker}`);
   }
   return r.stdout;
 }
 
-// No vuelve: el script vive mientras viva el servidor.
-function arrancarDev(env: NodeJS.ProcessEnv): Promise<never> {
-  const hijo = spawn("bun", ["run", "dev", "--", "--port", puerto], {
+// Never returns: the script lives as long as the server does.
+function startDev(env: NodeJS.ProcessEnv): Promise<never> {
+  const child = spawn("bun", ["run", "dev", "--", "--port", port], {
     stdio: "inherit",
     env,
     shell: process.platform === "win32",
   });
-  for (const s of ["SIGINT", "SIGTERM"] as const)
-    process.on(s, () => hijo.kill(s));
-  hijo.on("exit", (code) => process.exit(code ?? 0));
+  // On Windows, with shell: true, `child` is the shell: kill() kills it and the server is
+  // left orphaned on the port. taskkill /T takes down the whole tree.
+  const stop = () => {
+    if (process.platform === "win32" && child.pid) {
+      spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+        stdio: "ignore",
+      });
+    } else child.kill("SIGTERM");
+  };
+  for (const s of ["SIGINT", "SIGTERM"] as const) process.on(s, stop);
+  child.on("exit", (code) => process.exit(code ?? 0));
   return new Promise<never>(() => {});
 }
 
-// 1. ¿Hay algo que apunte a un Supabase remoto?
-const envArchivos = readdirSync(".").filter(
+// 1. Does anything point to a remote Supabase?
+const envFiles = readdirSync(".").filter(
   (f) => /^\.env/.test(f) && f !== ".env.example",
 );
-const remotas = envArchivos.flatMap((f) =>
-  Object.entries(leerEnv(f))
+const remote = envFiles.flatMap((f) =>
+  Object.entries(readEnv(f))
     .filter(([, v]) => /\.supabase\.(co|com)/i.test(v))
-    .map(([k]) => ({ archivo: f, clave: k })),
+    .map(([k]) => ({ file: f, key: k })),
 );
 
+if (offline) {
+  // Everything that could reach a database (ENV_MAP and any variable pointing to a remote
+  // Supabase) goes to an address where nobody listens.
+  const dead = (k: string) =>
+    ENV_MAP[k] === "DB_URL"
+      ? "postgresql://offline@127.0.0.1:9/offline"
+      : /URL$/.test(k)
+        ? "http://127.0.0.1:9"
+        : "offline";
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    QA_LOCAL: "1",
+    QA_OFFLINE: "1",
+  };
+  for (const k of [...Object.keys(ENV_MAP), ...remote.map((r) => r.key)])
+    env[k] = dead(k);
+  console.log(
+    "--offline: no database. The database variables point to 127.0.0.1:9; guest testing only.",
+  );
+  console.log(`… bun run dev on port ${port}`);
+  await startDev(env);
+}
+
 if (!existsSync("supabase/config.toml")) {
-  if (remotas.length) {
-    console.error(
-      "Hay variables que apuntan a un Supabase remoto pero el proyecto no tiene supabase/ local:\n" +
-        remotas.map((r) => `  ${r.archivo}: ${r.clave}`).join("\n") +
-        "\nLa QA no corre contra la base real. Hace falta `supabase init` y las migraciones en el repo (backend-build).",
+  if (remote.length) {
+    abort(
+      "Some variables point to a remote Supabase but the project has no local supabase/:\n" +
+        remote.map((r) => `  ${r.file}: ${r.key}`).join("\n") +
+        "\nQA does not run against the real database. It needs `supabase init` and the migrations in the repo (backend-build).",
     );
-    process.exit(1);
   }
   console.log(
-    "Sin supabase/config.toml: no hay base externa que sustituir. Servidor normal.",
+    "No supabase/config.toml: no external database to replace. Normal server.",
   );
-  await arrancarDev(process.env);
+  await startDev(process.env);
 }
 
-const sinCubrir = remotas.filter((r) => !(r.clave in MAPEO));
-if (sinCubrir.length) {
-  console.error(
-    "Estas variables apuntan a Supabase remoto y el script no las sobrescribe (añádelas a MAPEO):\n" +
-      sinCubrir.map((r) => `  ${r.archivo}: ${r.clave}`).join("\n"),
+const uncovered = remote.filter((r) => !(r.key in ENV_MAP));
+if (uncovered.length) {
+  abort(
+    "These variables point to a remote Supabase and the script does not override them (add them to ENV_MAP):\n" +
+      uncovered.map((r) => `  ${r.file}: ${r.key}`).join("\n"),
   );
-  process.exit(1);
 }
 
-// 2. Pila local y base limpia.
+// 2. Local stack and a clean database.
 console.log("… supabase start");
 supabase("start");
 if (reset) {
-  console.log("… supabase db reset (migraciones + seed)");
+  console.log("… supabase db reset (migrations + seed)");
   supabase("db", "reset");
 }
-const estado = JSON.parse(supabase("status", "-o", "json")) as Record<
+const status = JSON.parse(supabase("status", "-o", "json")) as Record<
   string,
   string
 >;
-const api = estado.API_URL;
-const claveServicio = estado.SERVICE_ROLE_KEY;
-if (!api || !claveServicio)
-  throw new Error("supabase status no devolvió API_URL / SERVICE_ROLE_KEY");
+const api = status.API_URL;
+const serviceKey = status.SERVICE_ROLE_KEY;
+if (!api || !serviceKey)
+  abort("supabase status did not return API_URL / SERVICE_ROLE_KEY");
 
-// 3. Cuentas de prueba.
-async function asignarRol(id: string, rol: string): Promise<void> {
-  // Por defecto el rol ya va en app_metadata al crear la cuenta. Si tu proyecto lo guarda en
-  // una tabla, haz aquí el upsert con la API REST local, p. ej.:
-  //   await fetch(`${api}/rest/v1/profiles`, { method: 'POST', headers: { ...cabeceras,
-  //     Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({ id, role: rol }) })
+// 3. Test accounts.
+async function assignRole(id: string, role: string): Promise<void> {
+  // By default the role already goes into app_metadata when the account is created. If your
+  // project keeps it in a table, upsert it here with the local REST API, e.g.:
+  //   await fetch(`${api}/rest/v1/profiles`, { method: 'POST', headers: { ...headers,
+  //     Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({ id, role }) })
+  // If access depends on a subscription or a plan (without it, the user only sees the
+  // paywall), give the test account of the role that needs it access here, e.g.:
+  //   if (role === 'user') await fetch(`${api}/rest/v1/subscriptions`, { method: 'POST',
+  //     headers, body: JSON.stringify({ user_id: id, plan: 'pro', status: 'active' }) })
+  // If the role is decided by a list of emails in a variable, it is not here: ROLE_BY_ENV.
   void id;
-  void rol;
+  void role;
 }
 
-const cabeceras = {
-  apikey: claveServicio,
-  Authorization: `Bearer ${claveServicio}`,
+const headers = {
+  apikey: serviceKey,
+  Authorization: `Bearer ${serviceKey}`,
   "Content-Type": "application/json",
 };
-const pruebas = leerEnv(".env.test.local");
-const cuentas = Object.keys(pruebas)
+const testEnv = readEnv(".env.test.local");
+const accounts = Object.keys(testEnv)
   .map((k) => k.match(/^(?:([A-Z0-9_]+)_)?EMAIL_TEST$/))
   .filter((m): m is RegExpMatchArray => m !== null)
   .map((m) => {
-    const prefijo = m[1] ? `${m[1]}_` : "";
+    const prefix = m[1] ? `${m[1]}_` : "";
     return {
-      rol: m[1] ? m[1].toLowerCase() : "user",
-      email: pruebas[`${prefijo}EMAIL_TEST`],
-      password: pruebas[`${prefijo}PASSWORD_TEST`],
+      role: m[1] ? m[1].toLowerCase() : "user",
+      email: testEnv[`${prefix}EMAIL_TEST`],
+      password: testEnv[`${prefix}PASSWORD_TEST`],
     };
   });
 
-if (!cuentas.length)
+if (!accounts.length)
   console.warn(
-    "! .env.test.local sin *_EMAIL_TEST: la QA solo podrá probar lo público.",
+    "! .env.test.local without *_EMAIL_TEST: QA can only test what is public.",
   );
-for (const c of cuentas) {
-  if (!c.email || !c.password) {
+for (const a of accounts) {
+  if (!a.email || !a.password) {
     console.warn(
-      `! rol ${c.rol}: falta el correo o la contraseña en .env.test.local; se salta`,
+      `! role ${a.role}: email or password missing in .env.test.local; skipped`,
     );
     continue;
   }
   const r = await fetch(`${api}/auth/v1/admin/users`, {
     method: "POST",
-    headers: cabeceras,
+    headers,
     body: JSON.stringify({
-      email: c.email,
-      password: c.password,
+      email: a.email,
+      password: a.password,
       email_confirm: true,
-      app_metadata: { role: c.rol },
+      app_metadata: { role: a.role },
     }),
   });
   if (r.ok) {
     const { id } = (await r.json()) as { id: string };
-    await asignarRol(id, c.rol);
-    console.log(`  + cuenta de prueba: rol ${c.rol}`);
+    await assignRole(id, a.role);
+    console.log(`  + test account: role ${a.role}`);
   } else if (r.status === 422 && !reset) {
-    console.log(`  = cuenta de prueba: rol ${c.rol} (ya existía)`);
+    console.log(`  = test account: role ${a.role} (already existed)`);
   } else {
-    throw new Error(
-      `No se pudo crear la cuenta del rol ${c.rol}: ${r.status} ${await r.text()}`,
+    abort(
+      `Could not create the account for role ${a.role}: ${r.status} ${await r.text()}`,
     );
   }
 }
 
-// 4. Servidor apuntando a la pila local.
+// 4. Server pointing at the local stack.
 const env: NodeJS.ProcessEnv = { ...process.env, QA_LOCAL: "1" };
-for (const [variable, campo] of Object.entries(MAPEO)) {
-  if (estado[campo]) env[variable] = estado[campo];
+for (const [variable, field] of Object.entries(ENV_MAP)) {
+  if (status[field]) env[variable] = status[field];
 }
-// Maranatha: el admin no va por rol sino por la lista ADMIN_EMAILS (lib/auth/admin.ts).
-const admins = cuentas
-  .filter((c) => c.rol === "admin" && c.email)
-  .map((c) => c.email);
-if (admins.length) env.ADMIN_EMAILS = admins.join(",");
+for (const [role, variable] of Object.entries(ROLE_BY_ENV)) {
+  env[variable] = accounts
+    .filter((a) => a.role === role && a.email)
+    .map((a) => a.email)
+    .join(",");
+}
 console.log(
-  `Base local: ${api}${estado.MAILPIT_URL ? ` · correos en ${estado.MAILPIT_URL}` : ""}`,
+  `Local database: ${api}${status.MAILPIT_URL ? ` · emails at ${status.MAILPIT_URL}` : ""}`,
 );
-console.log(`… bun run dev en el puerto ${puerto}`);
-await arrancarDev(env);
+console.log(`… bun run dev on port ${port}`);
+await startDev(env);
