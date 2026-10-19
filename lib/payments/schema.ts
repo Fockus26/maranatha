@@ -117,12 +117,49 @@ export const manualReportSchema = z.object({
     .trim()
     .min(3)
     .max(64)
-    .regex(/^[A-Za-z0-9@._\- ]+$/),
+    .regex(/^[A-Za-z0-9@._\- ]+$/)
+    // Al menos una letra o número: "..." o "---" no sirven para verificar el
+    // pago, y además normalizan a '' en `reference_norm` y bloquean a
+    // cualquier otro donante que escriba solo separadores.
+    .refine((v) => /[A-Za-z0-9]/.test(v), {
+      message: "reference_without_alnum",
+    }),
   paidAt: z.iso.date(),
   amountPaid: decimalAmount.pipe(z.number().min(0.01).max(1_000_000_000)),
 });
 
 export type ManualReport = z.infer<typeof manualReportSchema>;
+
+/**
+ * Tasa de respaldo escrita por el admin: decimal estricto (nada de "0x10",
+ * "1e3" ni comas) dentro de un rango plausible por moneda. Un error de tipeo
+ * como 0.00001 Bs/USD le mostraba al donante "Bs. 0,00" cuando DolarApi cae.
+ */
+const fallbackRate = (min: number, max: number) =>
+  z.preprocess(
+    (v) =>
+      typeof v === "string" && /^\d{1,7}(\.\d{1,4})?$/.test(v.trim())
+        ? Number(v)
+        : Number.NaN,
+    z.number().finite().min(min).max(max),
+  );
+
+/** Rangos de la tasa de respaldo, por USD. Holgados a propósito. */
+export const FALLBACK_RATE_RANGE = {
+  VES: { min: 1, max: 1_000_000 },
+  COP: { min: 500, max: 100_000 },
+} as const;
+
+export const fallbackRatesSchema = z.object({
+  VES: fallbackRate(
+    FALLBACK_RATE_RANGE.VES.min,
+    FALLBACK_RATE_RANGE.VES.max,
+  ).optional(),
+  COP: fallbackRate(
+    FALLBACK_RATE_RANGE.COP.min,
+    FALLBACK_RATE_RANGE.COP.max,
+  ).optional(),
+});
 
 export type Result<T, E extends string = string> =
   | { ok: true; data: T }

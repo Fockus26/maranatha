@@ -10,7 +10,7 @@ import {
   setSetting,
   transitionPayment,
 } from "@/lib/payments/repository";
-import type { Result } from "@/lib/payments/schema";
+import { fallbackRatesSchema, type Result } from "@/lib/payments/schema";
 
 /**
  * Server Actions del panel de pagos. Cada una verifica al admin con
@@ -51,6 +51,14 @@ export async function approvePayment(
   if (!admin) return { ok: false, error: "unauthorized" };
   const parsed = idSchema.safeParse(id);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  // PayPal solo se confirma con la captura (retorno o webhook): confirmarlo a
+  // mano daría por pagada una orden que el donante pudo no aprobar nunca. La
+  // UI ya oculta el botón; esto cierra el POST directo.
+  const payment = await getPayment(parsed.data);
+  if (!payment.ok) return { ok: false, error: mapRepoError(payment.error) };
+  if (payment.data.method === "paypal")
+    return { ok: false, error: "invalid_input" };
 
   const result = await transitionPayment(parsed.data, "confirmed", {
     confirmed_by: admin.email,
@@ -103,11 +111,6 @@ export async function getReceiptLink(
   return { ok: true, data: url };
 }
 
-const ratesSchema = z.object({
-  VES: z.coerce.number().finite().positive().max(1_000_000).optional(),
-  COP: z.coerce.number().finite().positive().max(1_000_000).optional(),
-});
-
 /**
  * Tasas de respaldo (`settings.exchange_rates`): solo se usan si DolarApi no
  * responde. Un campo vacío se guarda como "sin respaldo" para esa moneda.
@@ -117,7 +120,7 @@ export async function saveFallbackRates(
 ): Promise<Result<null, AdminActionError>> {
   const admin = await getAdminStrict();
   if (!admin) return { ok: false, error: "unauthorized" };
-  const parsed = ratesSchema.safeParse({
+  const parsed = fallbackRatesSchema.safeParse({
     VES: formData.get("VES") || undefined,
     COP: formData.get("COP") || undefined,
   });

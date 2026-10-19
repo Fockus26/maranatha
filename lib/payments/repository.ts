@@ -212,29 +212,47 @@ export interface ListPaymentsFilter {
   method?: PaymentMethodId;
   /** Excluye un método (ej. checkouts de PayPal sin completar en "pendientes"). */
   excludeMethod?: PaymentMethodId;
-  limit?: number;
+  /** Página (desde 0) de `pageSize` filas. */
+  page?: number;
+  pageSize?: number;
+}
+
+export const PAYMENTS_PAGE_SIZE = 50;
+
+export interface PaymentsPage {
+  rows: PaymentRow[];
+  /** Total de filas del filtro, no solo las de esta página. */
+  total: number;
 }
 
 export async function listPayments(
   filter: ListPaymentsFilter = {},
-): Promise<Result<PaymentRow[], RepoError>> {
+): Promise<Result<PaymentsPage, RepoError>> {
   if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
 
+  const pageSize = filter.pageSize ?? PAYMENTS_PAGE_SIZE;
+  const from = Math.max(0, filter.page ?? 0) * pageSize;
+  // El total (`count`) deja al panel decir "51–100 de 232": antes cortaba en
+  // 200 filas sin avisar y el historial más viejo quedaba invisible.
   let query = supabaseAdmin()
     .from("payments")
-    .select()
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(filter.limit ?? 200);
+    .order("id", { ascending: false })
+    .range(from, from + pageSize - 1);
   if (filter.status) query = query.eq("status", filter.status);
   if (filter.method) query = query.eq("method", filter.method);
   if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) {
     logDbError("listPayments", error);
     return { ok: false, error: "db_error" };
   }
-  return { ok: true, data: data.map(normalize) };
+  return {
+    ok: true,
+    data: { rows: data.map(normalize), total: count ?? data.length },
+  };
 }
 
 /**
