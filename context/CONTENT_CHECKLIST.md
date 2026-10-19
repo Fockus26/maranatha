@@ -6,7 +6,7 @@
 | # | Qué falta | Dónde (archivo/componente) | Quién lo marcó | Fase | Estado |
 |---|---|---|---|---|---|
 | 1 | Proyectos reales (nombres, montos, fotos) | `lib/projectsData.ts` | frontend-build (D041) | 05 | Pendiente |
-| 2 | Agenda real (eventos, horarios, ubicaciones) | `components/sections/Agenda.tsx` | frontend-build | 04 | Pendiente |
+| 2 | Agenda real (eventos, horarios, ubicaciones) | `/dashboard/agenda` (tabla `agenda_events`) | cliente | 04 | Pendiente — ya se carga desde el dashboard; la semilla trae 3 reuniones placeholder |
 | 3 | Foto real de un servicio / noche de oración (card Oración) | `components/sections/ServiceAreas.tsx` | frontend-build | 04 | Pendiente |
 | 4 | Fotos y cifras de las anclas fotográficas | `app/page.tsx` › `PhotoAnchorBand` | frontend-build | 05 | Pendiente |
 | 5 | Imágenes de Unsplash como marcadores (31 referencias) | componentes y `lib/` | reconstrucción del context | — | Pendiente de revisar cuáles son finales |

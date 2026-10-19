@@ -10,6 +10,7 @@
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
+| Agenda editable desde el dashboard (D080) | `feat/agenda-dashboard` | PR en revisión | `PHASE_LOG/feat-agenda-dashboard.md` |
 | Adenda · pantallas de estado (D079) | `feat/pantallas-estado` | PR en revisión (apilado sobre marca) | `PHASE_LOG/feat-pantallas-estado.md` |
 | Adenda · marca provisional (D078) | `feat/marca-provisional` | PR en revisión | `PHASE_LOG/feat-marca-provisional.md` |
 | Adenda · selección y scrollbar (D077) | `style/seleccion-scrollbar` | PR en revisión | `PHASE_LOG/style-seleccion-scrollbar.md` |
@@ -20,6 +21,7 @@
 
 ## Bloquea (acciones de César o externas)
 
+- Aplicar `supabase/migrations/20261019210000_agenda_events.sql` (agenda).
 - Aplicar `supabase/migrations/0004_auth_email_exists.sql` en Supabase (si no se hizo).
 - GitHub › Settings › Actions › General › "Allow GitHub Actions to create and approve pull requests".
 - GitHub › Settings › General › "Automatically delete head branches"; proteger `main`.
