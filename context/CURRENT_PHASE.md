@@ -11,6 +11,7 @@
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
 | QA pagos · 6 hallazgos medios | `fix/qa-pagos` | PR #16 en revisión | `PHASE_LOG/fix-qa-pagos.md` |
+| Binance Pay Merchant por webhook (D081) | `feat/binance-pay-merchant` | PR en revisión | `PHASE_LOG/feat-binance-pay-merchant.md` |
 | Agenda editable desde el dashboard (D080) | `feat/agenda-dashboard` | PR en revisión | `PHASE_LOG/feat-agenda-dashboard.md` |
 | Adenda · pantallas de estado (D079) | `feat/pantallas-estado` | PR en revisión (apilado sobre marca) | `PHASE_LOG/feat-pantallas-estado.md` |
 | Adenda · marca provisional (D078) | `feat/marca-provisional` | PR en revisión | `PHASE_LOG/feat-marca-provisional.md` |
@@ -23,6 +24,7 @@
 ## Bloquea (acciones de César o externas)
 
 - Aplicar `supabase/migrations/20261019210000_agenda_events.sql` (agenda).
+- Binance Pay: KYB de comercio + API key + webhook en el portal; aplicar `20261019230000_binance_pay_gateway.sql`.
 - Aplicar `supabase/migrations/0004_auth_email_exists.sql` en Supabase (si no se hizo).
 - GitHub › Settings › Actions › General › "Allow GitHub Actions to create and approve pull requests".
 - GitHub › Settings › General › "Automatically delete head branches"; proteger `main`.
