@@ -10,6 +10,7 @@
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
+| QA pagos · 6 hallazgos medios | `fix/qa-pagos` | PR #16 en revisión | `PHASE_LOG/fix-qa-pagos.md` |
 | Agenda editable desde el dashboard (D080) | `feat/agenda-dashboard` | PR en revisión | `PHASE_LOG/feat-agenda-dashboard.md` |
 | Adenda · pantallas de estado (D079) | `feat/pantallas-estado` | PR en revisión (apilado sobre marca) | `PHASE_LOG/feat-pantallas-estado.md` |
 | Adenda · marca provisional (D078) | `feat/marca-provisional` | PR en revisión | `PHASE_LOG/feat-marca-provisional.md` |
