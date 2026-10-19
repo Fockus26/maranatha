@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Resumen", href: "/dashboard" },
   { label: "Proyectos", href: "/dashboard/proyectos" },
   { label: "Pagos", href: "/dashboard/pagos" },
+  { label: "Agenda", href: "/dashboard/agenda" },
 ] as const;
 
 // Blanco fijo: igual que el sidebar que reemplaza (D024/D025), el topbar es
