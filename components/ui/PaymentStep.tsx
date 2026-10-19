@@ -28,6 +28,7 @@ import {
   type PaypalCheckoutError,
   type ReportPaymentError,
   reportManualPayment,
+  startBinanceCheckout,
   startPaypalCheckout,
 } from "@/app/actions/payments";
 import { formatAmount } from "@/lib/payments/labels";
@@ -47,8 +48,10 @@ const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
  *   se muestran los datos de la cuenta receptora y el monto en la moneda del
  *   método; el donante paga desde su app y reporta la referencia. Queda
  *   `pending` hasta que un admin lo verifica en `/dashboard/pagos`.
- * - PayPal (pasarela): el servidor crea la orden y el navegador redirige a
- *   PayPal; al volver, `/pago/paypal/retorno` captura y confirma.
+ * - Pasarelas: el servidor crea la orden y el navegador redirige a la
+ *   pasarela. PayPal: al volver, `/pago/paypal/retorno` captura y confirma.
+ *   Binance (solo con credenciales de Binance Pay Merchant; si no, es
+ *   manual): el webhook confirma el pago.
  *
  * "Mensual" solo se ofrece con PayPal: los métodos manuales no pueden cobrar
  * de forma recurrente, así que el servidor ni siquiera los devuelve.
@@ -240,24 +243,38 @@ function MethodOption({
   );
 }
 
-const PAYPAL_ERROR_TEXT: Record<PaypalCheckoutError, string> = {
-  invalid_input: "Revisa el monto y tus datos en el paso anterior.",
-  invalid_project: "Este proyecto ya no recibe aportes.",
-  method_unavailable:
-    "PayPal no está disponible en este momento. Prueba con otro método.",
-  too_many_requests:
-    "Iniciaste varios pagos seguidos. Prueba de nuevo en un rato.",
-  not_configured: "Los pagos todavía no están habilitados. Prueba más tarde.",
-  server_error:
-    "No pudimos conectar con PayPal. Prueba de nuevo en unos minutos.",
-};
+function gatewayErrorText(
+  error: PaypalCheckoutError,
+  gatewayName: string,
+): string {
+  switch (error) {
+    case "invalid_input":
+      return "Revisa el monto y tus datos en el paso anterior.";
+    case "invalid_project":
+      return "Este proyecto ya no recibe aportes.";
+    case "method_unavailable":
+      return `${gatewayName} no está disponible en este momento. Prueba con otro método.`;
+    case "too_many_requests":
+      return "Iniciaste varios pagos seguidos. Prueba de nuevo en un rato.";
+    case "not_configured":
+      return "Los pagos todavía no están habilitados. Prueba más tarde.";
+    case "server_error":
+      return `No pudimos conectar con ${gatewayName}. Prueba de nuevo en unos minutos.`;
+  }
+}
+
+/** Pasarelas: nombre que ve el donante y acción que crea la orden. */
+const GATEWAYS = {
+  paypal: { name: "PayPal", start: startPaypalCheckout },
+  binance: { name: "Binance", start: startBinanceCheckout },
+} as const;
 
 /**
- * Pasarela (PayPal): el servidor crea la orden y devuelve el link de PayPal;
- * el navegador redirige ahí. Tarjetas Visa/Mastercard (incluidas prepago)
- * también pasan por acá, en la página de PayPal, sin crear cuenta.
+ * Pasarela (PayPal o Binance Pay): el servidor crea la orden y devuelve el
+ * link de pago; el navegador redirige ahí. Con PayPal, las tarjetas
+ * Visa/Mastercard (incluidas prepago) también pasan por acá, sin crear cuenta.
  */
-function PaypalPanel({
+function GatewayPanel({
   method,
   contribution,
 }: {
@@ -265,10 +282,11 @@ function PaypalPanel({
   contribution: PaymentStepContribution;
 }) {
   const theme = useTheme();
+  const gateway = method.id === "binance" ? GATEWAYS.binance : GATEWAYS.paypal;
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<PaypalCheckoutError | null>(null);
 
-  // Si el donante vuelve con "atrás" desde PayPal, el navegador restaura la
+  // Si el donante vuelve con "atrás" desde la pasarela, el navegador restaura la
   // página desde el bfcache con el botón aún en "Redirigiendo…".
   useEffect(() => {
     function onPageShow(event: PageTransitionEvent) {
@@ -283,7 +301,7 @@ function PaypalPanel({
     setRedirecting(true);
     setError(null);
     try {
-      const result = await startPaypalCheckout(contribution);
+      const result = await gateway.start(contribution);
       if (result.ok) {
         // Se queda en "Redirigiendo…" hasta que el navegador sale de la página.
         window.location.assign(result.data.approveUrl);
@@ -305,8 +323,8 @@ function PaypalPanel({
           color: theme.palette.text.secondary,
         }}
       >
-        {method.hint} Te llevaremos a PayPal para completar el pago de forma
-        segura y volverás aquí al terminar.
+        {method.hint} Te llevaremos a {gateway.name} para completar el pago de
+        forma segura y volverás aquí al terminar.
       </Typography>
       {contribution.frequency === "monthly" && (
         <Alert severity="info" sx={{ fontSize: "12px" }}>
@@ -317,7 +335,7 @@ function PaypalPanel({
       )}
       {error && (
         <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
-          {PAYPAL_ERROR_TEXT[error]}
+          {gatewayErrorText(error, gateway.name)}
         </Alert>
       )}
       <Button
@@ -327,7 +345,9 @@ function PaypalPanel({
         onClick={handleClick}
         disabled={redirecting}
       >
-        {redirecting ? "Redirigiendo a PayPal…" : "Continuar a PayPal"}
+        {redirecting
+          ? `Redirigiendo a ${gateway.name}…`
+          : `Continuar a ${gateway.name}`}
       </Button>
     </Box>
   );
@@ -877,7 +897,7 @@ export function PaymentStep({
       <AnimatedHeight>
         {selected && selected.kind === "gateway" && (
           <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
-            <PaypalPanel
+            <GatewayPanel
               key={selected.id}
               method={selected}
               contribution={contribution}
