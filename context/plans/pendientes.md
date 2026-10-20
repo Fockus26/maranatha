@@ -46,17 +46,17 @@ Los 6 medios se corrigieron en `fix/qa-pagos` (PR #16). Los bajos, uno por líne
 Sin verificar en la QA (requiere acciones de César): aprobar en PayPal con cuenta *buyer* de sandbox, webhook real con túnel, suscripción mensual en sandbox, `x-forwarded-for` no falsificable en Vercel y el VPS, y el conflicto de puertos con `world-flags` para `qa:local`.
 
 ## QA de main (agenda #15, pagos #16, Binance #17, PayPal sandbox), 19-10-2026
-Sin corregir todavía. Detalle y capturas en `.qa/v3/` (local).
+Corregidos en `fix/qa-agenda-binance` (PR #20), salvo el riesgo del 451, que es una acción de César. Detalle y capturas en `.qa/v3/` (local).
 
-- [ ] **Alto:** en el panel de agenda, una red caída o un error 500 al crear, editar o eliminar reemplaza todo el panel por la pantalla de error y se pierde lo escrito (`components/ui/DashboardAgenda.tsx:452-484`, sin try/catch). Copiar el `callAction` de `DashboardPayments.tsx`.
-- [ ] **Medio:** `approvePayment` por POST directo confirma un pago Binance de pasarela pendiente (`reference` nula). Hoy solo bloquea `paypal` (`app/actions/adminPayments.ts:60`).
-- [ ] **Medio:** una `?pagina=` fuera de rango hace que PostgREST devuelva PGRST103 y el panel muestre "No se pudieron cargar los pagos" (`lib/payments/repository.ts`). Tratarlo como página vacía con su total.
-- [ ] **Medio:** contraste de "PRÓXIMO EVENTO" en la celda destacada en modo claro, 3.12:1 (`components/sections/Agenda.tsx:159-162`).
-- [ ] **Medio:** contraste de "Ver toda la agenda (N)" en modo oscuro, 3.78:1 (`components/sections/Agenda.tsx:514-517`).
-- [ ] Bajo: agenda acepta fechas imposibles (`2026-02-31` da server_error) y años absurdos (1800, 3000) por POST (`lib/agenda/schema.ts`).
-- [ ] Bajo: Binance o PayPal con credenciales malas dejan una fila `cancelled` por intento (20 antes del rate limit).
-- [ ] Bajo: el webhook de Binance no revisa timestamp ni nonce, y cada POST firmado dispara una descarga del certificado si no está en caché.
-- [ ] Bajo: en el diálogo de tasas, `0.00001` muestra la burbuja nativa del input number; pegar `0x10` guarda 10.
+- [x] **Alto:** en el panel de agenda, una red caída o un error 500 al crear, editar o eliminar reemplaza todo el panel por la pantalla de error y se pierde lo escrito (`components/ui/DashboardAgenda.tsx:452-484`, sin try/catch). Copiar el `callAction` de `DashboardPayments.tsx`.
+- [x] **Medio:** `approvePayment` por POST directo confirma un pago Binance de pasarela pendiente (`reference` nula). Hoy solo bloquea `paypal` (`app/actions/adminPayments.ts:60`).
+- [x] **Medio:** una `?pagina=` fuera de rango hace que PostgREST devuelva PGRST103 y el panel muestre "No se pudieron cargar los pagos" (`lib/payments/repository.ts`). Tratarlo como página vacía con su total.
+- [x] **Medio:** contraste de "PRÓXIMO EVENTO" en la celda destacada en modo claro, 3.12:1 (`components/sections/Agenda.tsx:159-162`).
+- [x] **Medio:** contraste de "Ver toda la agenda (N)" en modo oscuro, 3.78:1 (`components/sections/Agenda.tsx:514-517`).
+- [x] Bajo: agenda acepta fechas imposibles (`2026-02-31` da server_error) y años absurdos (1800, 3000) por POST (`lib/agenda/schema.ts`).
+- [x] Bajo: Binance o PayPal con credenciales malas dejan una fila `cancelled` por intento (20 antes del rate limit).
+- [x] Bajo: el webhook de Binance no revisa timestamp ni nonce, y cada POST firmado dispara una descarga del certificado si no está en caché.
+- [x] Bajo: en el diálogo de tasas, `0.00001` muestra la burbuja nativa del input number; pegar `0x10` guarda 10.
 - [ ] Riesgo: Binance Pay respondió HTTP 451 (bloqueo geográfico) desde esta máquina. Confirmar la región de Vercel o usarlo solo desde el VPS.
 
 **Verificado y correcto:**

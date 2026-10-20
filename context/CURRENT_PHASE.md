@@ -10,7 +10,8 @@
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
-| QA pagos · 6 hallazgos medios | `fix/qa-pagos` | PR #16 en revisión | `PHASE_LOG/fix-qa-pagos.md` |
+| QA agenda/pagos/Binance · hallazgos | `fix/qa-agenda-binance` | PR #20 en revisión | `PHASE_LOG/fix-qa-agenda-binance.md` |
+| QA pagos · 6 hallazgos medios | `fix/qa-pagos` | mergeada (PR #16) | `PHASE_LOG/fix-qa-pagos.md` |
 | Binance Pay Merchant por webhook (D081) | `feat/binance-pay-merchant` | PR en revisión | `PHASE_LOG/feat-binance-pay-merchant.md` |
 | Agenda editable desde el dashboard (D080) | `feat/agenda-dashboard` | PR en revisión | `PHASE_LOG/feat-agenda-dashboard.md` |
 | Adenda · pantallas de estado (D079) | `feat/pantallas-estado` | PR en revisión (apilado sobre marca) | `PHASE_LOG/feat-pantallas-estado.md` |
