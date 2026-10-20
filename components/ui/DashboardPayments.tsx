@@ -1056,7 +1056,8 @@ export function DashboardPayments({
         }
         confirmLabel="Sí, confirmar"
         onConfirm={handleApprove}
-        onClose={() => (pending ? undefined : setApproving(null))}
+        onClose={() => setApproving(null)}
+        pending={pending}
       />
 
       <RejectDialog

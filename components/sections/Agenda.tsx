@@ -7,12 +7,13 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { type AgendaEntry, buildMonthlyAgenda } from "@/lib/agenda/monthly";
 import type { AgendaEvent } from "@/lib/agenda/schema";
 import { secondary } from "@/theme/tokens";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
 
 /**
  * Sección "Agenda" (fase 06) — componente + datos en un solo archivo
@@ -339,7 +340,7 @@ const AGENDA_GRID_SX = {
 } as const;
 
 export function Agenda({ events }: { events: AgendaEvent[] }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const agenda = useMemo(() => buildMonthlyAgenda(events), [events]);
   const tileSizes = useMemo(() => assignTileSizes(agenda), [agenda]);
   const accentKey = useMemo(() => findAccentKey(agenda), [agenda]);

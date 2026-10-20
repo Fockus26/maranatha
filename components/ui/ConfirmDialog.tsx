@@ -20,8 +20,14 @@ export interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
+  /**
+   * Quien lo usa cierra el diálogo cuando la acción sale bien: si falla (red
+   * caída, 500), queda abierto para reintentar (QA 20-10-2026).
+   */
   onConfirm: () => void;
   onClose: () => void;
+  /** Acción en curso: deshabilita los botones y evita cerrar a mitad. */
+  pending?: boolean;
 }
 
 export function ConfirmDialog({
@@ -33,6 +39,7 @@ export function ConfirmDialog({
   destructive = false,
   onConfirm,
   onClose,
+  pending = false,
 }: ConfirmDialogProps) {
   return (
     // `elevation: 0` — el Paper del Dialog usa `elevation={24}` por defecto y
@@ -41,7 +48,7 @@ export function ConfirmDialog({
     // modal más de lo esperado (mismo diagnóstico que `TitheModal`, D057/D058).
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={pending ? undefined : onClose}
       maxWidth="xs"
       fullWidth
       slotProps={{ paper: { elevation: 0 } }}
@@ -57,14 +64,17 @@ export function ConfirmDialog({
         <DialogContentText>{description}</DialogContentText>
       </DialogContent>
       <DialogActions sx={{ px: 3.5, pb: 3.5, pt: 1.5 }}>
-        <Button onClick={onClose} color="primary" variant="outlined">
+        <Button
+          onClick={onClose}
+          color="primary"
+          variant="outlined"
+          disabled={pending}
+        >
           {cancelLabel}
         </Button>
         <Button
-          onClick={() => {
-            onConfirm();
-            onClose();
-          }}
+          onClick={onConfirm}
+          disabled={pending}
           color={destructive ? "error" : "secondary"}
           variant="contained"
         >

@@ -579,7 +579,8 @@ export function DashboardAgenda({
         confirmLabel="Eliminar"
         destructive
         onConfirm={handleDelete}
-        onClose={() => (pending ? undefined : setDeleting(null))}
+        onClose={() => setDeleting(null)}
+        pending={pending}
       />
 
       <Snackbar
