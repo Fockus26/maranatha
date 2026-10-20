@@ -225,3 +225,28 @@ export function amountMatches(
   const value = Number(paid);
   return Number.isFinite(value) && Math.abs(value - expected) < 0.005;
 }
+
+/**
+ * Ventana aceptada para `BinancePay-Timestamp` (ms), hacia atrás y adelante.
+ * Holgada a propósito: la doc no dice si los reintentos de Binance (hasta 6)
+ * renuevan el timestamp, y una ventana corta podría descartar un reintento
+ * legítimo después de un 500 nuestro.
+ */
+export const WEBHOOK_MAX_SKEW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * El timestamp firmado del webhook está cerca de `now`. Sin esto, una
+ * notificación capturada se podía reenviar meses después (la firma sigue
+ * siendo válida). No se guardan nonces: Binance reintenta con las mismas
+ * cabeceras cuando respondemos 500, y rechazar el nonce repetido bloquearía
+ * para siempre una notificación legítima. Dentro de la ventana, los replays
+ * los absorbe la idempotencia de estados (`settleBinanceOrder`).
+ */
+export function isFreshTimestamp(
+  timestamp: string,
+  now: number,
+  maxSkewMs = WEBHOOK_MAX_SKEW_MS,
+): boolean {
+  if (!/^\d{10,16}$/.test(timestamp)) return false;
+  return Math.abs(now - Number(timestamp)) <= maxSkewMs;
+}
