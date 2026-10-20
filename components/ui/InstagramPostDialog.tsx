@@ -22,7 +22,7 @@ import type {
   InstagramPost,
   InstagramProfile,
 } from "@/lib/instagram";
-import { gray, primary, radius } from "@/theme/tokens";
+import { fontScale, gray, primary, radius } from "@/theme/tokens";
 
 /**
  * Visor de una publicación de Instagram (feed de Behold, ver
@@ -122,14 +122,18 @@ function MediaSlide({
             color: gray[50],
           }}
         >
-          <Typography sx={{ fontSize: 14, mb: 1 }}>
+          <Typography sx={{ fontSize: fontScale[14], mb: 1 }}>
             Este video ya no se puede reproducir aquí.
           </Typography>
           <Link
             href={permalink}
             target="_blank"
             rel="noopener noreferrer"
-            sx={{ color: "secondary.light", fontWeight: 600, fontSize: 14 }}
+            sx={{
+              color: "secondary.light",
+              fontWeight: 600,
+              fontSize: fontScale[14],
+            }}
           >
             Verlo en Instagram (pestaña nueva)
           </Link>
@@ -301,10 +305,10 @@ export function InstagramPostDialog({
                   zIndex: 1,
                   px: 1.25,
                   py: 0.25,
-                  borderRadius: "999px",
+                  borderRadius: `${radius.pill}px`,
                   backgroundColor: "rgba(6, 10, 29, 0.7)",
                   color: gray[50],
-                  fontSize: 12,
+                  fontSize: fontScale[12],
                   fontWeight: 600,
                 }}
               >
@@ -345,12 +349,19 @@ export function InstagramPostDialog({
               <Typography
                 id="ig-post-title"
                 component="h2"
-                sx={{ fontWeight: 600, fontSize: 14, lineHeight: 1.3 }}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: fontScale[14],
+                  lineHeight: 1.3,
+                }}
                 noWrap
               >
                 {accountLabel}
               </Typography>
-              <Typography sx={{ fontSize: 12, color: "text.secondary" }} noWrap>
+              <Typography
+                sx={{ fontSize: fontScale[12], color: "text.secondary" }}
+                noWrap
+              >
                 {handle}
                 {date && ` · ${date}`}
               </Typography>
@@ -364,7 +375,7 @@ export function InstagramPostDialog({
             {post.caption ? (
               <Typography
                 sx={{
-                  fontSize: 14,
+                  fontSize: fontScale[14],
                   lineHeight: 1.6,
                   whiteSpace: "pre-line",
                   overflowWrap: "anywhere",
@@ -373,7 +384,9 @@ export function InstagramPostDialog({
                 {post.caption}
               </Typography>
             ) : (
-              <Typography sx={{ fontSize: 14, color: "text.secondary" }}>
+              <Typography
+                sx={{ fontSize: fontScale[14], color: "text.secondary" }}
+              >
                 Publicación sin texto.
               </Typography>
             )}
@@ -398,7 +411,7 @@ export function InstagramPostDialog({
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{
-                        fontSize: 14,
+                        fontSize: fontScale[14],
                         fontWeight: 500,
                         // primary.main oscuro no llega a 4.5:1 sobre el paper oscuro.
                         color: (t) =>
@@ -437,10 +450,10 @@ export function InstagramPostDialog({
                     sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
                   >
                     <FavoriteBorderRoundedIcon
-                      sx={{ fontSize: 20 }}
+                      sx={{ fontSize: fontScale[20] }}
                       aria-hidden
                     />
-                    <Typography sx={{ fontSize: 14 }}>
+                    <Typography sx={{ fontSize: fontScale[14] }}>
                       {formatCount(post.likeCount)} me gusta
                     </Typography>
                   </Box>
@@ -450,10 +463,10 @@ export function InstagramPostDialog({
                     sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
                   >
                     <ChatBubbleOutlineRoundedIcon
-                      sx={{ fontSize: 20 }}
+                      sx={{ fontSize: fontScale[20] }}
                       aria-hidden
                     />
-                    <Typography sx={{ fontSize: 14 }}>
+                    <Typography sx={{ fontSize: fontScale[14] }}>
                       {formatCount(post.commentsCount)}{" "}
                       {post.commentsCount === 1 ? "comentario" : "comentarios"}
                     </Typography>

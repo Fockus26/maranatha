@@ -30,6 +30,16 @@ export function DonationFormCard({
         borderRadius: `${radius.lg}px`,
         backgroundColor: theme.palette.background.paper,
         p: { xs: 4, sm: 5.5 },
+        // Dentro de un Dialog a poca altura (teléfono en horizontal), la
+        // tarjeta dentro de la tarjeta del diálogo comía ~50px útiles
+        // (design-qa fase 09): se quita su borde, fondo y padding.
+        "@media (max-height: 500px)": {
+          ".MuiDialog-paper &": {
+            border: 0,
+            backgroundColor: "transparent",
+            p: 0,
+          },
+        },
       }}
     >
       {children}

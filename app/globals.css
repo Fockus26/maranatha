@@ -82,6 +82,37 @@ button:focus-visible,
     border: 1px solid ButtonText;
   }
 
+  /*
+   * Estado seleccionado (design-qa fase 09): montos, Tipo, Frecuencia,
+   * filtros y navegación del panel solo lo marcan con fondo y color de borde,
+   * que se descartan aquí. Se pinta con los colores de sistema de selección.
+   * `html body` sube la especificidad sobre las clases de `sx` (sin !important).
+   */
+  html body [aria-pressed="true"],
+  html body [aria-checked="true"]:not(input),
+  html body [aria-selected="true"][role="tab"],
+  html body [aria-current="page"] {
+    /*: los estilos de los componentes (sx) tienen la misma
+       especificidad y se cargan después. */
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    border: 3px solid HighlightText;
+    outline: 1px solid Highlight;
+  }
+  html body [aria-pressed="true"] *,
+  html body [aria-checked="true"]:not(input) *,
+  html body [aria-selected="true"][role="tab"] *,
+  html body [aria-current="page"] * {
+    color: HighlightText;
+  }
+
+  /* Foco de campos de texto: el anillo propio no existe en alto contraste. */
+  .MuiInputBase-root.Mui-focused {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
   .MuiLinearProgress-root {
     border: 1px solid CanvasText;
     forced-color-adjust: none;

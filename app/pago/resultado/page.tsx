@@ -10,6 +10,7 @@ import Footer from "@/components/layout/Footer";
 import PageNavbar from "@/components/layout/PageNavbar";
 import type { CheckoutOutcome } from "@/lib/payments/returnPaths";
 import { getProjectBySlug } from "@/lib/projectsData";
+import { fontScale } from "@/theme/tokens";
 
 export const metadata: Metadata = {
   title: "Resultado del aporte",
@@ -116,7 +117,10 @@ export default async function PagoResultadoPage({
         }}
       >
         <Box sx={{ maxWidth: 480, textAlign: "center" }}>
-          <Icon sx={{ fontSize: 56, color, mb: 2 }} aria-hidden="true" />
+          <Icon
+            sx={{ fontSize: fontScale[56], color, mb: 2 }}
+            aria-hidden="true"
+          />
           <Typography
             component="h1"
             sx={{
@@ -131,7 +135,7 @@ export default async function PagoResultadoPage({
           <Typography
             sx={{
               color: "text.secondary",
-              fontSize: 16,
+              fontSize: fontScale[16],
               lineHeight: 1.6,
               mb: 4,
             }}

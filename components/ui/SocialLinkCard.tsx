@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import { fontScale, radius } from "@/theme/tokens";
 
 export interface SocialLinkCardProps {
   platform: string;
@@ -47,7 +48,7 @@ export function SocialLinkCard({
           ? {}
           : {
               border: `1px solid ${theme.palette.divider}`,
-              borderRadius: "12px",
+              borderRadius: `${radius.lg}px`,
               p: 2,
               backgroundColor: "background.paper",
             }),
@@ -57,7 +58,7 @@ export function SocialLinkCard({
         sx={{
           width: 40,
           height: 40,
-          borderRadius: "10px",
+          borderRadius: `${radius.md}px`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -81,7 +82,7 @@ export function SocialLinkCard({
         ) : (
           <Icon
             sx={{
-              fontSize: 20,
+              fontSize: fontScale[20],
               color: (t) =>
                 t.palette.mode === "light" ? "primary.main" : "primary.light",
             }}
@@ -95,7 +96,7 @@ export function SocialLinkCard({
           sx={{
             fontFamily: "var(--font-heading)",
             fontWeight: 600,
-            fontSize: "13px",
+            fontSize: fontScale[13],
             color: "text.primary",
           }}
         >
@@ -104,7 +105,7 @@ export function SocialLinkCard({
         <Typography
           sx={{
             fontFamily: "var(--font-body)",
-            fontSize: "12px",
+            fontSize: fontScale[12],
             color: "text.secondary",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -128,6 +129,7 @@ export function SocialLinkCard({
         size="small"
         sx={{
           flexShrink: 0,
+          minHeight: 44, // área táctil (design-qa fase 09)
           borderColor: theme.palette.divider,
           color: theme.palette.text.secondary,
           "&:hover": {

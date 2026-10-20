@@ -24,6 +24,23 @@ export const secondary = {
   900: "#612903",
 } as const;
 
+// Blanco y negro puros (texto sobre navy fijo, scrims de video).
+export const common = {
+  white: "#FFFFFF",
+  black: "#000000",
+} as const;
+
+// Texto y superficies sobre las piezas navy fijas (D024/D025: topbar,
+// sidebar, menú móvil). Ratios sobre `primary[900]`.
+export const onNavy = {
+  text: common.white, // 19.6:1
+  muted: "rgba(255,255,255,0.75)", // 11.9:1
+  subtle: "rgba(255,255,255,0.65)", // 9.4:1
+  hover: "rgba(255,255,255,0.08)",
+  divider: "rgba(255,255,255,0.15)",
+  border: "rgba(255,255,255,0.08)",
+} as const;
+
 export const gray = {
   50: "#F5F6FA",
   100: "#E7E9F1",
@@ -125,6 +142,35 @@ export const typography = {
   },
 } as const;
 
+// Tamaños de letra en uso fuera de la escala de `typography.size`
+// (etiquetas, chips, iconos, ajustes de ≥1920px). design-qa fase 09: se
+// tokenizan tal cual, sin cambio visual; recortarlos a la escala es una
+// decisión de diseño aparte. Uso: `fontSize: fontScale[13]`.
+export const fontScale = {
+  10.5: "10.5px",
+  11: "11px",
+  11.5: "11.5px",
+  12: "12px",
+  13: "13px",
+  14: "14px",
+  15: "15px",
+  16: "16px",
+  17: "17px",
+  18: "18px",
+  19: "19px",
+  20: "20px",
+  22: "22px",
+  26: "26px",
+  28: "28px",
+  32: "32px",
+  34: "34px",
+  40: "40px",
+  46: "46px",
+  54: "54px",
+  56: "56px",
+  64: "64px",
+} as const;
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -143,12 +189,16 @@ export const radius = {
   md: 8,
   lg: 12,
   xl: 16,
+  pill: 999, // píldoras, chips y avatares redondos
 } as const;
 
 export const shadow = {
   sm: "0 1px 3px rgba(6, 10, 29, 0.06)",
   md: "0 2px 8px rgba(6, 10, 29, 0.08)",
   lg: "0 4px 16px rgba(6, 10, 29, 0.10)",
+  // Hover de tarjetas elevadas (Agenda): normal y sobre la tarjeta navy.
+  hover: "0 8px 20px rgba(6, 10, 29, 0.10)",
+  hoverNavy: "0 10px 30px rgba(6, 10, 29, 0.28)",
 } as const;
 
 export const breakpoints = {

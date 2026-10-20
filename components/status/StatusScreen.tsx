@@ -1,12 +1,12 @@
 "use client";
 
-import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
+import BuildOutlinedIcon from "@mui/icons-material/BuildRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
+import ExploreOutlinedIcon from "@mui/icons-material/ExploreRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import WifiOffRoundedIcon from "@mui/icons-material/WifiOffRounded";
 import {
@@ -20,7 +20,7 @@ import Link from "next/link";
 import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
 import { SITE_CONTACT_EMAIL, SITE_NAME } from "@/lib/siteConfig";
-import { gray, secondary } from "@/theme/tokens";
+import { gray, radius, secondary } from "@/theme/tokens";
 import {
   formatReturnAt,
   getStatusCopy,
@@ -90,7 +90,7 @@ export function StatusScreen({
     boxSizing: "border-box",
     px: 3,
     py: 2,
-    borderRadius: 2,
+    borderRadius: `${radius.lg}px`,
     bgcolor: "background.paper",
     border: "1px solid",
     borderColor: "divider",
@@ -132,7 +132,12 @@ export function StatusScreen({
             component={Link}
             href="/"
             aria-label={`${SITE_NAME}, ir al inicio`}
-            sx={{ display: "flex", borderRadius: 1.5 }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              minHeight: 44,
+              borderRadius: `${radius.sm}px`,
+            }}
           >
             <Logo variant="compact" size={32} />
           </Box>
@@ -289,6 +294,9 @@ export function StatusScreen({
                   href={action.href}
                   size="large"
                   variant={action.primary ? "contained" : "outlined"}
+                  // CTA principal naranja, igual que /pago/resultado y
+                  // "Diezmo" (design-qa fase 09).
+                  color={action.primary ? "secondary" : "primary"}
                   sx={action.primary ? undefined : outlinedSx}
                 >
                   {action.label}
@@ -298,6 +306,7 @@ export function StatusScreen({
                   key={action.label}
                   size="large"
                   variant="contained"
+                  color="secondary"
                   disabled={retrying}
                   onClick={() => startRetry(() => onRetry?.())}
                   startIcon={
@@ -321,7 +330,16 @@ export function StatusScreen({
             <Box
               component="a"
               href={`mailto:${SITE_CONTACT_EMAIL}`}
-              sx={{ color: "text.primary", textUnderlineOffset: 3 }}
+              // Subrayado: el enlace no se distingue solo por color (axe
+              // link-in-text-block, design-qa fase 09). 44px de alto en móvil.
+              sx={{
+                color: "text.primary",
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: { xs: 44, sm: "auto" },
+              }}
             >
               {SITE_CONTACT_EMAIL}
             </Box>
@@ -403,9 +421,11 @@ function ErrorCode({ code, boxSx }: { code: string; boxSx: object }) {
       <Box
         aria-live="polite"
         sx={{
+          // "1px" y no `1`: en `sx` el 1 es 100% y desbordaba la página
+          // (design-qa fase 09).
           position: "absolute",
-          width: 1,
-          height: 1,
+          width: "1px",
+          height: "1px",
           overflow: "hidden",
           clip: "rect(0 0 0 0)",
         }}

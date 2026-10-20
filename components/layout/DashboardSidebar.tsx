@@ -1,14 +1,14 @@
 "use client";
 
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardRounded";
 import { Box } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { primary } from "@/theme/tokens";
+import { common, fontScale, primary, radius } from "@/theme/tokens";
 
 const DASHBOARD_ITEMS = [
   { label: "Resumen", href: "/dashboard", icon: SpaceDashboardOutlinedIcon },
@@ -24,7 +24,7 @@ export const DASHBOARD_SIDEBAR_WIDTH = 260;
 // Blanco fijo: el sidebar es navy sólido permanente (primary[900]) sin
 // importar el modo claro/oscuro activo en el resto del dashboard (D024) —
 // theme.palette.primary.contrastText no sirve acá porque cambia entre modos.
-const ON_DARK = "#FFFFFF";
+const ON_DARK = common.white;
 
 export interface DashboardSidebarProps {
   onLogout?: () => void;
@@ -88,11 +88,11 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
                 gap: 1.5,
                 px: 2,
                 py: 1.25,
-                borderRadius: "8px",
+                borderRadius: `${radius.md}px`,
                 textDecoration: "none",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 14,
+                fontSize: fontScale[14],
                 color: isActive ? ON_DARK : "rgba(255,255,255,0.65)",
                 bgcolor: isActive ? primary[800] : "transparent",
                 borderLeft: "3px solid",
@@ -104,7 +104,7 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
                 "&:hover": { color: ON_DARK, bgcolor: primary[800] },
               }}
             >
-              <Icon sx={{ fontSize: 20 }} />
+              <Icon sx={{ fontSize: fontScale[20] }} />
               {item.label}
             </Box>
           );
@@ -144,13 +144,13 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
               cursor: "pointer",
               fontFamily: "var(--font-body)",
               fontWeight: 500,
-              fontSize: 13,
+              fontSize: fontScale[13],
               color: "rgba(255,255,255,0.65)",
               p: 0,
               "&:hover": { color: "secondary.main" },
             }}
           >
-            <LogoutRoundedIcon sx={{ fontSize: 18 }} />
+            <LogoutRoundedIcon sx={{ fontSize: fontScale[18] }} />
             Salir
           </Box>
         </Box>

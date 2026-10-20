@@ -19,6 +19,7 @@ import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { SITE_NAME } from "@/lib/siteConfig";
 import { useTitheModal } from "@/lib/titheModalStore";
+import { fontScale, radius } from "@/theme/tokens";
 import MobileMenuOverlay from "./MobileMenuOverlay";
 import {
   HOME_ANCHOR_ITEMS,
@@ -121,6 +122,7 @@ export default function Navbar() {
               sx={{
                 display: "flex",
                 alignItems: "center",
+                minHeight: 44,
                 textDecoration: "none",
               }}
             >
@@ -148,8 +150,8 @@ export default function Navbar() {
                       position: "relative",
                       fontFamily: "var(--font-body)",
                       fontWeight: 500,
-                      fontSize: 13,
-                      "@media (min-width:1920px)": { fontSize: "15px" },
+                      fontSize: fontScale[13],
+                      "@media (min-width:1920px)": { fontSize: fontScale[15] },
                       textDecoration: "none",
                       color: isActive ? "text.primary" : "text.secondary",
                       pb: 0.25,
@@ -175,7 +177,7 @@ export default function Navbar() {
                           right: 0,
                           bottom: -2,
                           height: "2px",
-                          borderRadius: "2px",
+                          borderRadius: `${radius.xs}px`,
                           bgcolor: "secondary.main",
                         }}
                       />
@@ -210,12 +212,12 @@ export default function Navbar() {
                     gap: 0.75,
                     fontFamily: "var(--font-body)",
                     fontWeight: 500,
-                    fontSize: 13,
+                    fontSize: fontScale[13],
                     textDecoration: "none",
                     color: "text.secondary",
                     border: "1px solid",
                     borderColor: "divider",
-                    borderRadius: "999px",
+                    borderRadius: `${radius.pill}px`,
                     pl: 1.5,
                     pr: 1.75,
                     py: 0.75,
@@ -225,7 +227,7 @@ export default function Navbar() {
                     },
                   }}
                 >
-                  <OpenInNewRoundedIcon sx={{ fontSize: 13 }} />
+                  <OpenInNewRoundedIcon sx={{ fontSize: fontScale[13] }} />
                   {item.label}
                 </Box>
               ))}
@@ -246,7 +248,7 @@ export default function Navbar() {
                   variant="contained"
                   color="secondary"
                   size="small"
-                  sx={{ borderRadius: "6px", px: 2 }}
+                  sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
                 >
                   Diezmo
                 </Button>
@@ -256,6 +258,8 @@ export default function Navbar() {
                 aria-label="Abrir menú"
                 sx={{
                   display: { xs: "inline-flex", md: "none" },
+                  width: 44,
+                  height: 44,
                   color: "text.primary",
                 }}
               >

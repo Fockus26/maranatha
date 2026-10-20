@@ -3,15 +3,11 @@
 import Box from "@mui/material/Box";
 import { alpha } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import {
-  motion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
-import { primary } from "@/theme/tokens";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
+import { fontScale, gray, primary } from "@/theme/tokens";
 
 export interface PhotoAnchorBandProps {
   eyebrow: string;
@@ -103,7 +99,7 @@ export function PhotoAnchorBand({
           sx={{
             fontFamily: "var(--font-body)",
             fontWeight: 500,
-            fontSize: 11,
+            fontSize: fontScale[11],
             letterSpacing: "0.18em",
             textTransform: "uppercase",
             color: "secondary.light",
@@ -120,7 +116,7 @@ export function PhotoAnchorBand({
             fontSize: { xs: "44px", md: "56px" },
             lineHeight: 1,
             letterSpacing: "-0.01em",
-            color: "#F5F6FA",
+            color: gray[50],
             mb: 1,
           }}
         >
@@ -129,7 +125,7 @@ export function PhotoAnchorBand({
         <Typography
           sx={{
             fontFamily: "var(--font-body)",
-            fontSize: 14,
+            fontSize: fontScale[14],
             color: "rgba(245,246,250,0.8)",
           }}
         >

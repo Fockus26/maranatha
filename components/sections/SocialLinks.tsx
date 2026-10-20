@@ -19,7 +19,7 @@ import {
 import { Reveal } from "@/components/ui/Reveal";
 import { SocialLinkCard } from "@/components/ui/SocialLinkCard";
 import type { InstagramFeed, InstagramPost } from "@/lib/instagram";
-import { gray } from "@/theme/tokens";
+import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
 
 /**
  * Sección "Redes Sociales" (fase 06) — componente + datos en un solo
@@ -66,10 +66,10 @@ const ACCOUNTS = [
     handle: "@maranathasancristobal",
     href: `${IG}/maranathasancristobal/`,
     gradients: [
-      "radial-gradient(400px 400px at 70% 20%, #5B6B9E 0%, #1E2B5C 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 30% 70%, #8894C2 0%, #37447A 55%, #101B45 100%)",
-      "radial-gradient(400px 400px at 70% 70%, #FCA355 0%, #B34C02 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 30% 20%, #AFB7D6 0%, #434A63 55%, #0B1433 100%)",
+      `radial-gradient(400px 400px at 70% 20%, ${primary[400]} 0%, ${primary[600]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 30% 70%, ${primary[300]} 0%, ${primary[500]} 55%, ${primary[700]} 100%)`,
+      `radial-gradient(400px 400px at 70% 70%, ${secondary[300]} 0%, ${secondary[700]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 30% 20%, ${primary[200]} 0%, ${gray[600]} 55%, ${primary[800]} 100%)`,
     ],
   },
   {
@@ -78,10 +78,10 @@ const ACCOUNTS = [
     handle: "@eectachira.sc",
     href: `${IG}/eectachira.sc/`,
     gradients: [
-      "radial-gradient(400px 400px at 70% 20%, #FA8A2E 0%, #8A3B03 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 30% 70%, #5B6B9E 0%, #1E2B5C 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 70% 70%, #8894C2 0%, #37447A 55%, #101B45 100%)",
-      "radial-gradient(400px 400px at 30% 20%, #FCA355 0%, #B34C02 55%, #0B1433 100%)",
+      `radial-gradient(400px 400px at 70% 20%, ${secondary[400]} 0%, ${secondary[800]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 30% 70%, ${primary[400]} 0%, ${primary[600]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 70% 70%, ${primary[300]} 0%, ${primary[500]} 55%, ${primary[700]} 100%)`,
+      `radial-gradient(400px 400px at 30% 20%, ${secondary[300]} 0%, ${secondary[700]} 55%, ${primary[800]} 100%)`,
     ],
   },
   {
@@ -90,10 +90,10 @@ const ACCOUNTS = [
     handle: "@generacionjef",
     href: `${IG}/generacionjef/`,
     gradients: [
-      "radial-gradient(400px 400px at 70% 20%, #AFB7D6 0%, #434A63 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 30% 70%, #FA8A2E 0%, #8A3B03 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 70% 70%, #5B6B9E 0%, #1E2B5C 55%, #0B1433 100%)",
-      "radial-gradient(400px 400px at 30% 20%, #8894C2 0%, #37447A 55%, #101B45 100%)",
+      `radial-gradient(400px 400px at 70% 20%, ${primary[200]} 0%, ${gray[600]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 30% 70%, ${secondary[400]} 0%, ${secondary[800]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 70% 70%, ${primary[400]} 0%, ${primary[600]} 55%, ${primary[800]} 100%)`,
+      `radial-gradient(400px 400px at 30% 20%, ${primary[300]} 0%, ${primary[500]} 55%, ${primary[700]} 100%)`,
     ],
   },
 ] as const;
@@ -130,8 +130,8 @@ export function SocialLinks({
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                fontSize: fontScale[11],
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
@@ -147,7 +147,7 @@ export function SocialLinks({
                 fontFamily: "var(--font-heading)",
                 fontWeight: 700,
                 fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: "46px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[46] },
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
                 color: "text.primary",
@@ -160,8 +160,8 @@ export function SocialLinks({
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                "@media (min-width:1920px)": { fontSize: "19px" },
+                fontSize: fontScale[16],
+                "@media (min-width:1920px)": { fontSize: fontScale[19] },
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}
@@ -178,7 +178,7 @@ export function SocialLinks({
               mb: { xs: 4, md: 5 },
               maxWidth: 480,
               mx: { xs: "auto", md: 0 },
-              borderRadius: "16px",
+              borderRadius: `${radius.xl}px`,
               border: "1px solid",
               borderColor: "divider",
               overflow: "hidden",
@@ -199,8 +199,12 @@ export function SocialLinks({
                   <ButtonBase
                     key={account.id}
                     onClick={() => setActiveId(account.id)}
+                    // Cuenta elegida expuesta a lectores de pantalla y a alto
+                    // contraste (design-qa fase 09: solo se veía por color).
+                    aria-pressed={isActive}
                     sx={{
                       display: "flex",
+                      minHeight: 44,
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 0.6,
@@ -215,14 +219,16 @@ export function SocialLinks({
                       color: isActive ? "text.primary" : "text.secondary",
                       fontFamily: "var(--font-body)",
                       fontWeight: isActive ? 600 : 500,
-                      fontSize: "12px",
+                      fontSize: fontScale[12],
                       borderTopLeftRadius: isActive ? "14px" : 0,
                       borderTopRightRadius: isActive ? "14px" : 0,
                       transition:
                         "flex-grow 0.3s ease, background-color 0.3s ease, color 0.2s ease",
                     }}
                   >
-                    <InstagramIcon sx={{ fontSize: 15, flexShrink: 0 }} />
+                    <InstagramIcon
+                      sx={{ fontSize: fontScale[15], flexShrink: 0 }}
+                    />
                     <Box
                       component="span"
                       sx={{
@@ -310,7 +316,7 @@ export function SocialLinks({
                           display: "block",
                           width: "100%",
                           aspectRatio: "4 / 5",
-                          borderRadius: "10px",
+                          borderRadius: `${radius.md}px`,
                           overflow: "hidden",
                           border: "1px solid",
                           borderColor: "divider",
@@ -352,7 +358,7 @@ export function SocialLinks({
                               position: "absolute",
                               top: 8,
                               right: 8,
-                              fontSize: 20,
+                              fontSize: fontScale[20],
                             }}
                           />
                         )}
@@ -363,7 +369,7 @@ export function SocialLinks({
                               position: "absolute",
                               top: 8,
                               right: 8,
-                              fontSize: 18,
+                              fontSize: fontScale[18],
                             }}
                           />
                         )}
@@ -381,7 +387,7 @@ export function SocialLinks({
                             pt: 3,
                             pb: 1,
                             color: gray[50],
-                            fontSize: 13,
+                            fontSize: fontScale[13],
                             fontWeight: 600,
                             background:
                               "linear-gradient(to top, rgba(6,10,29,0.75), transparent)",
@@ -399,7 +405,9 @@ export function SocialLinks({
                                 gap: 0.5,
                               }}
                             >
-                              <FavoriteRoundedIcon sx={{ fontSize: 16 }} />
+                              <FavoriteRoundedIcon
+                                sx={{ fontSize: fontScale[16] }}
+                              />
                               {formatCount(post.likeCount)}
                             </Box>
                           )}
@@ -412,12 +420,18 @@ export function SocialLinks({
                                 gap: 0.5,
                               }}
                             >
-                              <ChatBubbleRoundedIcon sx={{ fontSize: 15 }} />
+                              <ChatBubbleRoundedIcon
+                                sx={{ fontSize: fontScale[15] }}
+                              />
                               {formatCount(post.commentsCount)}
                             </Box>
                           )}
                           <InstagramIcon
-                            sx={{ ...overlayIconSx, fontSize: 16, ml: "auto" }}
+                            sx={{
+                              ...overlayIconSx,
+                              fontSize: fontScale[16],
+                              ml: "auto",
+                            }}
                           />
                         </Box>
                       </ButtonBase>
@@ -435,7 +449,7 @@ export function SocialLinks({
                         position: "relative",
                         display: "block",
                         aspectRatio: "4 / 5",
-                        borderRadius: "10px",
+                        borderRadius: `${radius.md}px`,
                         overflow: "hidden",
                         border: "1px solid",
                         borderColor: "divider",
@@ -455,7 +469,7 @@ export function SocialLinks({
                           position: "absolute",
                           bottom: 8,
                           right: 8,
-                          fontSize: 16,
+                          fontSize: fontScale[16],
                           color: "rgba(245,246,250,0.85)",
                         }}
                       />

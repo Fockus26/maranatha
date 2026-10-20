@@ -10,7 +10,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { typography } from "@/theme/tokens";
+import { fontScale, typography } from "@/theme/tokens";
 import { AmountSelector } from "./AmountSelector";
 import { DonationFormCard } from "./DonationFormCard";
 import { SegmentedToggle } from "./SegmentedToggle";
@@ -162,7 +162,7 @@ export function TitheForm({
                 sx={{
                   fontFamily: typography.fontFamily.heading,
                   fontWeight: 800,
-                  fontSize: "32px",
+                  fontSize: fontScale[32],
                   color: theme.palette.text.primary,
                 }}
               >
@@ -175,7 +175,7 @@ export function TitheForm({
           <Typography
             sx={{
               fontFamily: typography.fontFamily.body,
-              fontSize: "12px",
+              fontSize: fontScale[12],
               color: theme.palette.text.secondary,
               mt: 0.25,
             }}
@@ -187,7 +187,7 @@ export function TitheForm({
         <Typography
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             fontWeight: 500,
             color: theme.palette.text.primary,
             mb: 2,
@@ -200,14 +200,14 @@ export function TitheForm({
             presets={presetAmounts}
             onChange={setAmount}
             error={touched && !amountValid}
-            helperText="Elegí un monto entre US$ 1 y US$ 10.000."
+            helperText="Elige un monto entre US$ 1 y US$ 10.000."
           />
         </Box>
 
         <Typography
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             fontWeight: 500,
             color: theme.palette.text.primary,
             mb: 2,
@@ -230,7 +230,7 @@ export function TitheForm({
         <Typography
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             fontWeight: 500,
             color: theme.palette.text.primary,
             mb: 2,
@@ -267,7 +267,7 @@ export function TitheForm({
             onChange={(e) => setName(e.target.value)}
             error={touched && !nameValid}
             helperText={
-              touched && !nameValid ? "Ingresá tu nombre completo." : undefined
+              touched && !nameValid ? "Ingresa tu nombre completo." : undefined
             }
             sx={SMALL_FIELD_SX}
           />
@@ -281,7 +281,7 @@ export function TitheForm({
             error={touched && !emailValid}
             helperText={
               touched && !emailValid
-                ? "Ingresá un correo electrónico válido."
+                ? "Ingresa un correo electrónico válido."
                 : undefined
             }
             sx={SMALL_FIELD_SX}

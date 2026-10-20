@@ -12,6 +12,7 @@ import {
   SITE_URL,
 } from "@/lib/siteConfig";
 import { TitheModalProvider } from "@/lib/titheModalStore";
+import { gray, primary } from "@/theme/tokens";
 import { ibmPlexSans, sora } from "../theme/fonts";
 import ThemeRegistry from "../theme/ThemeRegistry";
 
@@ -61,8 +62,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F6FA" },
-    { media: "(prefers-color-scheme: dark)", color: "#060A1D" },
+    { media: "(prefers-color-scheme: light)", color: gray[50] },
+    { media: "(prefers-color-scheme: dark)", color: primary[900] },
   ],
 };
 

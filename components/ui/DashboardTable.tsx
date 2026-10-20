@@ -1,8 +1,8 @@
 "use client";
 
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
+import EditOutlinedIcon from "@mui/icons-material/EditRounded";
+import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -11,7 +11,7 @@ import { useTheme } from "@mui/material/styles";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { radius, secondary, semantic } from "@/theme/tokens";
+import { common, fontScale, radius, secondary, semantic } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "./EmptyState";
 import type { ProjectStatus } from "./ProjectCard";
@@ -123,7 +123,7 @@ export function DashboardTable({
         <EmptyState
           icon={FolderOutlinedIcon}
           title="Todavía no hay proyectos"
-          description="Creá el primero para empezar a hacerle seguimiento desde acá."
+          description="Crea el primero para empezar a hacerle seguimiento desde aquí."
           ctaLabel={onCreate ? "Crear proyecto" : undefined}
           onCtaClick={onCreate}
         />
@@ -181,9 +181,12 @@ export function DashboardTable({
               key={column}
               role="columnheader"
               sx={{
-                fontSize: 13,
+                fontSize: fontScale[13],
                 color: theme.palette.text.secondary,
-                "& .MuiTableSortLabel-root": { fontSize: 13, fontWeight: 500 },
+                "& .MuiTableSortLabel-root": {
+                  fontSize: fontScale[13],
+                  fontWeight: 500,
+                },
               }}
             >
               <TableSortLabel
@@ -199,7 +202,7 @@ export function DashboardTable({
             role="columnheader"
             sx={{
               textAlign: "right",
-              fontSize: 13,
+              fontSize: fontScale[13],
               fontWeight: 500,
               color: theme.palette.text.secondary,
             }}
@@ -236,7 +239,7 @@ export function DashboardTable({
                   variant="rounded"
                   width={64}
                   height={20}
-                  sx={{ borderRadius: "20px" }}
+                  sx={{ borderRadius: `${radius.pill}px` }}
                 />
               </Box>
               <Box
@@ -247,7 +250,7 @@ export function DashboardTable({
                   variant="rounded"
                   width={80}
                   height={5}
-                  sx={{ borderRadius: "20px" }}
+                  sx={{ borderRadius: `${radius.pill}px` }}
                 />
                 <Skeleton variant="text" width={24} height={16} />
               </Box>
@@ -302,7 +305,7 @@ export function DashboardTable({
                   <Box
                     role="cell"
                     sx={{
-                      fontSize: 14,
+                      fontSize: fontScale[14],
                       fontWeight: 500,
                       color: theme.palette.text.primary,
                       pr: 2,
@@ -317,9 +320,9 @@ export function DashboardTable({
                     <Box
                       sx={{
                         display: "inline-block",
-                        fontSize: "11px",
+                        fontSize: fontScale[11],
                         fontWeight: 600,
-                        borderRadius: "20px",
+                        borderRadius: `${radius.pill}px`,
                         px: 2.25,
                         py: 0.5,
                         // Antes: fondo translúcido ("26" ≈ 15% opacidad) con
@@ -331,7 +334,7 @@ export function DashboardTable({
                         backgroundColor: isCompleted
                           ? semantic.successFilled
                           : secondary[700],
-                        color: "#FFFFFF",
+                        color: common.white,
                       }}
                     >
                       {isCompleted ? "Completado" : "Activo"}
@@ -347,14 +350,14 @@ export function DashboardTable({
                         sx={{
                           width: 80,
                           height: 5,
-                          borderRadius: "20px",
+                          borderRadius: `${radius.pill}px`,
                           backgroundColor: theme.palette.action.hover,
                         }}
                       />
                       <Box
                         component="span"
                         sx={{
-                          fontSize: "11px",
+                          fontSize: fontScale[11],
                           color: theme.palette.text.secondary,
                         }}
                       >
@@ -364,7 +367,10 @@ export function DashboardTable({
                   </Box>
                   <Box
                     role="cell"
-                    sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+                    sx={{
+                      fontSize: fontScale[13],
+                      color: theme.palette.text.secondary,
+                    }}
                   >
                     {row.deadlineLabel}
                   </Box>
@@ -454,13 +460,13 @@ export function DashboardTable({
                   variant="rounded"
                   width={56}
                   height={18}
-                  sx={{ borderRadius: "20px" }}
+                  sx={{ borderRadius: `${radius.pill}px` }}
                 />
               </Box>
               <Skeleton
                 variant="rounded"
                 height={5}
-                sx={{ borderRadius: "20px", mb: 1.5 }}
+                sx={{ borderRadius: `${radius.pill}px`, mb: 1.5 }}
               />
               <Skeleton variant="text" width="40%" height={16} sx={{ mb: 2 }} />
               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
@@ -514,7 +520,7 @@ export function DashboardTable({
                     <Box
                       role="cell"
                       sx={{
-                        fontSize: 14,
+                        fontSize: fontScale[14],
                         fontWeight: 600,
                         color: theme.palette.text.primary,
                         minWidth: 0,
@@ -527,16 +533,16 @@ export function DashboardTable({
                       sx={{
                         display: "inline-block",
                         flexShrink: 0,
-                        fontSize: "10.5px",
+                        fontSize: fontScale[10.5],
                         fontWeight: 600,
-                        borderRadius: "20px",
+                        borderRadius: `${radius.pill}px`,
                         px: 1.75,
                         py: 0.4,
                         whiteSpace: "nowrap",
                         backgroundColor: isCompleted
                           ? semantic.successFilled
                           : secondary[700],
-                        color: "#FFFFFF",
+                        color: common.white,
                       }}
                     >
                       {isCompleted ? "Completado" : "Activo"}
@@ -560,14 +566,14 @@ export function DashboardTable({
                       sx={{
                         flex: 1,
                         height: 5,
-                        borderRadius: "20px",
+                        borderRadius: `${radius.pill}px`,
                         backgroundColor: theme.palette.action.hover,
                       }}
                     />
                     <Box
                       component="span"
                       sx={{
-                        fontSize: "11px",
+                        fontSize: fontScale[11],
                         color: theme.palette.text.secondary,
                         flexShrink: 0,
                       }}
@@ -579,7 +585,7 @@ export function DashboardTable({
                   <Box
                     role="cell"
                     sx={{
-                      fontSize: 12,
+                      fontSize: fontScale[12],
                       color: theme.palette.text.secondary,
                       mb: 2,
                     }}

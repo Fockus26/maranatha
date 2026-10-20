@@ -9,7 +9,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 import { AmountSelector } from "./AmountSelector";
 import { DonationFormCard } from "./DonationFormCard";
 
@@ -144,7 +144,7 @@ export function ProjectContributionForm({
               sx={{
                 fontFamily: typography.fontFamily.heading,
                 fontWeight: 600,
-                fontSize: "13px",
+                fontSize: fontScale[13],
                 color: theme.palette.text.primary,
                 mb: 0.5,
               }}
@@ -154,7 +154,7 @@ export function ProjectContributionForm({
             <Typography
               sx={{
                 fontFamily: typography.fontFamily.body,
-                fontSize: "11px",
+                fontSize: fontScale[11],
                 color: theme.palette.text.secondary,
               }}
             >
@@ -167,7 +167,7 @@ export function ProjectContributionForm({
           sx={{
             position: "relative",
             height: 8,
-            borderRadius: "20px",
+            borderRadius: `${radius.pill}px`,
             backgroundColor: theme.palette.action.hover,
             overflow: "hidden",
             mb: 1.5,
@@ -179,7 +179,7 @@ export function ProjectContributionForm({
               left: 0,
               top: 0,
               bottom: 0,
-              borderRadius: "20px",
+              borderRadius: `${radius.pill}px`,
               width: `${displayPct}%`,
               backgroundColor: highlighted
                 ? theme.palette.success.main
@@ -212,7 +212,7 @@ export function ProjectContributionForm({
           <Typography
             sx={{
               fontFamily: typography.fontFamily.body,
-              fontSize: "11px",
+              fontSize: fontScale[11],
               color: theme.palette.text.secondary,
             }}
           >
@@ -223,7 +223,7 @@ export function ProjectContributionForm({
         <Typography
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             fontWeight: 500,
             color: theme.palette.text.primary,
             mb: 2,
@@ -236,7 +236,7 @@ export function ProjectContributionForm({
             presets={presetAmounts}
             onChange={setAmount}
             error={touched && !amountValid}
-            helperText="Elegí un monto entre US$ 1 y US$ 10.000."
+            helperText="Elige un monto entre US$ 1 y US$ 10.000."
           />
         </Box>
 
@@ -252,7 +252,7 @@ export function ProjectContributionForm({
             onChange={(e) => setName(e.target.value)}
             error={touched && !nameValid}
             helperText={
-              touched && !nameValid ? "Ingresá tu nombre completo." : undefined
+              touched && !nameValid ? "Ingresa tu nombre completo." : undefined
             }
           />
           <TextField
@@ -266,7 +266,7 @@ export function ProjectContributionForm({
             error={touched && !emailValid}
             helperText={
               touched && !emailValid
-                ? "Ingresá un correo electrónico válido."
+                ? "Ingresa un correo electrónico válido."
                 : undefined
             }
           />

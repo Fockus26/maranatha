@@ -14,6 +14,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { YoutubeEmbedCard } from "@/components/ui/YoutubeEmbedCard";
 import { YOUTUBE_CHANNEL_URL } from "@/lib/siteConfig";
 import type { SermonVideo } from "@/lib/youtube";
+import { common, fontScale, radius } from "@/theme/tokens";
 
 /**
  * Sección "Prédicas" — los 3 últimos videos vienen del feed RSS del canal
@@ -66,12 +67,12 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
                 mb: 1.5,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
               }}
             >
               Prédicas
@@ -83,7 +84,7 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
                 fontFamily: "var(--font-heading)",
                 fontWeight: 700,
                 fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: "46px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[46] },
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
                 color: "text.primary",
@@ -96,8 +97,8 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                "@media (min-width:1920px)": { fontSize: "19px" },
+                fontSize: fontScale[16],
+                "@media (min-width:1920px)": { fontSize: fontScale[19] },
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}
@@ -191,7 +192,10 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
         }
         slotProps={{
           paper: {
-            sx: { backgroundColor: "background.paper", borderRadius: "12px" },
+            sx: {
+              backgroundColor: "background.paper",
+              borderRadius: `${radius.lg}px`,
+            },
           },
         }}
       >
@@ -214,7 +218,7 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
               sx={{
                 position: "relative",
                 aspectRatio: "16 / 9",
-                backgroundColor: "#000",
+                backgroundColor: common.black,
               }}
             >
               <iframe

@@ -3,8 +3,8 @@
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CurrencyExchangeRoundedIcon from "@mui/icons-material/CurrencyExchangeRounded";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsRounded";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -41,7 +41,14 @@ import {
   type PaymentStatus,
 } from "@/lib/payments/schema";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius, semantic, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  gray,
+  radius,
+  semantic,
+  typography,
+} from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
 import { EmptyState } from "./EmptyState";
@@ -181,8 +188,10 @@ function expectedIfMismatch(row: DashboardPaymentRow): number | null {
 function StatusBadge({ status }: { status: PaymentStatus }) {
   const theme = useTheme();
   const colors: Record<PaymentStatus, { bg: string; fg: string }> = {
-    pending: { bg: theme.palette.action.hover, fg: theme.palette.text.primary },
-    confirmed: { bg: semantic.successFilled, fg: "#FFFFFF" },
+    // "Pendiente" en ámbar para no confundirse con el gris de "Cancelado"
+    // (design-qa fase 09). gray[900] sobre warning: 9.6:1.
+    pending: { bg: semantic.warning, fg: gray[900] },
+    confirmed: { bg: semantic.successFilled, fg: common.white },
     rejected: {
       bg: theme.palette.error.main,
       fg: theme.palette.error.contrastText,
@@ -197,9 +206,9 @@ function StatusBadge({ status }: { status: PaymentStatus }) {
       component="span"
       sx={{
         display: "inline-block",
-        fontSize: "11px",
+        fontSize: fontScale[11],
         fontWeight: 600,
-        borderRadius: "20px",
+        borderRadius: `${radius.pill}px`,
         px: 1.25,
         py: 0.25,
         bgcolor: colors[status].bg,
@@ -223,7 +232,7 @@ function Field({
     <Box sx={{ minWidth: 0 }}>
       <Typography
         component="dt"
-        sx={{ fontSize: "11px", color: "text.secondary", mb: 0.25 }}
+        sx={{ fontSize: fontScale[11], color: "text.secondary", mb: 0.25 }}
       >
         {label}
       </Typography>
@@ -231,7 +240,7 @@ function Field({
         component="dd"
         sx={{
           m: 0,
-          fontSize: "13px",
+          fontSize: fontScale[13],
           fontWeight: 500,
           overflowWrap: "anywhere",
         }}
@@ -377,7 +386,7 @@ function RatesDialog({
         Tasas de cambio
       </DialogTitle>
       <DialogContent sx={{ px: 3.5 }}>
-        <DialogContentText sx={{ fontSize: 13, mb: 3 }}>
+        <DialogContentText sx={{ fontSize: fontScale[13], mb: 3 }}>
           Se usan para mostrarle al donante cuánto pagar en bolívares o pesos.
           Primero se consulta DolarApi (tasa BCV y la cotización en Colombia);
           la tasa de respaldo solo se usa si DolarApi no responde.
@@ -408,14 +417,14 @@ function RatesDialog({
                   flexWrap: "wrap",
                 }}
               >
-                <Typography component="dt" sx={{ fontSize: 13 }}>
+                <Typography component="dt" sx={{ fontSize: fontScale[13] }}>
                   {label}
                 </Typography>
                 <Typography
                   component="dd"
                   sx={{
                     m: 0,
-                    fontSize: 13,
+                    fontSize: fontScale[13],
                     fontWeight: 600,
                     textAlign: "right",
                   }}
@@ -425,7 +434,7 @@ function RatesDialog({
                     component="span"
                     sx={{
                       display: "block",
-                      fontSize: 11,
+                      fontSize: fontScale[11],
                       fontWeight: 400,
                       color: "text.secondary",
                     }}
@@ -483,7 +492,7 @@ function RatesDialog({
         </Box>
         <Typography
           role="status"
-          sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}
+          sx={{ fontSize: fontScale[12], color: "text.secondary", mt: 2 }}
         >
           Respaldo guardado:{" "}
           {fallback.VES ? formatAmount(fallback.VES, "VES") : "sin Bs."} ·{" "}
@@ -551,7 +560,7 @@ function PaymentsPagination({
         mt: 3,
       }}
     >
-      <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
+      <Typography sx={{ fontSize: fontScale[13], color: "text.secondary" }}>
         {shown > 0
           ? `Mostrando ${first}–${last} de ${total}`
           : `Esta página está vacía; hay ${total} en total.`}
@@ -717,7 +726,7 @@ export function DashboardPayments({
               sx={{
                 fontFamily: typography.fontFamily.heading,
                 fontWeight: 800,
-                fontSize: 26,
+                fontSize: fontScale[26],
                 color: theme.palette.text.primary,
                 mb: 0.5,
               }}
@@ -725,7 +734,10 @@ export function DashboardPayments({
               Pagos
             </Typography>
             <Typography
-              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+              sx={{
+                fontSize: fontScale[13],
+                color: theme.palette.text.secondary,
+              }}
             >
               Verifica cada reporte contra tu banco o app antes de confirmarlo.
               Solo los pagos confirmados suman a lo recaudado.
@@ -762,8 +774,8 @@ export function DashboardPayments({
                 sx={{
                   px: 2,
                   py: 0.75,
-                  borderRadius: "999px",
-                  fontSize: 13,
+                  borderRadius: `${radius.pill}px`,
+                  fontSize: fontScale[13],
                   fontWeight: 500,
                   textDecoration: "none",
                   border: `1px solid ${active ? theme.palette.secondary.main : theme.palette.divider}`,
@@ -836,7 +848,7 @@ export function DashboardPayments({
                       component="h2"
                       sx={{
                         fontWeight: 700,
-                        fontSize: 15,
+                        fontSize: fontScale[15],
                         overflowWrap: "anywhere",
                       }}
                     >
@@ -845,7 +857,7 @@ export function DashboardPayments({
                         component="span"
                         sx={{
                           fontWeight: 400,
-                          fontSize: 13,
+                          fontSize: fontScale[13],
                           color: "text.secondary",
                         }}
                       >
@@ -853,7 +865,11 @@ export function DashboardPayments({
                       </Box>
                     </Typography>
                     <Typography
-                      sx={{ fontSize: 12, color: "text.secondary", mt: 0.25 }}
+                      sx={{
+                        fontSize: fontScale[12],
+                        color: "text.secondary",
+                        mt: 0.25,
+                      }}
                     >
                       {PURPOSE_LABEL[row.purpose]}
                       {row.projectTitle ? `: ${row.projectTitle}` : ""}
@@ -862,7 +878,11 @@ export function DashboardPayments({
                     </Typography>
                     {isGatewayRow(row) && row.status === "pending" && (
                       <Typography
-                        sx={{ fontSize: 12, color: "text.secondary", mt: 0.5 }}
+                        sx={{
+                          fontSize: fontScale[12],
+                          color: "text.secondary",
+                          mt: 0.5,
+                        }}
                       >
                         Esperando que el donante complete el pago en{" "}
                         {row.method === "binance" ? "Binance Pay" : "PayPal"}.
@@ -875,7 +895,7 @@ export function DashboardPayments({
                       sx={{
                         fontFamily: typography.fontFamily.heading,
                         fontWeight: 800,
-                        fontSize: 20,
+                        fontSize: fontScale[20],
                       }}
                     >
                       {formatUsd(row.amountUsd)}
@@ -908,7 +928,7 @@ export function DashboardPayments({
                           component="span"
                           sx={{
                             display: "block",
-                            fontSize: 11,
+                            fontSize: fontScale[11],
                             fontWeight: 400,
                             color: "text.secondary",
                           }}
@@ -921,7 +941,7 @@ export function DashboardPayments({
                         component="span"
                         sx={{
                           display: "block",
-                          fontSize: 11,
+                          fontSize: fontScale[11],
                           fontWeight: 600,
                           color: "error.main",
                         }}
@@ -942,7 +962,11 @@ export function DashboardPayments({
 
                 {(row.reviewedBy || row.notes) && row.status !== "pending" && (
                   <Typography
-                    sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}
+                    sx={{
+                      fontSize: fontScale[12],
+                      color: "text.secondary",
+                      mt: 2,
+                    }}
                   >
                     {STATUS_LABEL[row.status]} por {row.reviewedBy ?? "—"}
                     {row.notes ? ` · Nota: ${row.notes}` : ""}
@@ -1089,8 +1113,10 @@ export function DashboardPayments({
             toast?.ok
               ? {
                   bgcolor: semantic.successFilled,
-                  color: "#FFFFFF",
-                  "& .MuiAlert-icon, & .MuiAlert-action": { color: "#FFFFFF" },
+                  color: common.white,
+                  "& .MuiAlert-icon, & .MuiAlert-action": {
+                    color: common.white,
+                  },
                 }
               : undefined
           }

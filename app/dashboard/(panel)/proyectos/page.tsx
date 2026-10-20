@@ -1,6 +1,6 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddRounded";
 import SearchOffRoundedIcon from "@mui/icons-material/SearchOffRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import Box from "@mui/material/Box";
@@ -16,7 +16,7 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
 import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 /**
  * Página "Dashboard — Proyectos" (`/dashboard/proyectos`) — Opción B ("Panel
@@ -96,7 +96,7 @@ export default function DashboardProyectosPage() {
               sx={{
                 fontFamily: typography.fontFamily.heading,
                 fontWeight: 800,
-                fontSize: 26,
+                fontSize: fontScale[26],
                 color: theme.palette.text.primary,
                 mb: 0.5,
               }}
@@ -104,7 +104,10 @@ export default function DashboardProyectosPage() {
               Proyectos
             </Typography>
             <Typography
-              sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+              sx={{
+                fontSize: fontScale[13],
+                color: theme.palette.text.secondary,
+              }}
             >
               {projects.length} proyectos · {activos} activos, {completados}{" "}
               completados
@@ -119,7 +122,6 @@ export default function DashboardProyectosPage() {
             color="primary"
             startIcon={<AddIcon />}
             onClick={openCreate}
-            sx={{ color: "#FFFFFF" }}
           >
             Nuevo proyecto
           </Button>
@@ -153,7 +155,7 @@ export default function DashboardProyectosPage() {
               outline: "none",
               background: "transparent",
               fontFamily: typography.fontFamily.body,
-              fontSize: 13,
+              fontSize: fontScale[13],
               color: theme.palette.text.primary,
               width: "100%",
               "&::placeholder": { color: theme.palette.text.secondary },
@@ -175,7 +177,7 @@ export default function DashboardProyectosPage() {
             <EmptyState
               icon={SearchOffRoundedIcon}
               title={`Ningún proyecto coincide con "${query}"`}
-              description="Probá con otro título o borrá la búsqueda."
+              description="Prueba con otro título o borra la búsqueda."
               ctaLabel="Limpiar búsqueda"
               onCtaClick={() => setQuery("")}
             />

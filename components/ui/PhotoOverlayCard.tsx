@@ -5,7 +5,7 @@ import { alpha, useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import type { KeyboardEvent, ReactNode } from "react";
-import { primary } from "@/theme/tokens";
+import { primary, radius } from "@/theme/tokens";
 
 export interface PhotoOverlayCardProps {
   imageUrl: string;
@@ -48,7 +48,7 @@ export function PhotoOverlayCard({
       sx={{
         position: "relative",
         height,
-        borderRadius: "12px",
+        borderRadius: `${radius.lg}px`,
         overflow: "hidden",
         border: `1px solid ${theme.palette.divider}`,
         cursor: onClick ? "pointer" : "default",

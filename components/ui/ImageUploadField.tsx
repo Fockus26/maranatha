@@ -1,7 +1,7 @@
 "use client";
 
 import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import ImageOutlinedIcon from "@mui/icons-material/ImageRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { useTheme } from "@mui/material/styles";
@@ -10,7 +10,7 @@ import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import { useRef, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius } from "@/theme/tokens";
+import { fontScale, radius } from "@/theme/tokens";
 
 export interface ImageUploadFieldProps {
   label: string;
@@ -45,7 +45,7 @@ export function ImageUploadField({
     <Box>
       <Box
         sx={{
-          fontSize: "12px",
+          fontSize: fontScale[12],
           fontWeight: 500,
           color: theme.palette.text.primary,
           mb: 1.5,
@@ -72,7 +72,7 @@ export function ImageUploadField({
       >
         {!value && (
           <ImageOutlinedIcon
-            sx={{ fontSize: 40, color: "rgba(255,255,255,0.4)" }}
+            sx={{ fontSize: fontScale[40], color: "rgba(255,255,255,0.4)" }}
           />
         )}
       </Box>
@@ -86,12 +86,12 @@ export function ImageUploadField({
         <Tab
           value="upload"
           label="Subir archivo"
-          sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }}
+          sx={{ minHeight: 32, py: 0.5, fontSize: fontScale[12] }}
         />
         <Tab
           value="url"
           label="URL"
-          sx={{ minHeight: 32, py: 0.5, fontSize: "12px" }}
+          sx={{ minHeight: 32, py: 0.5, fontSize: fontScale[12] }}
         />
       </Tabs>
 
@@ -119,7 +119,7 @@ export function ImageUploadField({
             color="inherit"
             startIcon={<AttachFileRoundedIcon fontSize="small" />}
             onClick={() => inputRef.current?.click()}
-            sx={{ height: 40, textTransform: "none", fontSize: "12px" }}
+            sx={{ height: 40, textTransform: "none", fontSize: fontScale[12] }}
           >
             {value ? "Cambiar imagen" : "Elegir imagen"}
           </Button>
@@ -135,7 +135,7 @@ export function ImageUploadField({
           onChange={(e) => onChange(e.target.value)}
           sx={{
             ...SMALL_FIELD_SX,
-            "& .MuiInputBase-root": { fontSize: "14px", height: 40 },
+            "& .MuiInputBase-root": { fontSize: fontScale[14], height: 40 },
           }}
         />
       )}

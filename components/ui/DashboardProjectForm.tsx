@@ -1,7 +1,7 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import AddIcon from "@mui/icons-material/AddRounded";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
 import { type FormEvent, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 import { DateField } from "./DateField";
 import { ImageUploadField } from "./ImageUploadField";
 
@@ -68,7 +68,7 @@ function sectionLabelSx(theme: Theme) {
   return {
     fontFamily: typography.fontFamily.heading,
     fontWeight: 600,
-    fontSize: "14px",
+    fontSize: fontScale[14],
     color: theme.palette.text.primary,
   };
 }
@@ -268,7 +268,7 @@ export function DashboardProjectForm({
             onChange={(e) => setGoalAmount(Number(e.target.value))}
             error={touched && !goalValid}
             helperText={
-              touched && !goalValid ? "Ingresá un monto mayor a 0." : undefined
+              touched && !goalValid ? "Ingresa un monto mayor a 0." : undefined
             }
             sx={numberFieldSx()}
           />
@@ -534,7 +534,6 @@ export function DashboardProjectForm({
             variant="contained"
             color="primary"
             disabled={submitting}
-            sx={{ color: "#FFFFFF" }}
           >
             Guardar
           </Button>

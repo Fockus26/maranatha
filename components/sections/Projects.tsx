@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
 import { ProjectCard, type ProjectStatus } from "@/components/ui/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
+import { fontScale, radius } from "@/theme/tokens";
 
 /**
  * Sección "Proyectos" (fase 06) — componente + datos en un solo archivo (D030).
@@ -99,7 +100,7 @@ export function Projects() {
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
@@ -127,7 +128,7 @@ export function Projects() {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
+                fontSize: fontScale[16],
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}
@@ -179,7 +180,7 @@ export function Projects() {
               size="large"
               endIcon={<ArrowForwardRoundedIcon />}
               sx={{
-                borderRadius: "10px",
+                borderRadius: `${radius.md}px`,
                 textTransform: "none",
                 fontWeight: 600,
               }}

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/siteConfig";
+import { gray, primary } from "@/theme/tokens";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE_DESCRIPTION,
     start_url: "/",
     display: "standalone",
-    background_color: "#F5F6FA",
-    theme_color: "#101B45",
+    background_color: gray[50],
+    theme_color: primary[700],
     lang: "es",
     // Derivados de `public/brand/logo-mark.svg` (`bun run brand:icons`, D078).
     icons: [

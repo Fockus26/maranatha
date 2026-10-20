@@ -9,6 +9,7 @@ import { useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { TitheForm, type TitheFormValues } from "@/components/ui/TitheForm";
+import { fontScale, gray, primary, radius } from "@/theme/tokens";
 
 /**
  * Sección "CTA Diezmo/Aportes" (fase 06) — componente + datos en un solo archivo (D030).
@@ -94,7 +95,7 @@ function AnimatedFamiliesCounter() {
       <Typography
         sx={{
           fontFamily: "var(--font-body)",
-          fontSize: 13,
+          fontSize: fontScale[13],
           color: "rgba(245,246,250,0.65)",
           mt: 0.75,
         }}
@@ -121,7 +122,7 @@ export function Tithe() {
         position: "relative",
         overflow: "hidden",
         py: { xs: 8, md: 12 },
-        backgroundColor: "#101B45",
+        backgroundColor: primary[700],
       }}
     >
       {/* Patrón geométrico en pan continuo — ver nota de "efecto wow" arriba */}
@@ -168,7 +169,7 @@ export function Tithe() {
                   justifyContent: "center",
                   width: 44,
                   height: 44,
-                  borderRadius: "12px",
+                  borderRadius: `${radius.lg}px`,
                   backgroundColor: "rgba(245,246,250,0.1)",
                   color: "secondary.light",
                   mb: 3,
@@ -183,7 +184,7 @@ export function Tithe() {
                   display: "block",
                   fontFamily: "var(--font-body)",
                   fontWeight: 500,
-                  fontSize: 11,
+                  fontSize: fontScale[11],
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   color: "secondary.light",
@@ -201,7 +202,7 @@ export function Tithe() {
                   fontSize: { xs: "28px", md: "38px" },
                   lineHeight: 1.2,
                   letterSpacing: "-0.01em",
-                  color: "#F5F6FA",
+                  color: gray[50],
                   mb: 2,
                 }}
               >
@@ -211,7 +212,7 @@ export function Tithe() {
               <Typography
                 sx={{
                   fontFamily: "var(--font-body)",
-                  fontSize: 16,
+                  fontSize: fontScale[16],
                   lineHeight: 1.6,
                   color: "rgba(245,246,250,0.72)",
                 }}

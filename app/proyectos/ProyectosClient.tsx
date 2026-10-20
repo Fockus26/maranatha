@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { breadcrumbJsonLd } from "@/lib/jsonLd";
 import type { ProjectRecord } from "@/lib/projectsData";
-import { secondary } from "@/theme/tokens";
+import { fontScale, radius, secondary } from "@/theme/tokens";
 
 /**
  * Página "Proyectos" (`/proyectos`, fase 07, D044) — listado completo, a
@@ -77,12 +77,12 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
                 mb: 1.5,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
               }}
             >
               Proyectos
@@ -94,7 +94,7 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 fontFamily: "var(--font-heading)",
                 fontWeight: 800,
                 fontSize: { xs: "32px", md: "44px" },
-                "@media (min-width:1920px)": { fontSize: "54px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[54] },
                 lineHeight: 1.15,
                 letterSpacing: "-0.01em",
                 color: "text.primary",
@@ -107,8 +107,8 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                "@media (min-width:1920px)": { fontSize: "19px" },
+                fontSize: fontScale[16],
+                "@media (min-width:1920px)": { fontSize: fontScale[19] },
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}
@@ -148,8 +148,8 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                   textTransform: "none",
                   fontFamily: "var(--font-body)",
                   fontWeight: 500,
-                  fontSize: 14,
-                  minHeight: "auto",
+                  fontSize: fontScale[14],
+                  minHeight: 44, // área táctil (design-qa fase 09)
                   py: 1.5,
                 },
                 "& .MuiTabs-indicator": { height: 2 },
@@ -182,7 +182,7 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                 display: { xs: "none", sm: "inline-flex" },
                 border: "1px solid",
                 borderColor: "divider",
-                borderRadius: "8px",
+                borderRadius: `${radius.md}px`,
                 overflow: "hidden",
                 flexShrink: 0,
               }}
@@ -239,7 +239,7 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
             <EmptyState
               icon={SearchOffRoundedIcon}
               title="No hay proyectos en esta categoría"
-              description="Probá con otra pestaña para ver el resto de los proyectos."
+              description="Prueba con otra pestaña para ver el resto de los proyectos."
               ctaLabel={tab !== "all" ? "Ver todos los proyectos" : undefined}
               onCtaClick={tab !== "all" ? () => setTab("all") : undefined}
             />

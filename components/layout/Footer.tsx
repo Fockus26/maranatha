@@ -5,6 +5,7 @@ import YouTubeIcon from "@mui/icons-material/YouTube";
 import { Box, Container, IconButton } from "@mui/material";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { fontScale, radius } from "@/theme/tokens";
 
 // Fase 10 (QA): antes solo tenía 3 de las 5 anclas de Home — se completa
 // con Prédicas y Redes para que coincida con `HOME_ANCHOR_ITEMS`
@@ -56,8 +57,8 @@ function FooterColumn({
         sx={{
           fontFamily: "var(--font-body)",
           fontWeight: 500,
-          fontSize: 12,
-          "@media (min-width:1920px)": { fontSize: "14px" },
+          fontSize: fontScale[12],
+          "@media (min-width:1920px)": { fontSize: fontScale[14] },
           color: "text.primary",
           mb: 0.5,
         }}
@@ -72,7 +73,7 @@ function FooterColumn({
           p: 0,
           display: "flex",
           flexDirection: "column",
-          gap: 0.75,
+          gap: { xs: 0, sm: 0.75 },
         }}
       >
         {links.map((link) => (
@@ -81,9 +82,13 @@ function FooterColumn({
               component={Link}
               href={link.href}
               sx={{
+                // Área táctil de 44px en móvil (design-qa fase 09).
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: { xs: 44, sm: "auto" },
                 fontFamily: "var(--font-body)",
-                fontSize: 12,
-                "@media (min-width:1920px)": { fontSize: "14px" },
+                fontSize: fontScale[12],
+                "@media (min-width:1920px)": { fontSize: fontScale[14] },
                 color: "text.secondary",
                 textDecoration: "none",
                 "&:hover": { color: "secondary.main" },
@@ -122,8 +127,8 @@ export default function Footer() {
               component="p"
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 11,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                fontSize: fontScale[11],
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
                 lineHeight: 1.5,
                 color: "text.secondary",
                 m: 0,
@@ -142,8 +147,8 @@ export default function Footer() {
               sx={{
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 12,
-                "@media (min-width:1920px)": { fontSize: "14px" },
+                fontSize: fontScale[12],
+                "@media (min-width:1920px)": { fontSize: fontScale[14] },
                 color: "text.primary",
               }}
             >
@@ -153,9 +158,12 @@ export default function Footer() {
               component="a"
               href="mailto:contacto@iglesia.org"
               sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: { xs: 44, sm: "auto" },
                 fontFamily: "var(--font-body)",
-                fontSize: 12,
-                "@media (min-width:1920px)": { fontSize: "14px" },
+                fontSize: fontScale[12],
+                "@media (min-width:1920px)": { fontSize: fontScale[14] },
                 color: "text.secondary",
                 textDecoration: "none",
                 "&:hover": { color: "secondary.main" },
@@ -174,9 +182,9 @@ export default function Footer() {
                   aria-label={`${label} (se abre en una pestaña nueva)`}
                   size="small"
                   sx={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: "4px",
+                    width: { xs: 44, sm: 32 },
+                    height: { xs: 44, sm: 32 },
+                    borderRadius: `${radius.xs}px`,
                     border: "1px solid",
                     borderColor: "divider",
                     color: "text.secondary",
@@ -186,7 +194,7 @@ export default function Footer() {
                     },
                   }}
                 >
-                  <Icon sx={{ fontSize: 14 }} />
+                  <Icon sx={{ fontSize: fontScale[14] }} />
                 </IconButton>
               ))}
             </Box>
@@ -204,8 +212,8 @@ export default function Footer() {
             gap: 1,
             justifyContent: "space-between",
             fontFamily: "var(--font-body)",
-            fontSize: 11,
-            "@media (min-width:1920px)": { fontSize: "13px" },
+            fontSize: fontScale[11],
+            "@media (min-width:1920px)": { fontSize: fontScale[13] },
             // Fase 10 (QA): `text.muted` no existe en la paleta de MUI/tema
             // del proyecto (solo `text.primary`/`text.secondary`/`text.disabled`,
             // ver `theme/theme.ts`) — la barra de copyright se renderizaba con
