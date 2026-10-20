@@ -78,6 +78,15 @@ export interface DashboardPaymentRow {
   notes: string | null;
 }
 
+/**
+ * Pago por pasarela (PayPal, o Binance Pay Merchant): se confirma solo, el
+ * admin no lo aprueba. Los manuales siempre llevan la referencia que reportó
+ * el donante; los de pasarela nunca.
+ */
+function isGatewayRow(row: Pick<DashboardPaymentRow, "reference">): boolean {
+  return row.reference === null;
+}
+
 export interface DashboardPaymentsProps {
   filter: PaymentFilter;
   rows: DashboardPaymentRow[];
@@ -842,12 +851,13 @@ export function DashboardPayments({
                       {row.frequency === "monthly" ? " · Mensual" : ""} ·
                       Reportado {formatDate(row.createdAt, true)}
                     </Typography>
-                    {row.method === "paypal" && row.status === "pending" && (
+                    {isGatewayRow(row) && row.status === "pending" && (
                       <Typography
                         sx={{ fontSize: 12, color: "text.secondary", mt: 0.5 }}
                       >
-                        Esperando que el donante complete el pago en PayPal. Se
-                        confirma solo; no hace falta verificarlo.
+                        Esperando que el donante complete el pago en{" "}
+                        {row.method === "binance" ? "Binance Pay" : "PayPal"}.
+                        Se confirma solo; no hace falta verificarlo.
                       </Typography>
                     )}
                   </Box>
@@ -931,7 +941,7 @@ export function DashboardPayments({
                 )}
 
                 {(row.hasReceipt ||
-                  (row.status === "pending" && row.method !== "paypal")) && (
+                  (row.status === "pending" && !isGatewayRow(row))) && (
                   <Box
                     sx={{
                       display: "flex",
@@ -955,7 +965,7 @@ export function DashboardPayments({
                         Ver comprobante
                       </Button>
                     )}
-                    {row.status === "pending" && row.method !== "paypal" && (
+                    {row.status === "pending" && !isGatewayRow(row) && (
                       <>
                         <Box sx={{ flex: 1 }} />
                         <Button

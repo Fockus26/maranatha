@@ -1,5 +1,9 @@
 "use server";
 
+import {
+  createOrder as createBinanceOrder,
+  isBinancePayConfigured,
+} from "@/lib/payments/binance";
 import { convertFromUsd, getExchangeRates } from "@/lib/payments/exchangeRates";
 import { PURPOSE_LABEL } from "@/lib/payments/labels";
 import {
@@ -292,6 +296,97 @@ export async function startPaypalCheckout(
     console.error("[paypal] startPaypalCheckout:", error);
     await transitionPayment(payment.id, "cancelled", {
       notes: "No se pudo crear la orden en PayPal.",
+    });
+    return { ok: false, error: "server_error" };
+  }
+}
+
+// ─── Binance Pay Merchant (pasarela) ───────────────────────────────────────
+
+export type BinanceCheckoutError = PaypalCheckoutError;
+
+/** Máx. de checkouts de Binance sin completar por correo por hora. */
+const MAX_BINANCE_PENDING_PER_HOUR = 10;
+/** Máx. de checkouts de Binance por IP por hora. */
+const MAX_BINANCE_PER_IP_HOUR = 20;
+
+/**
+ * Crea el pago `pending` y la orden de Binance Pay, y devuelve la página de
+ * pago de Binance a la que redirige el navegador. Solo existe con las
+ * credenciales de comercio (`BINANCE_PAY_*`); sin ellas Binance es manual y
+ * esto responde `method_unavailable`. El monto en USDT se fija acá: el
+ * webhook compara el cobro contra este registro.
+ */
+export async function startBinanceCheckout(
+  input: unknown,
+): Promise<Result<{ approveUrl: string }, BinanceCheckoutError>> {
+  const parsed = contributionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+  const contribution = parsed.data;
+  // Binance Pay no cobra de forma recurrente.
+  if (contribution.frequency !== "once")
+    return { ok: false, error: "invalid_input" };
+  if (!validateProject(contribution))
+    return { ok: false, error: "invalid_project" };
+  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  const method = getEnabledMethod("binance");
+  if (!isBinancePayConfigured() || method?.kind !== "gateway")
+    return { ok: false, error: "method_unavailable" };
+
+  if (
+    !(await hitRateLimit("binance", MAX_BINANCE_PER_IP_HOUR, 3600)) ||
+    (await countRecentPendingByEmail(contribution.email, "binance")) >=
+      MAX_BINANCE_PENDING_PER_HOUR
+  ) {
+    return { ok: false, error: "too_many_requests" };
+  }
+
+  const rates = await getExchangeRates();
+  const amountUsdt = convertFromUsd(contribution.amountUsd, "USDT", rates);
+  if (amountUsdt === null) return { ok: false, error: "server_error" };
+
+  const inserted = await insertPayment({
+    purpose: contribution.purpose,
+    project_slug: contribution.projectSlug ?? null,
+    frequency: "once",
+    amount_usd: contribution.amountUsd,
+    currency: "USDT",
+    exchange_rate: rates.USDT,
+    method: "binance",
+    donor_name: contribution.name,
+    donor_email: contribution.email,
+  });
+  if (!inserted.ok) return { ok: false, error: "server_error" };
+  const payment = inserted.data;
+
+  const project = contribution.projectSlug
+    ? getProjectBySlug(contribution.projectSlug)
+    : undefined;
+  const goodsName = project
+    ? `Aporte a ${project.title}`
+    : PURPOSE_LABEL[contribution.purpose];
+
+  // Binance admite un solo parámetro en las URLs de retorno.
+  const back = `?pago=${payment.id}`;
+  try {
+    const { prepayId, checkoutUrl } = await createBinanceOrder({
+      paymentId: payment.id,
+      amountUsdt,
+      goodsName,
+      description: `${goodsName} - Iglesia Maranatha`,
+      returnUrl: `${SITE_URL}/pago/binance/retorno${back}`,
+      cancelUrl: `${SITE_URL}/pago/binance/cancelado${back}`,
+      webhookUrl: `${SITE_URL}/api/payments/binance/webhook`,
+    });
+    const linked = await updatePayment(payment.id, {
+      provider_order_id: prepayId,
+    });
+    if (!linked.ok) throw new Error(`No se pudo guardar la orden ${prepayId}`);
+    return { ok: true, data: { approveUrl: checkoutUrl } };
+  } catch (error) {
+    console.error("[binance] startBinanceCheckout:", error);
+    await transitionPayment(payment.id, "cancelled", {
+      notes: "No se pudo crear la orden en Binance Pay.",
     });
     return { ok: false, error: "server_error" };
   }

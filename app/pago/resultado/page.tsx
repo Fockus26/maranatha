@@ -58,8 +58,23 @@ const CONTENT: Record<
 };
 
 /**
- * Página a la que vuelve el donante desde PayPal (vía las rutas
- * `/pago/paypal/retorno` y `/pago/paypal/cancelado`). Solo muestra el
+ * Textos de Binance Pay donde el de PayPal no aplica (comprobante, tarjeta).
+ * "suscrito" no existe con Binance: no admite aportes mensuales.
+ */
+const BINANCE_BODY: Partial<Record<CheckoutOutcome, string>> = {
+  confirmado:
+    "Recibimos tu pago. El comprobante queda en el historial de Binance Pay, en tu app de Binance.",
+  pendiente:
+    "Binance Pay todavía está procesando el pago. Cuando se acredite quedará registrado automáticamente; no necesitas hacer nada más.",
+  cancelado:
+    "El pago en Binance Pay no se completó y no se realizó ningún cobro. Puedes intentarlo de nuevo cuando quieras, con Binance u otro método.",
+  error:
+    "No pudimos verificar el pago con Binance Pay. Si ya pagaste, quedará registrado solo en unos minutos; si no, puedes intentarlo de nuevo o elegir otro método.",
+};
+
+/**
+ * Página a la que vuelve el donante desde PayPal o Binance Pay (vía las
+ * rutas `/pago/<pasarela>/retorno` y `/pago/<pasarela>/cancelado`). Solo muestra el
  * resultado: el estado real del pago ya se resolvió en el servidor.
  */
 export default async function PagoResultadoPage({
@@ -76,7 +91,9 @@ export default async function PagoResultadoPage({
     typeof params.proyecto === "string"
       ? getProjectBySlug(params.proyecto)
       : undefined;
-  const { icon: Icon, color, title, body } = CONTENT[outcome];
+  const { icon: Icon, color, title, body: paypalBody } = CONTENT[outcome];
+  const body =
+    (params.pasarela === "binance" && BINANCE_BODY[outcome]) || paypalBody;
 
   const backHref = project ? `/proyectos/${project.slug}` : "/";
   const backLabel = project

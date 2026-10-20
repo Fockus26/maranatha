@@ -39,6 +39,12 @@ type Field = {
 
 interface MethodDef extends Omit<PaymentMethodInfo, "details"> {
   fields: Field[];
+  /**
+   * Variante por pasarela del mismo método: si TODAS sus variables están
+   * definidas, el método se ofrece como `gateway` con este texto; si no,
+   * queda el flujo manual (feature flag por entorno).
+   */
+  gateway?: { fields: Field[]; hint: string };
 }
 
 const DEFS: MethodDef[] = [
@@ -125,6 +131,14 @@ const DEFS: MethodDef[] = [
       { env: "PAY_BINANCE_PAY_ID", label: "Binance Pay ID", copyable: true },
       { env: "PAY_BINANCE_NAME", label: "Usuario", optional: true },
     ],
+    // Binance Pay Merchant: el pago se confirma solo por webhook.
+    gateway: {
+      hint: "Paga el monto en USDT (o con otra cripto de tu saldo) desde tu cuenta de Binance.",
+      fields: [
+        { env: "BINANCE_PAY_API_KEY", label: "" },
+        { env: "BINANCE_PAY_SECRET_KEY", label: "" },
+      ],
+    },
   },
   {
     id: "zinli",
@@ -158,7 +172,21 @@ const DEFS: MethodDef[] = [
   },
 ];
 
-function resolve(def: MethodDef): PaymentMethodInfo | null {
+function hasAll(fields: Field[]): boolean {
+  return fields.every((f) => f.optional || process.env[f.env]?.trim());
+}
+
+function resolve(base: MethodDef): PaymentMethodInfo | null {
+  const def: MethodDef =
+    base.gateway && hasAll(base.gateway.fields)
+      ? {
+          ...base,
+          kind: "gateway",
+          hint: base.gateway.hint,
+          referenceHint: "",
+          fields: base.gateway.fields,
+        }
+      : base;
   const details: PaymentMethodDetail[] = [];
   for (const field of def.fields) {
     const value = process.env[field.env]?.trim();
@@ -170,7 +198,7 @@ function resolve(def: MethodDef): PaymentMethodInfo | null {
     if (def.kind === "gateway") continue;
     details.push({ label: field.label, value, copyable: field.copyable });
   }
-  const { fields: _fields, ...info } = def;
+  const { fields: _fields, gateway: _gateway, ...info } = def;
   return { ...info, details };
 }
 

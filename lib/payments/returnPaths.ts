@@ -9,6 +9,8 @@ export type CheckoutOutcome =
   | "cancelado"
   | "error";
 
+export type CheckoutGateway = "paypal" | "binance";
+
 /**
  * URL de la página de resultado tras volver de una pasarela. `volver` es el
  * slug del proyecto (validado contra el catálogo al leerlo) — nunca una URL
@@ -18,9 +20,12 @@ export function resultUrl(
   base: string,
   outcome: CheckoutOutcome,
   payment?: Pick<PaymentRow, "project_slug"> | null,
+  gateway: CheckoutGateway = "paypal",
 ): URL {
   const url = new URL("/pago/resultado", base);
   url.searchParams.set("estado", outcome);
+  // PayPal es el valor por defecto: sus URLs quedan como estaban.
+  if (gateway !== "paypal") url.searchParams.set("pasarela", gateway);
   if (payment?.project_slug && getProjectBySlug(payment.project_slug)) {
     url.searchParams.set("proyecto", payment.project_slug);
   }

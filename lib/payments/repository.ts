@@ -256,14 +256,14 @@ export async function listPayments(
 }
 
 /**
- * Pagos pendientes (manuales, o checkouts de PayPal sin completar) de un
+ * Pagos pendientes (manuales, o checkouts de una pasarela sin completar) de un
  * mismo correo en la última hora — freno básico contra spam del formulario público (no hay Redis para un rate limit
  * por IP). Si falla la consulta se devuelve 0: no se bloquea a un donante
  * real por un error de infraestructura.
  */
 export async function countRecentPendingByEmail(
   email: string,
-  kind: "manual" | "paypal" = "manual",
+  kind: "manual" | "paypal" | "binance" = "manual",
 ): Promise<number> {
   if (!isSupabaseConfigured()) return 0;
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -273,9 +273,11 @@ export async function countRecentPendingByEmail(
     .eq("donor_email", email.toLowerCase())
     .eq("status", "pending")
     .gte("created_at", since);
+  // Manual = con referencia reportada; pasarela = sin ella (PayPal siempre,
+  // Binance cuando va por Binance Pay Merchant).
   const { count, error } = await (kind === "manual"
-    ? base.neq("method", "paypal")
-    : base.eq("method", "paypal"));
+    ? base.not("reference", "is", null)
+    : base.eq("method", kind).is("reference", null));
   if (error) {
     logDbError("countRecentPendingByEmail", error);
     return 0;
