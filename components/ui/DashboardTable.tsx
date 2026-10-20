@@ -652,7 +652,10 @@ export function DashboardTable({
         }
         confirmLabel="Eliminar"
         destructive
-        onConfirm={() => deleteTarget && onDelete(deleteTarget.id)}
+        onConfirm={() => {
+          if (deleteTarget) onDelete(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
         onClose={() => setDeleteTarget(null)}
       />
     </>

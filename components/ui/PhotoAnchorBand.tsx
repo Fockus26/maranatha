@@ -5,13 +5,13 @@ import { alpha } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import {
   motion,
-  useReducedMotion,
   useScroll,
   useTransform,
 } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import { primary } from "@/theme/tokens";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
 
 export interface PhotoAnchorBandProps {
   eyebrow: string;
@@ -40,7 +40,7 @@ export function PhotoAnchorBand({
   imageUrl,
 }: PhotoAnchorBandProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],

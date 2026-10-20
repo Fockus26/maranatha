@@ -2,8 +2,9 @@
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
 
 export interface RevealProps {
   children: ReactNode;
@@ -28,7 +29,7 @@ export function Reveal({ children, delay = 0, y = 18 }: RevealProps) {
   const theme = useTheme();
   // a11y (WCAG 2.3.3): con "reducir movimiento" activo, el contenido aparece
   // directamente sin fade/slide — no se anima nada.
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   // Feedback de cliente (ronda post-fase 08): en mobile las secciones suelen
   // ser más altas que el viewport — con el mismo `amount` que desktop (25%
   // del bloque visible antes de disparar) la animación tardaba en verse, o

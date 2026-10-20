@@ -13,7 +13,6 @@ import Typography from "@mui/material/Typography";
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   useScroll,
   useTransform,
 } from "framer-motion";
@@ -21,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { gray, primary, secondary } from "@/theme/tokens";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
 
 const AUTOPLAY_MS = 6000;
 
@@ -64,7 +64,7 @@ export function Hero() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
 
   // Parallax (fase 07, Dirección B elegida en /design): la foto se mueve
   // más lento que el scroll a medida que el Hero sale de vista. Se desactiva
