@@ -455,22 +455,28 @@ function RatesDialog({
           <TextField
             name="VES"
             label="Respaldo Bs. por USD"
-            type="number"
+            // "text": con "number" el navegador muestra su propia burbuja
+            // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
+            // el valor llega tal cual y el servidor responde con el rango.
+            type="text"
             size="small"
             defaultValue={fallbackRates.VES ?? ""}
             slotProps={{
-              htmlInput: { min: 0, step: "0.0001", inputMode: "decimal" },
+              htmlInput: { inputMode: "decimal", autoComplete: "off" },
             }}
             sx={SMALL_FIELD_SX}
           />
           <TextField
             name="COP"
             label="Respaldo COP por USD"
-            type="number"
+            // "text": con "number" el navegador muestra su propia burbuja
+            // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
+            // el valor llega tal cual y el servidor responde con el rango.
+            type="text"
             size="small"
             defaultValue={fallbackRates.COP ?? ""}
             slotProps={{
-              htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
+              htmlInput: { inputMode: "decimal", autoComplete: "off" },
             }}
             sx={SMALL_FIELD_SX}
           />
@@ -529,6 +535,9 @@ function PaymentsPagination({
   const last = first + shown - 1;
   const hasPrev = page > 1;
   const hasNext = last < total;
+  // Página fuera de rango (vacía): "Anterior" lleva a la última que tiene filas.
+  const lastPage = Math.max(1, Math.ceil(total / pageSize));
+  const prevPage = shown > 0 ? page - 1 : Math.min(page - 1, lastPage);
   return (
     <Box
       component="nav"
@@ -545,13 +554,13 @@ function PaymentsPagination({
       <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
         {shown > 0
           ? `Mostrando ${first}–${last} de ${total}`
-          : `Esta página está vacía; hay ${total} en total`}
+          : `Esta página está vacía; hay ${total} en total.`}
       </Typography>
       <Box sx={{ display: "flex", gap: 1 }}>
         {hasPrev ? (
           <Button
             component={Link}
-            href={paymentsHref(filter, page - 1)}
+            href={paymentsHref(filter, prevPage)}
             color="inherit"
             size="small"
           >

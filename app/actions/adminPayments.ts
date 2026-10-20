@@ -10,7 +10,11 @@ import {
   setSetting,
   transitionPayment,
 } from "@/lib/payments/repository";
-import { fallbackRatesSchema, type Result } from "@/lib/payments/schema";
+import {
+  fallbackRatesSchema,
+  isGatewayPayment,
+  type Result,
+} from "@/lib/payments/schema";
 
 /**
  * Server Actions del panel de pagos. Cada una verifica al admin con
@@ -52,12 +56,13 @@ export async function approvePayment(
   const parsed = idSchema.safeParse(id);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
-  // PayPal solo se confirma con la captura (retorno o webhook): confirmarlo a
-  // mano daría por pagada una orden que el donante pudo no aprobar nunca. La
-  // UI ya oculta el botón; esto cierra el POST directo.
+  // Los pagos por pasarela (PayPal, Binance Pay) solo se confirman con su
+  // captura o webhook: confirmarlos a mano daría por pagada una orden que el
+  // donante pudo no completar nunca. La UI ya oculta el botón; esto cierra el
+  // POST directo.
   const payment = await getPayment(parsed.data);
   if (!payment.ok) return { ok: false, error: mapRepoError(payment.error) };
-  if (payment.data.method === "paypal")
+  if (isGatewayPayment(payment.data))
     return { ok: false, error: "invalid_input" };
 
   const result = await transitionPayment(parsed.data, "confirmed", {
