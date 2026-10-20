@@ -7,7 +7,15 @@ import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { primary, radius, semantic, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  gray,
+  primary,
+  radius,
+  semantic,
+  typography,
+} from "@/theme/tokens";
 
 export type ProjectStatus = "active" | "completed";
 
@@ -94,9 +102,9 @@ export function ProjectCard({
       sx={{
         display: "inline-block",
         flexShrink: 0,
-        fontSize: "11px",
+        fontSize: fontScale[11],
         fontWeight: 500,
-        borderRadius: "20px",
+        borderRadius: `${radius.pill}px`,
         px: 2.25,
         py: 0.75,
         whiteSpace: "nowrap",
@@ -108,13 +116,13 @@ export function ProjectCard({
               ? primary[600]
               : primary[700],
         color: isCompleted
-          ? "#FFFFFF"
+          ? common.white
           : inverted
             ? theme.palette.primary.main
-            : "#F5F6FA",
+            : gray[50],
         border:
           !isCompleted && !inverted
-            ? `1px solid ${alpha("#F5F6FA", 0.14)}`
+            ? `1px solid ${alpha(gray[50], 0.14)}`
             : "none",
       }}
     >
@@ -131,7 +139,7 @@ export function ProjectCard({
         color={isCompleted ? "success" : "secondary"}
         sx={{
           height: 6,
-          borderRadius: "20px",
+          borderRadius: `${radius.pill}px`,
           mb: 2,
           backgroundColor: light
             ? alpha(theme.palette.common.white, 0.2)
@@ -142,7 +150,7 @@ export function ProjectCard({
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          fontSize: "12px",
+          fontSize: fontScale[12],
           mb: 4,
         }}
       >
@@ -151,8 +159,8 @@ export function ProjectCard({
           sx={{
             fontFamily: typography.fontFamily.body,
             fontWeight: 500,
-            fontSize: "12px",
-            color: light ? "#F5F6FA" : theme.palette.text.primary,
+            fontSize: fontScale[12],
+            color: light ? gray[50] : theme.palette.text.primary,
           }}
         >
           {formatCurrency(currentAmount)}
@@ -161,8 +169,8 @@ export function ProjectCard({
           component="span"
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
-            color: light ? "#A6AEC7" : theme.palette.text.secondary,
+            fontSize: fontScale[12],
+            color: light ? gray[300] : theme.palette.text.secondary,
           }}
         >
           de {formatCurrency(goalAmount)}
@@ -245,7 +253,7 @@ export function ProjectCard({
                 sx={{
                   fontFamily: typography.fontFamily.heading,
                   fontWeight: 600,
-                  fontSize: "17px",
+                  fontSize: fontScale[17],
                   color: theme.palette.text.primary,
                 }}
               >
@@ -298,7 +306,7 @@ export function ProjectCard({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 600,
-            fontSize: "17px",
+            fontSize: fontScale[17],
             color: theme.palette.text.primary,
             mb: 1.5,
             minHeight: "calc(1.3em * 2)",

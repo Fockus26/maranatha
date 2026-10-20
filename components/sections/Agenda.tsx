@@ -12,8 +12,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { type AgendaEntry, buildMonthlyAgenda } from "@/lib/agenda/monthly";
 import type { AgendaEvent } from "@/lib/agenda/schema";
-import { secondary } from "@/theme/tokens";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
+import {
+  fontScale,
+  gray,
+  primary,
+  radius,
+  secondary,
+  shadow,
+} from "@/theme/tokens";
 
 /**
  * Sección "Agenda" (fase 06) — componente + datos en un solo archivo
@@ -189,24 +196,24 @@ function AgendaTile({
         flexDirection: "column",
         justifyContent: isCompact ? "flex-start" : "space-between",
         gap: isCompact ? 0.5 : 1,
-        borderRadius: "14px",
+        borderRadius: `${radius.lg}px`,
         border: isAccented ? "none" : "1px solid",
         borderColor: "divider",
         // Navy fijo (no `primary.main`, que en modo oscuro cae en un azul
         // claro "lavado" — mismo criterio de fondo fijo que el date block de
         // AgendaItem/DashboardSidebar, D014/D025) para que el tile destacado
         // se lea igual de sólido en ambos modos.
-        backgroundColor: isAccented ? "#101B45" : "background.paper",
+        backgroundColor: isAccented ? primary[700] : "background.paper",
         p: isFeature || size === "tall" ? 2.75 : 2,
         transition:
           "box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease",
         cursor: "default",
         "&:hover": isAccented
           ? {
-              boxShadow: "0 10px 30px rgba(6,10,29,0.28)",
+              boxShadow: shadow.hoverNavy,
             }
           : {
-              boxShadow: "0 8px 20px rgba(6,10,29,0.1)",
+              boxShadow: shadow.hover,
               borderColor: "secondary.main",
               backgroundColor: "action.hover",
             },
@@ -214,13 +221,13 @@ function AgendaTile({
     >
       {tagLabel && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-          <EventRoundedIcon sx={{ fontSize: 16, color: tagColor }} />
+          <EventRoundedIcon sx={{ fontSize: fontScale[16], color: tagColor }} />
           <Typography
             component="span"
             sx={{
               fontFamily: "var(--font-body)",
               fontWeight: 500,
-              fontSize: 11,
+              fontSize: fontScale[11],
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: tagColor,
@@ -256,7 +263,7 @@ function AgendaTile({
             // que antes separaba día/título de mes/hora (fase 07, ajuste
             // post-entrega): en el tile destacado todo el texto es un mismo
             // blanco, la jerarquía la da el tamaño/peso, no el color.
-            color: isAccented ? "#F5F6FA" : "text.primary",
+            color: isAccented ? gray[50] : "text.primary",
             transition: "color 0.2s ease",
           }}
         >
@@ -271,7 +278,7 @@ function AgendaTile({
             fontWeight: 600,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: isAccented ? "#F5F6FA" : "text.secondary",
+            color: isAccented ? gray[50] : "text.secondary",
             transition: "color 0.2s ease",
           }}
         >
@@ -293,7 +300,7 @@ function AgendaTile({
                   ? "13.5px"
                   : "15px",
             lineHeight: 1.25,
-            color: isAccented ? "#F5F6FA" : "text.primary",
+            color: isAccented ? gray[50] : "text.primary",
             mb: isCompact ? 0.25 : 0.75,
             display: "-webkit-box",
             WebkitLineClamp: isCompact ? 2 : 3,
@@ -310,7 +317,7 @@ function AgendaTile({
             sx={{
               fontFamily: "var(--font-body)",
               fontSize: isFeature ? "13.5px" : "12.5px",
-              color: isAccented ? "#F5F6FA" : "text.secondary",
+              color: isAccented ? gray[50] : "text.secondary",
               transition: "color 0.2s ease",
             }}
           >
@@ -322,8 +329,8 @@ function AgendaTile({
             className="tile-meta"
             sx={{
               fontFamily: "var(--font-body)",
-              fontSize: "11.5px",
-              color: isAccented ? "#F5F6FA" : "text.secondary",
+              fontSize: fontScale[11.5],
+              color: isAccented ? gray[50] : "text.secondary",
               transition: "color 0.2s ease",
             }}
           >
@@ -403,8 +410,8 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                fontSize: fontScale[11],
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
@@ -420,7 +427,7 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
                 fontFamily: "var(--font-heading)",
                 fontWeight: 700,
                 fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: "46px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[46] },
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
                 color: "text.primary",
@@ -433,8 +440,8 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                "@media (min-width:1920px)": { fontSize: "19px" },
+                fontSize: fontScale[16],
+                "@media (min-width:1920px)": { fontSize: fontScale[19] },
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}
@@ -450,7 +457,7 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
+                fontSize: fontScale[16],
                 color: "text.secondary",
                 textAlign: { xs: "center", md: "left" },
               }}

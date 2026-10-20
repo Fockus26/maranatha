@@ -16,7 +16,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 export interface DateFieldProps {
   label: string;
@@ -172,7 +172,7 @@ export function DateField({
         id={labelId}
         sx={{
           display: "block",
-          fontSize: "12px",
+          fontSize: fontScale[12],
           fontWeight: 500,
           color: error
             ? theme.palette.error.main
@@ -220,7 +220,7 @@ export function DateField({
           component="span"
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "14px",
+            fontSize: fontScale[14],
             color: selected
               ? theme.palette.text.primary
               : theme.palette.text.secondary,
@@ -243,7 +243,7 @@ export function DateField({
             m: 0,
             mt: 0.75,
             ml: 1.75,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             color: theme.palette.error.main,
           }}
         >
@@ -302,7 +302,7 @@ export function DateField({
                 sx={{
                   fontFamily: typography.fontFamily.heading,
                   fontWeight: 600,
-                  fontSize: "13px",
+                  fontSize: fontScale[13],
                   color: theme.palette.text.primary,
                   textTransform: "capitalize",
                 }}
@@ -333,7 +333,7 @@ export function DateField({
                   key={day}
                   sx={{
                     textAlign: "center",
-                    fontSize: "11px",
+                    fontSize: fontScale[11],
                     fontWeight: 500,
                     color: theme.palette.text.secondary,
                     py: 0.5,
@@ -380,7 +380,7 @@ export function DateField({
                           ? theme.palette.text.primary
                           : theme.palette.text.secondary,
                       opacity: disabled ? 0.25 : inCurrentMonth ? 1 : 0.4,
-                      fontSize: "12px",
+                      fontSize: fontScale[12],
                       fontFamily: typography.fontFamily.body,
                       fontWeight: isToday && !isSelected ? 700 : 500,
                       cursor: disabled ? "not-allowed" : "pointer",

@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { radius, secondary, typography } from "@/theme/tokens";
+import { fontScale, radius, secondary, typography } from "@/theme/tokens";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -87,7 +87,7 @@ export function AmountSelector({
                 py: 2.5,
                 borderRadius: `${radius.sm}px`,
                 fontFamily: "var(--font-body)",
-                fontSize: "13px",
+                fontSize: fontScale[13],
                 fontWeight: 500,
                 cursor: "pointer",
                 backgroundColor: "transparent",

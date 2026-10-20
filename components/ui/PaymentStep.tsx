@@ -34,7 +34,7 @@ import {
 import { formatAmount } from "@/lib/payments/labels";
 import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 import { DateField } from "./DateField";
 import { DonationFormCard } from "./DonationFormCard";
 
@@ -233,7 +233,7 @@ function MethodOption({
       <Typography
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "13px",
+          fontSize: fontScale[13],
           fontWeight: 500,
         }}
       >
@@ -319,7 +319,7 @@ function GatewayPanel({
       <Typography
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "12px",
+          fontSize: fontScale[12],
           color: theme.palette.text.secondary,
         }}
       >
@@ -327,14 +327,14 @@ function GatewayPanel({
         forma segura y volverás aquí al terminar.
       </Typography>
       {contribution.frequency === "monthly" && (
-        <Alert severity="info" sx={{ fontSize: "12px" }}>
+        <Alert severity="info" sx={{ fontSize: fontScale[12] }}>
           PayPal cobrará {formatAmount(contribution.amountUsd, "USD")} hoy y el
           mismo día de cada mes. Puedes cancelarlo cuando quieras desde tu
           cuenta PayPal (Configuración → Pagos automáticos).
         </Alert>
       )}
       {error && (
-        <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
+        <Alert severity="error" role="alert" sx={{ fontSize: fontScale[12] }}>
           {gatewayErrorText(error, gateway.name)}
         </Alert>
       )}
@@ -421,7 +421,7 @@ function ManualPaymentPanel({
       <Typography
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "12px",
+          fontSize: fontScale[12],
           color: theme.palette.text.secondary,
           mb: 2,
         }}
@@ -449,7 +449,7 @@ function ManualPaymentPanel({
           <Typography
             sx={{
               fontFamily: typography.fontFamily.body,
-              fontSize: "12px",
+              fontSize: fontScale[12],
               color: theme.palette.text.secondary,
             }}
           >
@@ -459,7 +459,7 @@ function ManualPaymentPanel({
             <Typography
               sx={{
                 fontFamily: typography.fontFamily.heading,
-                fontSize: "16px",
+                fontSize: fontScale[16],
                 fontWeight: 700,
               }}
             >
@@ -478,7 +478,7 @@ function ManualPaymentPanel({
             <Typography
               sx={{
                 fontFamily: typography.fontFamily.body,
-                fontSize: "11px",
+                fontSize: fontScale[11],
                 color: theme.palette.text.secondary,
                 mb: 1.5,
                 textAlign: "right",
@@ -503,7 +503,7 @@ function ManualPaymentPanel({
                 component="dt"
                 sx={{
                   fontFamily: typography.fontFamily.body,
-                  fontSize: "12px",
+                  fontSize: fontScale[12],
                   color: theme.palette.text.secondary,
                 }}
               >
@@ -522,7 +522,7 @@ function ManualPaymentPanel({
                 <Typography
                   sx={{
                     fontFamily: typography.fontFamily.body,
-                    fontSize: "13px",
+                    fontSize: fontScale[13],
                     fontWeight: 500,
                     overflowWrap: "anywhere",
                     textAlign: "right",
@@ -549,7 +549,7 @@ function ManualPaymentPanel({
           component="h3"
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             fontWeight: 500,
           }}
         >
@@ -619,7 +619,7 @@ function ManualPaymentPanel({
             sx={{
               height: 40,
               textTransform: "none",
-              fontSize: "12px",
+              fontSize: fontScale[12],
               whiteSpace: "nowrap",
             }}
           >
@@ -654,7 +654,7 @@ function ManualPaymentPanel({
             id={`${fileInputId}-name`}
             sx={{
               fontFamily: typography.fontFamily.body,
-              fontSize: "11px",
+              fontSize: fontScale[11],
               color: theme.palette.text.secondary,
               mt: -1.5,
               overflowWrap: "anywhere",
@@ -696,7 +696,7 @@ function ManualPaymentPanel({
         />
 
         {error && (
-          <Alert severity="error" role="alert" sx={{ fontSize: "12px" }}>
+          <Alert severity="error" role="alert" sx={{ fontSize: fontScale[12] }}>
             {REPORT_ERROR_TEXT[error]}
           </Alert>
         )}
@@ -777,7 +777,7 @@ export function PaymentStep({
           size="small"
           color="inherit"
           startIcon={<ArrowBackRoundedIcon fontSize="small" />}
-          sx={{ textTransform: "none", fontSize: "12px", ml: -1 }}
+          sx={{ textTransform: "none", fontSize: fontScale[12], ml: -1 }}
         >
           Volver
         </Button>
@@ -795,7 +795,7 @@ export function PaymentStep({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 800,
-            fontSize: "32px",
+            fontSize: fontScale[32],
           }}
         >
           {formatAmount(amountUsd, "USD")}
@@ -803,7 +803,7 @@ export function PaymentStep({
         <Typography
           sx={{
             fontFamily: typography.fontFamily.body,
-            fontSize: "12px",
+            fontSize: fontScale[12],
             color: theme.palette.text.secondary,
             mt: 0.25,
           }}
@@ -816,7 +816,7 @@ export function PaymentStep({
         id={`${groupName}-label`}
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "12px",
+          fontSize: fontScale[12],
           fontWeight: 500,
           mb: 2,
         }}
@@ -847,7 +847,7 @@ export function PaymentStep({
               Reintentar
             </Button>
           }
-          sx={{ fontSize: "12px" }}
+          sx={{ fontSize: fontScale[12] }}
         >
           {loadError}
         </Alert>
@@ -859,7 +859,7 @@ export function PaymentStep({
             <Typography
               sx={{
                 fontFamily: typography.fontFamily.body,
-                fontSize: "12px",
+                fontSize: fontScale[12],
                 color: theme.palette.text.secondary,
                 mb: 2,
               }}
@@ -869,7 +869,7 @@ export function PaymentStep({
             </Typography>
           )}
           {methods.length === 0 ? (
-            <Alert severity="info" sx={{ fontSize: "12px" }}>
+            <Alert severity="info" sx={{ fontSize: fontScale[12] }}>
               {frequency === "monthly"
                 ? "El aporte mensual todavía no está disponible. Puedes hacer un aporte de única vez."
                 : "No hay métodos de pago disponibles en este momento."}

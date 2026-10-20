@@ -1,15 +1,16 @@
 "use client";
 
-import ChildCareIcon from "@mui/icons-material/ChildCare";
-import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
-import GroupsIcon from "@mui/icons-material/Groups";
-import UsersIcon from "@mui/icons-material/People";
-import SelfImprovementIcon from "@mui/icons-material/SelfImprovement";
+import ChildCareIcon from "@mui/icons-material/ChildCareRounded";
+import FavoriteIcon from "@mui/icons-material/FavoriteBorderRounded";
+import GroupsIcon from "@mui/icons-material/GroupsRounded";
+import UsersIcon from "@mui/icons-material/PeopleRounded";
+import SelfImprovementIcon from "@mui/icons-material/SelfImprovementRounded";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { Reveal } from "@/components/ui/Reveal";
 import { ServiceAreaCard } from "@/components/ui/ServiceAreaCard";
+import { fontScale } from "@/theme/tokens";
 
 /**
  * Sección "Áreas de Servicio" (fase 06) — componente + datos en un solo
@@ -90,12 +91,12 @@ export function ServiceAreas() {
                 display: "block",
                 fontFamily: "var(--font-body)",
                 fontWeight: 500,
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "secondary.main",
                 mb: 1.5,
-                "@media (min-width:1920px)": { fontSize: "13px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[13] },
               }}
             >
               Cómo servimos
@@ -111,7 +112,7 @@ export function ServiceAreas() {
                 // ≥1920px — este heading/copy se repite igual en el resto
                 // de secciones de Home (Leaders, Sermons, SocialLinks,
                 // Agenda, History).
-                "@media (min-width:1920px)": { fontSize: "46px" },
+                "@media (min-width:1920px)": { fontSize: fontScale[46] },
                 lineHeight: 1.2,
                 letterSpacing: "-0.01em",
                 color: "text.primary",
@@ -124,8 +125,8 @@ export function ServiceAreas() {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 16,
-                "@media (min-width:1920px)": { fontSize: "19px" },
+                fontSize: fontScale[16],
+                "@media (min-width:1920px)": { fontSize: fontScale[19] },
                 lineHeight: 1.6,
                 color: "text.secondary",
               }}

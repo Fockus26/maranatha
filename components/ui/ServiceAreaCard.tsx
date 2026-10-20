@@ -2,7 +2,7 @@
 
 import Typography from "@mui/material/Typography";
 import type { ReactNode } from "react";
-import { gray } from "@/theme/tokens";
+import { fontScale, gray } from "@/theme/tokens";
 import { PhotoOverlayCard } from "./PhotoOverlayCard";
 
 /**
@@ -39,7 +39,7 @@ export function ServiceAreaCard({
             sx={{
               fontFamily: "var(--font-heading)",
               fontWeight: 700,
-              fontSize: "19px",
+              fontSize: fontScale[19],
               color: gray[50],
               mb: 0.5,
               letterSpacing: "-0.01em",
@@ -50,7 +50,7 @@ export function ServiceAreaCard({
           <Typography
             sx={{
               fontFamily: "var(--font-body)",
-              fontSize: "13px",
+              fontSize: fontScale[13],
               color: gray[200],
               lineHeight: 1.4,
             }}

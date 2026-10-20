@@ -19,8 +19,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { gray, primary, secondary } from "@/theme/tokens";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
+import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
 
 const AUTOPLAY_MS = 6000;
 
@@ -260,13 +260,13 @@ export function Hero() {
                   aria-label={`Ir al destacado ${i + 1} de ${total}: ${s.eyebrow}`}
                   aria-current={i === index ? "true" : undefined}
                   sx={{
+                    // Área táctil de 44px (design-qa fase 09); la barra
+                    // visible sigue siendo la pista de 6px de adentro.
                     flex: 1,
-                    height: 6,
+                    height: 44,
                     p: 0,
                     border: "none",
-                    borderRadius: "999px",
-                    bgcolor: alpha(gray[50], 0.22),
-                    overflow: "hidden",
+                    bgcolor: "transparent",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -275,23 +275,36 @@ export function Hero() {
                   <Box
                     component="span"
                     sx={{
-                      display: "block",
-                      height: 2.5,
-                      width: i < index ? "100%" : "0%",
-                      bgcolor:
-                        i < index ? alpha(gray[50], 0.55) : secondary[400],
-                      ...(i === index &&
-                        !reduceMotion && {
-                          animation: `${progressAnim} ${AUTOPLAY_MS}ms linear forwards`,
-                          animationPlayState: paused ? "paused" : "running",
-                        }),
-                      // Reducir movimiento: sin autoplay; la barra activa queda llena.
-                      ...(i === index && reduceMotion && { width: "100%" }),
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                      height: 6,
+                      borderRadius: `${radius.pill}px`,
+                      bgcolor: alpha(gray[50], 0.22),
+                      overflow: "hidden",
                     }}
-                    onAnimationEnd={
-                      i === index ? () => goTo(index + 1) : undefined
-                    }
-                  />
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "block",
+                        height: 2.5,
+                        width: i < index ? "100%" : "0%",
+                        bgcolor:
+                          i < index ? alpha(gray[50], 0.55) : secondary[400],
+                        ...(i === index &&
+                          !reduceMotion && {
+                            animation: `${progressAnim} ${AUTOPLAY_MS}ms linear forwards`,
+                            animationPlayState: paused ? "paused" : "running",
+                          }),
+                        // Reducir movimiento: sin autoplay; la barra activa queda llena.
+                        ...(i === index && reduceMotion && { width: "100%" }),
+                      }}
+                      onAnimationEnd={
+                        i === index ? () => goTo(index + 1) : undefined
+                      }
+                    />
+                  </Box>
                 </Box>
               ))}
             </Box>
@@ -305,17 +318,17 @@ export function Hero() {
               disabled={!!reduceMotion}
               sx={{
                 color: gray[50],
-                width: 28,
-                height: 28,
+                width: 44,
+                height: 44,
                 bgcolor: "transparent",
                 "&:hover": { backgroundColor: alpha(gray[50], 0.14) },
                 "&.Mui-disabled": { color: alpha(gray[50], 0.4) },
               }}
             >
               {autoplayActive ? (
-                <PauseRoundedIcon sx={{ fontSize: 16 }} />
+                <PauseRoundedIcon sx={{ fontSize: fontScale[16] }} />
               ) : (
-                <PlayArrowRoundedIcon sx={{ fontSize: 16 }} />
+                <PlayArrowRoundedIcon sx={{ fontSize: fontScale[16] }} />
               )}
             </IconButton>
           </Box>
@@ -337,8 +350,8 @@ export function Hero() {
                   display: "block",
                   fontFamily: "var(--font-body)",
                   fontWeight: 500,
-                  fontSize: 11,
-                  "@media (min-width:1920px)": { fontSize: "13px" },
+                  fontSize: fontScale[11],
+                  "@media (min-width:1920px)": { fontSize: fontScale[13] },
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   color: secondary[300],
@@ -357,7 +370,7 @@ export function Hero() {
                   // En pantallas ≥1920px el texto se sentía chico — sube un
                   // peldaño más allá de lo que cubre el breakpoint. El bloque
                   // que lo contiene también se ensancha (ver arriba).
-                  "@media (min-width:1920px)": { fontSize: "64px" },
+                  "@media (min-width:1920px)": { fontSize: fontScale[64] },
                   lineHeight: 1.15,
                   letterSpacing: "-0.02em",
                   color: gray[50],
@@ -377,7 +390,7 @@ export function Hero() {
                 variant="outlined"
                 size="large"
                 sx={{
-                  borderRadius: "6px",
+                  borderRadius: `${radius.sm}px`,
                   px: 3,
                   color: gray[50],
                   borderColor: alpha(gray[50], 0.4),
@@ -405,8 +418,8 @@ export function Hero() {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 12,
-                "@media (min-width:1920px)": { fontSize: "14px" },
+                fontSize: fontScale[12],
+                "@media (min-width:1920px)": { fontSize: fontScale[14] },
                 letterSpacing: "0.02em",
                 color: gray[300],
               }}

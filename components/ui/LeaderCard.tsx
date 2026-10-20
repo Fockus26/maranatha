@@ -4,7 +4,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import IconButton from "@mui/material/IconButton";
 import { alpha } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { gray, primary, secondary } from "@/theme/tokens";
+import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
 import { PhotoOverlayCard } from "./PhotoOverlayCard";
 
 export interface LeaderCardProps {
@@ -33,9 +33,9 @@ export function LeaderCard({
             aria-label={`Instagram de ${name}`}
             size="small"
             sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "8px",
+              width: 44,
+              height: 44,
+              borderRadius: `${radius.md}px`,
               backgroundColor: alpha(primary[700], 0.55),
               border: `1px solid ${alpha(gray[50], 0.25)}`,
               color: gray[50],
@@ -45,7 +45,7 @@ export function LeaderCard({
               },
             }}
           >
-            <InstagramIcon sx={{ fontSize: 16 }} />
+            <InstagramIcon sx={{ fontSize: fontScale[20] }} />
           </IconButton>
         )
       }
@@ -56,7 +56,7 @@ export function LeaderCard({
             sx={{
               fontFamily: "var(--font-heading)",
               fontWeight: 700,
-              fontSize: "18px",
+              fontSize: fontScale[18],
               color: gray[50],
               mb: 0.25,
               letterSpacing: "-0.01em",
@@ -67,7 +67,7 @@ export function LeaderCard({
           <Typography
             sx={{
               fontFamily: "var(--font-body)",
-              fontSize: "13px",
+              fontSize: fontScale[13],
               fontWeight: 500,
               color: secondary[300],
             }}

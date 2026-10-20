@@ -16,9 +16,11 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { SITE_NAME } from "@/lib/siteConfig";
 import { useTitheModal } from "@/lib/titheModalStore";
-import { secondary } from "@/theme/tokens";
+import { fontScale, radius, secondary } from "@/theme/tokens";
 import MobileMenuOverlay from "./MobileMenuOverlay";
 import { type MobileNavLink, PAGE_NAV_ITEMS } from "./navItems";
 
@@ -60,14 +62,14 @@ export default function PageNavbar() {
     gap: 0.75,
     fontFamily: "var(--font-body)",
     fontWeight: active ? 600 : 500,
-    fontSize: 13,
-    "@media (min-width:1920px)": { fontSize: "15px" },
+    fontSize: fontScale[13],
+    "@media (min-width:1920px)": { fontSize: fontScale[15] },
     textDecoration: "none",
     color: active ? activeOrange : "text.secondary",
     border: "1px solid",
     borderColor: active ? activeOrange : "divider",
     backgroundColor: "transparent",
-    borderRadius: "999px",
+    borderRadius: `${radius.pill}px`,
     pl: 1.5,
     pr: 1.75,
     py: 0.75,
@@ -117,40 +119,20 @@ export default function PageNavbar() {
               minHeight: "auto",
             }}
           >
-            {/* Logo */}
+            {/* Logo (design-qa fase 09: el mismo `<Logo>` que Inicio, antes
+                era un cuadrado de relleno con "Iglesia"). */}
             <Box
               component={Link}
               href="/"
+              aria-label={`${SITE_NAME}, ir al inicio`}
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
+                minHeight: 44,
                 textDecoration: "none",
               }}
             >
-              <Box
-                sx={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "4px",
-                  bgcolor: "primary.main",
-                }}
-              />
-              <Box
-                component="span"
-                sx={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  "@media (min-width:1920px)": { fontSize: "16px" },
-                  color: (t) =>
-                    t.palette.mode === "dark"
-                      ? t.palette.primary.light
-                      : t.palette.primary.main,
-                }}
-              >
-                Iglesia
-              </Box>
+              <Logo variant="responsive" size={{ xs: 32, sm: 40 }} />
             </Box>
 
             {/* Links de escritorio: solo páginas, sin anclas (esta página no
@@ -170,7 +152,7 @@ export default function PageNavbar() {
               }}
             >
               <Box component={Link} href="/" sx={pillSx(false)}>
-                <HomeRoundedIcon sx={{ fontSize: 13 }} />
+                <HomeRoundedIcon sx={{ fontSize: fontScale[13] }} />
                 Inicio
               </Box>
               {PAGE_NAV_ITEMS.map((item) => {
@@ -182,7 +164,7 @@ export default function PageNavbar() {
                     href={item.href}
                     sx={pillSx(active)}
                   >
-                    <OpenInNewRoundedIcon sx={{ fontSize: 13 }} />
+                    <OpenInNewRoundedIcon sx={{ fontSize: fontScale[13] }} />
                     {item.label}
                   </Box>
                 );
@@ -204,7 +186,7 @@ export default function PageNavbar() {
                   variant="contained"
                   color="secondary"
                   size="small"
-                  sx={{ borderRadius: "6px", px: 2 }}
+                  sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
                 >
                   Diezmo
                 </Button>
@@ -214,6 +196,8 @@ export default function PageNavbar() {
                 aria-label="Abrir menú"
                 sx={{
                   display: { xs: "inline-flex", md: "none" },
+                  width: 44,
+                  height: 44,
                   color: "text.primary",
                 }}
               >

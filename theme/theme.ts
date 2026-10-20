@@ -254,6 +254,29 @@ export function getTheme(mode: PaletteMode) {
             style: {
               backgroundColor: secondary[700],
               "&:hover": { backgroundColor: secondary[800] },
+              "&.Mui-disabled": {
+                backgroundColor: gray[200],
+                color: gray[400],
+              },
+            },
+          },
+          {
+            // MUI 9 ya no lee `styleOverrides.containedPrimary`: va como
+            // variante. En oscuro `primary.main` (`#5B6B9E`) no llega a AA con
+            // ningún texto de 15px; se fija un navy más profundo con blanco.
+            props: { variant: "contained", color: "primary" },
+            style: {
+              ...(mode === "dark" && {
+                backgroundColor: primary[600],
+                color: "#FFFFFF",
+              }),
+              "&:hover": {
+                backgroundColor: mode === "dark" ? primary[700] : primary[600],
+              },
+              "&.Mui-disabled": {
+                backgroundColor: gray[200],
+                color: gray[400],
+              },
             },
           },
         ],
@@ -266,33 +289,9 @@ export function getTheme(mode: PaletteMode) {
             transition: "background-color 0.15s ease, border-color 0.15s ease",
           },
           sizeSmall: { padding: "8px 16px", fontSize: 13 },
-          sizeMedium: { padding: "9px 18px", fontSize: 14 },
-          sizeLarge: { padding: "12px 24px", fontSize: 15 },
-          containedPrimary: {
-            // En oscuro `primary.main` es un navy claro (`#5B6B9E`) y con
-            // texto blanco da 3.7:1 — se fija un navy más profundo.
-            ...(mode === "dark" && {
-              backgroundColor: primary[600],
-              color: "#FFFFFF",
-            }),
-            "&:hover": {
-              backgroundColor: mode === "dark" ? primary[700] : primary[600],
-            },
-            "&.Mui-disabled": {
-              backgroundColor: gray[200],
-              color: gray[400],
-            },
-          },
-          containedSecondary: {
-            // Fondo naranja fijo en ambos modos: `#F9750D` con texto blanco
-            // da 2.8:1; `secondary[700]` (`#B34C02`) lo sube a ~5.5:1.
-            backgroundColor: secondary[700],
-            "&:hover": { backgroundColor: secondary[800] },
-            "&.Mui-disabled": {
-              backgroundColor: gray[200],
-              color: gray[400],
-            },
-          },
+          // 44px mínimos de área táctil (design-qa fase 09).
+          sizeMedium: { padding: "9px 18px", fontSize: 14, minHeight: 44 },
+          sizeLarge: { padding: "12px 24px", fontSize: 15, minHeight: 48 },
           outlined: {
             borderWidth: "1px",
             "&:hover": { borderWidth: "1px" },
@@ -325,6 +324,18 @@ export function getTheme(mode: PaletteMode) {
       MuiDialog: {
         styleOverrides: {
           paper: { borderRadius: radius.xl, boxShadow: shadow.lg },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          // Mismo anillo de foco naranja que botones y enlaces (design-qa
+          // fase 09): antes solo cambiaba el color del borde.
+          root: {
+            "&.Mui-focused": {
+              outline: `2px solid ${secondary[500]}`,
+              outlineOffset: 2,
+            },
+          },
         },
       },
       MuiTextField: {

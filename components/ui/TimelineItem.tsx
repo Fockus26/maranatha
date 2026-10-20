@@ -3,7 +3,7 @@
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { primary, secondary, typography } from "@/theme/tokens";
+import { fontScale, primary, secondary, typography } from "@/theme/tokens";
 
 export interface TimelineItemProps {
   year: string;
@@ -79,7 +79,7 @@ export function TimelineItem({
         sx={{
           fontFamily: typography.fontFamily.heading,
           fontWeight: 800,
-          fontSize: "40px",
+          fontSize: fontScale[40],
           lineHeight: 1,
           width: 120,
           flexShrink: 0,

@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import type * as React from "react";
-import { gray, primary } from "@/theme/tokens";
+import { fontScale, gray, primary, radius } from "@/theme/tokens";
 
 export interface YoutubeEmbedCardProps {
   videoId: string;
@@ -40,7 +40,7 @@ export function YoutubeEmbedCard({
       tabIndex={0}
       aria-label={`Reproducir: ${title}`}
       sx={{
-        borderRadius: "12px",
+        borderRadius: `${radius.lg}px`,
         overflow: "hidden",
         border: `1px solid ${theme.palette.divider}`,
         backgroundColor: "background.paper",
@@ -87,7 +87,9 @@ export function YoutubeEmbedCard({
             transition: "background-color 0.2s ease",
           }}
         >
-          <PlayArrowRoundedIcon sx={{ color: gray[50], fontSize: 22 }} />
+          <PlayArrowRoundedIcon
+            sx={{ color: gray[50], fontSize: fontScale[22] }}
+          />
         </Box>
       </Box>
 
@@ -107,7 +109,7 @@ export function YoutubeEmbedCard({
           sx={{
             fontFamily: "var(--font-heading)",
             fontWeight: 600,
-            fontSize: "14px",
+            fontSize: fontScale[14],
             color: "text.primary",
             lineHeight: 1.3,
             height: "36.4px",
@@ -122,7 +124,7 @@ export function YoutubeEmbedCard({
         <Typography
           sx={{
             fontFamily: "var(--font-body)",
-            fontSize: "12px",
+            fontSize: fontScale[12],
             color: "text.secondary",
             mt: 0.75,
           }}

@@ -5,7 +5,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import { DASHBOARD_CONTENT_SX } from "@/components/layout/DashboardShell";
 import { patternLayerSx } from "@/theme/patterns";
-import { primary } from "@/theme/tokens";
+import { fontScale, gray, primary } from "@/theme/tokens";
 
 export interface DashboardStat {
   label: string;
@@ -61,7 +61,7 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
             <Typography
               sx={{
                 fontFamily: "var(--font-body)",
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 color: "rgba(255,255,255,0.55)",
@@ -85,7 +85,7 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
                   fontFamily: "var(--font-heading)",
                   fontWeight: 800,
                   fontSize: { xs: 26, md: 34 },
-                  color: stat.accent ? "secondary.main" : "#F5F6FA",
+                  color: stat.accent ? "secondary.main" : gray[50],
                 }}
               >
                 {stat.value}

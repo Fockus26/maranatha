@@ -1,13 +1,18 @@
 "use client";
 
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { primary, secondary } from "@/theme/tokens";
+import { fontScale, onNavy, primary, radius, secondary } from "@/theme/tokens";
 import { DASHBOARD_CONTENT_SX } from "./DashboardShell";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -23,7 +28,14 @@ const NAV_ITEMS = [
 // navy sólido permanente (primary[900]) sin importar el modo claro/oscuro
 // activo en el resto del dashboard — theme.palette.primary.contrastText no
 // sirve acá porque cambia entre modos.
-const ON_DARK = "#FFFFFF";
+const ON_DARK = onNavy.text;
+
+function isActiveHref(pathname: string | null, href: string) {
+  return (
+    pathname === href ||
+    (href !== "/dashboard" && (pathname?.startsWith(`${href}/`) ?? false))
+  );
+}
 
 export interface DashboardTopbarProps {
   onLogout?: () => void;
@@ -42,6 +54,7 @@ export interface DashboardTopbarProps {
  */
 export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   return (
     <Box
@@ -52,7 +65,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
         top: 0,
         zIndex: (theme) => theme.zIndex.appBar,
         bgcolor: primary[900],
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: `1px solid ${onNavy.border}`,
       }}
     >
       {/* El fondo navy ocupa todo el ancho; el contenido se alinea con el de
@@ -96,55 +109,43 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
             />
           </Box>
 
-          {/* Fase 08: padding horizontal de las píldoras y gap entre ellas se
-            reducen en mobile para que el topbar (logo + nav + acciones) no
-            desborde en viewports angostos (~360px) — la barra sigue siendo
-            una sola fila, sin colapsar a un menú hamburguesa. */}
-          {/* Con 3 ítems (se sumó "Pagos") la barra no entra completa a ~360px:
-            la navegación scrollea horizontalmente dentro de sí misma en vez
-            de desbordar la página (WCAG 1.4.10). Scrollbar oculto; el
-            recorte del último ítem ya indica que hay más. */}
+          {/* design-qa fase 09: con 4 ítems la fila no entra bajo 900px
+            ("Agenda" quedaba oculta). Bajo `md` la navegación pasa a un
+            menú lateral (Drawer); desde `md` sigue siendo la fila de píldoras. */}
           <Box
             component="nav"
             aria-label="Secciones del panel"
             sx={{
-              display: "flex",
-              gap: { xs: 0.5, sm: 0.75 },
+              display: { xs: "none", md: "flex" },
+              gap: 0.75,
               minWidth: 0,
-              overflowX: "auto",
-              scrollbarWidth: "none",
-              "&::-webkit-scrollbar": { display: "none" },
             }}
           >
             {NAV_ITEMS.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/dashboard" &&
-                  (pathname?.startsWith(`${item.href}/`) ?? false));
+              const isActive = isActiveHref(pathname, item.href);
               return (
                 <Box
                   key={item.href}
                   component={Link}
                   href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   sx={{
                     position: "relative",
-                    px: { xs: 1.5, sm: 2.5 },
+                    px: 2.5,
                     py: 1.1,
-                    borderRadius: "999px",
+                    borderRadius: `${radius.pill}px`,
                     textDecoration: "none",
                     fontFamily: "var(--font-body)",
                     fontWeight: 500,
-                    fontSize: 14,
-                    color: isActive ? ON_DARK : "rgba(255,255,255,0.65)",
+                    fontSize: fontScale[14],
+                    color: isActive ? ON_DARK : onNavy.subtle,
                     transition: (theme) =>
                       theme.transitions.create(["color", "background-color"], {
                         duration: theme.transitions.duration.shortest,
                       }),
                     "&:hover": {
                       color: ON_DARK,
-                      bgcolor: isActive
-                        ? "transparent"
-                        : "rgba(255,255,255,0.08)",
+                      bgcolor: isActive ? "transparent" : onNavy.hover,
                     },
                   }}
                 >
@@ -164,7 +165,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
                       sx={{
                         position: "absolute",
                         inset: 0,
-                        borderRadius: "999px",
+                        borderRadius: `${radius.pill}px`,
                         bgcolor: secondary[700],
                         zIndex: 0,
                       }}
@@ -185,12 +186,27 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
         <Box
           sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}
         >
+          <IconButton
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú del panel"
+            aria-expanded={menuOpen}
+            aria-controls="dashboard-nav-drawer"
+            sx={{
+              display: { xs: "inline-flex", md: "none" },
+              width: 44,
+              height: 44,
+              color: ON_DARK,
+              "&:hover": { bgcolor: onNavy.hover },
+            }}
+          >
+            <MenuRoundedIcon />
+          </IconButton>
           <ThemeToggle
             size="small"
             sx={{
-              color: "rgba(255,255,255,0.75)",
+              color: onNavy.muted,
               "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.08)",
+                backgroundColor: onNavy.hover,
                 color: ON_DARK,
               },
             }}
@@ -202,7 +218,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
               display: { xs: "none", sm: "block" },
               width: "1px",
               height: 24,
-              bgcolor: "rgba(255,255,255,0.15)",
+              bgcolor: onNavy.divider,
             }}
           />
           {/* Iniciales placeholder (decorativas): se ocultan en xs para dar
@@ -213,14 +229,14 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
               display: { xs: "none", sm: "flex" },
               width: 32,
               height: 32,
-              borderRadius: "999px",
+              borderRadius: `${radius.pill}px`,
               bgcolor: primary[600],
               alignItems: "center",
               justifyContent: "center",
               color: ON_DARK,
               fontFamily: "var(--font-heading)",
               fontWeight: 700,
-              fontSize: 12,
+              fontSize: fontScale[12],
               flexShrink: 0,
             }}
           >
@@ -237,15 +253,93 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "rgba(255,255,255,0.65)",
-              p: 0.5,
+              color: onNavy.subtle,
+              justifyContent: "center",
+              minWidth: 44,
+              minHeight: 44,
               "&:hover": { color: "secondary.main" },
             }}
           >
-            <LogoutRoundedIcon sx={{ fontSize: 20 }} />
+            <LogoutRoundedIcon sx={{ fontSize: fontScale[20] }} />
           </Box>
         </Box>
       </Box>
+
+      <Drawer
+        anchor="right"
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        slotProps={{
+          paper: {
+            id: "dashboard-nav-drawer",
+            sx: { bgcolor: primary[900], color: ON_DARK, width: 280 },
+          },
+        }}
+      >
+        <Box
+          data-surface="navy"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: 72,
+            px: 2,
+            borderBottom: `1px solid ${onNavy.border}`,
+          }}
+        >
+          <Logo variant="compact" tone="inverse" size={32} />
+          <IconButton
+            onClick={() => setMenuOpen(false)}
+            aria-label="Cerrar menú del panel"
+            sx={{
+              width: 44,
+              height: 44,
+              color: ON_DARK,
+              "&:hover": { bgcolor: onNavy.hover },
+            }}
+          >
+            <CloseRoundedIcon />
+          </IconButton>
+        </Box>
+        <Box
+          component="nav"
+          aria-label="Secciones del panel"
+          data-surface="navy"
+          sx={{ display: "flex", flexDirection: "column", gap: 0.75, p: 2 }}
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = isActiveHref(pathname, item.href);
+            return (
+              <Box
+                key={item.href}
+                component={Link}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                aria-current={isActive ? "page" : undefined}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  minHeight: 48,
+                  px: 2,
+                  borderRadius: `${radius.md}px`,
+                  textDecoration: "none",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 500,
+                  fontSize: fontScale[16],
+                  color: isActive ? ON_DARK : onNavy.muted,
+                  bgcolor: isActive ? secondary[700] : "transparent",
+                  "&:hover": {
+                    color: ON_DARK,
+                    bgcolor: isActive ? secondary[700] : onNavy.hover,
+                  },
+                }}
+              >
+                {item.label}
+              </Box>
+            );
+          })}
+        </Box>
+      </Drawer>
     </Box>
   );
 }

@@ -12,7 +12,7 @@ import { useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useTitheModal } from "@/lib/titheModalStore";
 import { patternLayerSx } from "@/theme/patterns";
-import { gray, semantic } from "@/theme/tokens";
+import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
 import { PaymentStep, type PaymentStepContribution } from "./PaymentStep";
 import {
   type ContributionType,
@@ -105,7 +105,7 @@ function AnimatedFamiliesCounter({ active }: { active: boolean }) {
       <Typography
         sx={{
           fontFamily: "var(--font-body)",
-          fontSize: 13,
+          fontSize: fontScale[13],
           color: "rgba(245,246,250,0.65)",
           mt: 0.75,
         }}
@@ -200,7 +200,7 @@ export function TitheModal() {
               width: "100%",
               height: "100%",
               overflow: "hidden",
-              backgroundColor: "#060A1D",
+              backgroundColor: primary[900],
               borderRadius: 0,
               m: 0,
             },
@@ -219,7 +219,7 @@ export function TitheModal() {
             top: 12,
             right: 12,
             zIndex: 2,
-            color: "#F5F6FA",
+            color: gray[50],
             backgroundColor: "rgba(245,246,250,0.1)",
             "&:hover": { backgroundColor: "rgba(245,246,250,0.18)" },
           }}
@@ -274,7 +274,7 @@ export function TitheModal() {
                     justifyContent: "center",
                     width: 44,
                     height: 44,
-                    borderRadius: "12px",
+                    borderRadius: `${radius.lg}px`,
                     backgroundColor: "rgba(245,246,250,0.1)",
                     color: "secondary.main",
                     mb: 3,
@@ -289,7 +289,7 @@ export function TitheModal() {
                     display: "block",
                     fontFamily: "var(--font-body)",
                     fontWeight: 500,
-                    fontSize: 11,
+                    fontSize: fontScale[11],
                     letterSpacing: "0.18em",
                     textTransform: "uppercase",
                     color: "secondary.main",
@@ -308,7 +308,7 @@ export function TitheModal() {
                     fontSize: { xs: "26px", md: "32px" },
                     lineHeight: 1.2,
                     letterSpacing: "-0.01em",
-                    color: "#F5F6FA",
+                    color: gray[50],
                     mb: 2,
                   }}
                 >
@@ -324,7 +324,7 @@ export function TitheModal() {
                   sx={{
                     display: { xs: "none", md: "block" },
                     fontFamily: "var(--font-body)",
-                    fontSize: 16,
+                    fontSize: fontScale[16],
                     lineHeight: 1.6,
                     color: "rgba(245,246,250,0.72)",
                   }}

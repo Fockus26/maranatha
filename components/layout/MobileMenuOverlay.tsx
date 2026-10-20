@@ -8,7 +8,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import * as React from "react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { primary, secondary } from "@/theme/tokens";
+import { common, fontScale, primary, radius, secondary } from "@/theme/tokens";
 import type { MobileNavLink } from "./navItems";
 
 export interface MobileMenuOverlayProps {
@@ -59,7 +59,7 @@ export default function MobileMenuOverlay({
   const openerRef = React.useRef<Element | null>(null);
 
   const overlayBg = isLight ? theme.palette.background.default : primary[900];
-  const textColor = isLight ? theme.palette.text.primary : "#FFFFFF";
+  const textColor = isLight ? theme.palette.text.primary : common.white;
   const mutedColor = isLight
     ? theme.palette.text.secondary
     : "rgba(255,255,255,0.75)";
@@ -201,7 +201,7 @@ export default function MobileMenuOverlay({
                       sx={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 700,
-                        fontSize: "28px",
+                        fontSize: fontScale[28],
                         textDecoration: "none",
                         color: isActive ? "secondary.main" : textColor,
                         borderBottom: "2px solid",
@@ -229,7 +229,7 @@ export default function MobileMenuOverlay({
                         gap: 1,
                         fontFamily: "var(--font-body)",
                         fontWeight: isActive ? 600 : 500,
-                        fontSize: "16px",
+                        fontSize: fontScale[16],
                         textDecoration: "none",
                         color: isActive
                           ? isLight
@@ -243,16 +243,18 @@ export default function MobileMenuOverlay({
                             : secondary[300]
                           : dividerColor,
                         backgroundColor: "transparent",
-                        borderRadius: "999px",
+                        borderRadius: `${radius.pill}px`,
                         pl: 2,
                         pr: 2.5,
                         py: 1,
                       }}
                     >
                       {link.href === "/" ? (
-                        <HomeRoundedIcon sx={{ fontSize: 16 }} />
+                        <HomeRoundedIcon sx={{ fontSize: fontScale[16] }} />
                       ) : (
-                        <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
+                        <OpenInNewRoundedIcon
+                          sx={{ fontSize: fontScale[16] }}
+                        />
                       )}
                       {link.label}
                     </Box>

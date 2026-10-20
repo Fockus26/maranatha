@@ -1,9 +1,10 @@
 "use client";
 
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeRounded";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeRounded";
 import { IconButton, type IconButtonProps } from "@mui/material";
 import { useColorMode } from "@/theme/ThemeRegistry";
+import { radius } from "@/theme/tokens";
 
 type ThemeToggleProps = {
   size?: IconButtonProps["size"];
@@ -28,7 +29,10 @@ export default function ThemeToggle({ size = "small", sx }: ThemeToggleProps) {
       sx={[
         {
           color: "text.secondary",
-          borderRadius: "16px",
+          borderRadius: `${radius.xl}px`,
+          // Área táctil de 44px (design-qa fase 09).
+          minWidth: 44,
+          minHeight: 44,
           transition: (theme) =>
             theme.transitions.create(["transform", "background-color"], {
               duration: theme.transitions.duration.short,

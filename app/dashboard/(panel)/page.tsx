@@ -1,8 +1,8 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
-import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useTheme } from "@mui/material/styles";
@@ -15,7 +15,7 @@ import { DashboardStatBand } from "@/components/ui/DashboardStatBand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
 import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
-import { primary, radius, typography } from "@/theme/tokens";
+import { common, fontScale, primary, radius, typography } from "@/theme/tokens";
 
 /**
  * Página "Dashboard — Resumen" (`/dashboard`) — Opción B ("Panel Superior"),
@@ -110,7 +110,7 @@ export default function DashboardResumenPage() {
               sx={{
                 fontFamily: typography.fontFamily.heading,
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: fontScale[18],
                 color: theme.palette.text.primary,
                 mb: 0.75,
               }}
@@ -120,7 +120,7 @@ export default function DashboardResumenPage() {
             <Typography
               sx={{
                 fontFamily: typography.fontFamily.body,
-                fontSize: 13,
+                fontSize: fontScale[13],
                 color: theme.palette.text.secondary,
                 mb: 3.5,
               }}
@@ -153,7 +153,7 @@ export default function DashboardResumenPage() {
                       <Box
                         sx={{
                           height: 5,
-                          borderRadius: "20px",
+                          borderRadius: `${radius.pill}px`,
                           backgroundColor: theme.palette.action.hover,
                         }}
                       />
@@ -194,7 +194,7 @@ export default function DashboardResumenPage() {
                           sx={{
                             fontFamily: typography.fontFamily.heading,
                             fontWeight: 600,
-                            fontSize: 14,
+                            fontSize: fontScale[14],
                             color: theme.palette.text.primary,
                             mb: 1,
                           }}
@@ -208,7 +208,7 @@ export default function DashboardResumenPage() {
                           color="secondary"
                           sx={{
                             height: 5,
-                            borderRadius: "20px",
+                            borderRadius: `${radius.pill}px`,
                             backgroundColor: theme.palette.action.hover,
                           }}
                         />
@@ -222,7 +222,7 @@ export default function DashboardResumenPage() {
                       >
                         <Typography
                           sx={{
-                            fontSize: 13,
+                            fontSize: fontScale[13],
                             fontWeight: 500,
                             color: theme.palette.text.primary,
                           }}
@@ -231,7 +231,7 @@ export default function DashboardResumenPage() {
                         </Typography>
                         <Typography
                           sx={{
-                            fontSize: 12,
+                            fontSize: fontScale[12],
                             color: theme.palette.text.secondary,
                           }}
                         >
@@ -258,7 +258,7 @@ export default function DashboardResumenPage() {
               sx={{
                 fontFamily: typography.fontFamily.heading,
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: fontScale[18],
                 color: theme.palette.text.primary,
                 mb: 2.5,
               }}
@@ -287,11 +287,11 @@ export default function DashboardResumenPage() {
                 // Navy fijo (no `primary.main`, que en oscuro es claro y con
                 // blanco da 3.7:1).
                 backgroundColor: primary[700],
-                color: "#FFFFFF",
+                color: common.white,
                 borderRadius: `${radius.sm}px`,
                 px: 2.25,
                 py: 1.5,
-                fontSize: 14,
+                fontSize: fontScale[14],
                 fontFamily: typography.fontFamily.body,
                 fontWeight: 500,
                 cursor: "pointer",
@@ -318,7 +318,7 @@ export default function DashboardResumenPage() {
                 borderRadius: `${radius.sm}px`,
                 px: 2.25,
                 py: 1.5,
-                fontSize: 14,
+                fontSize: fontScale[14],
                 fontWeight: 500,
                 textDecoration: "none",
                 transition: theme.transitions.create(
@@ -344,7 +344,7 @@ export default function DashboardResumenPage() {
             >
               <Typography
                 sx={{
-                  fontSize: 12,
+                  fontSize: fontScale[12],
                   color: theme.palette.text.secondary,
                   mb: 0.5,
                 }}
@@ -355,7 +355,7 @@ export default function DashboardResumenPage() {
                 sx={{
                   fontFamily: typography.fontFamily.heading,
                   fontWeight: 800,
-                  fontSize: 20,
+                  fontSize: fontScale[20],
                   color: theme.palette.text.primary,
                 }}
               >

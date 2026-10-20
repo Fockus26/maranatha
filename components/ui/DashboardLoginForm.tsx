@@ -1,7 +1,7 @@
 "use client";
 
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -13,7 +13,7 @@ import { useActionState, useState } from "react";
 import { type SignInError, type SignInState, signIn } from "@/app/actions/auth";
 import { isValidEmail } from "@/lib/validation";
 import { patternLayerSx } from "@/theme/patterns";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 const ERROR_TEXT: Record<SignInError, string> = {
   invalid_input: "Ingresa un correo válido y tu contraseña.",
@@ -115,7 +115,7 @@ export function DashboardLoginForm() {
             sx={{
               fontFamily: typography.fontFamily.heading,
               fontWeight: 600,
-              fontSize: 14,
+              fontSize: fontScale[14],
             }}
           >
             Iglesia Maranatha
@@ -127,7 +127,7 @@ export function DashboardLoginForm() {
           size="small"
           color="inherit"
           startIcon={<ArrowBackRoundedIcon fontSize="small" />}
-          sx={{ textTransform: "none", fontSize: 12 }}
+          sx={{ textTransform: "none", fontSize: fontScale[12] }}
         >
           Volver al sitio
         </Button>
@@ -165,10 +165,13 @@ export function DashboardLoginForm() {
               color: "secondary.main",
             }}
           >
-            <ShieldOutlinedIcon sx={{ fontSize: 16 }} aria-hidden="true" />
+            <ShieldOutlinedIcon
+              sx={{ fontSize: fontScale[16] }}
+              aria-hidden="true"
+            />
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: fontScale[11],
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 fontWeight: 600,
@@ -244,7 +247,7 @@ export function DashboardLoginForm() {
               id="login-error"
               severity="error"
               role="alert"
-              sx={{ fontSize: "13px" }}
+              sx={{ fontSize: fontScale[13] }}
             >
               {ERROR_TEXT[error]}
             </Alert>

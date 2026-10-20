@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Image from "next/image";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 export interface BudgetLine {
   label: string;
@@ -63,7 +63,7 @@ export function ProjectDetailContent({
         sx={{
           fontFamily: typography.fontFamily.heading,
           fontWeight: 700,
-          fontSize: "22px",
+          fontSize: fontScale[22],
           color: theme.palette.text.primary,
           mb: 2,
         }}
@@ -78,6 +78,9 @@ export function ProjectDetailContent({
           lineHeight: 1.6,
           color: theme.palette.text.secondary,
           mb: 5,
+          // Medida de lectura (design-qa fase 09): sin tope llegaba a ~117
+          // caracteres por línea desde 1920px.
+          maxWidth: "70ch",
         }}
       >
         {description}
@@ -95,7 +98,7 @@ export function ProjectDetailContent({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 600,
-            fontSize: "13px",
+            fontSize: fontScale[13],
             color: theme.palette.text.primary,
             mb: 2,
           }}
@@ -109,7 +112,7 @@ export function ProjectDetailContent({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: "12px",
+              fontSize: fontScale[12],
               color: theme.palette.text.secondary,
               py: 1.25,
               borderBottom:

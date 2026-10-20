@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
 import { type KeyboardEvent, useId, useRef } from "react";
-import { radius } from "@/theme/tokens";
+import { fontScale, gray, radius } from "@/theme/tokens";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -100,10 +100,10 @@ export function SegmentedToggle<T extends string>({
               background: "transparent",
               borderRadius: `${Math.max(radius.sm - 3, 4)}px`,
               fontFamily: "var(--font-body)",
-              fontSize: "13px",
+              fontSize: fontScale[13],
               fontWeight: 500,
               cursor: "pointer",
-              color: active ? "#F5F6FA" : theme.palette.text.secondary,
+              color: active ? gray[50] : theme.palette.text.secondary,
               transition: "color 0.2s ease",
               "&:hover": !active
                 ? { color: theme.palette.text.primary }

@@ -8,7 +8,15 @@ import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { primary, radius, semantic, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  gray,
+  primary,
+  radius,
+  semantic,
+  typography,
+} from "@/theme/tokens";
 import type { ProjectStatus } from "./ProjectCard";
 
 export interface Encargado {
@@ -63,10 +71,10 @@ export function ProjectSidebar({
       <Box
         sx={{
           display: "inline-block",
-          fontSize: "11px",
+          fontSize: fontScale[11],
           fontWeight: 700,
           letterSpacing: "0.03em",
-          borderRadius: "20px",
+          borderRadius: `${radius.pill}px`,
           px: 2.25,
           py: 0.75,
           // Navy fijo (no `primary.main`, que en modo oscuro es un azul claro
@@ -84,8 +92,8 @@ export function ProjectSidebar({
             : theme.palette.mode === "dark"
               ? primary[600]
               : primary[700],
-          color: isCompleted ? "#FFFFFF" : "#F5F6FA",
-          border: isCompleted ? "none" : `1px solid ${alpha("#F5F6FA", 0.14)}`,
+          color: isCompleted ? common.white : gray[50],
+          border: isCompleted ? "none" : `1px solid ${alpha(gray[50], 0.14)}`,
         }}
       >
         {isCompleted ? "Completado" : "Activo"}
@@ -95,7 +103,7 @@ export function ProjectSidebar({
         sx={{
           fontFamily: typography.fontFamily.heading,
           fontWeight: 800,
-          fontSize: "22px",
+          fontSize: fontScale[22],
           color: theme.palette.text.primary,
           mt: 3,
           mb: 0.5,
@@ -106,7 +114,7 @@ export function ProjectSidebar({
       <Typography
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "12px",
+          fontSize: fontScale[12],
           color: theme.palette.text.secondary,
           mb: 2.5,
         }}
@@ -121,7 +129,7 @@ export function ProjectSidebar({
         color={isCompleted ? "success" : "secondary"}
         sx={{
           height: 6,
-          borderRadius: "20px",
+          borderRadius: `${radius.pill}px`,
           mb: 1.5,
           backgroundColor: theme.palette.action.hover,
         }}
@@ -129,7 +137,7 @@ export function ProjectSidebar({
       <Typography
         sx={{
           fontFamily: typography.fontFamily.body,
-          fontSize: "11px",
+          fontSize: fontScale[11],
           color: theme.palette.text.secondary,
           mb: 4,
         }}
@@ -167,7 +175,7 @@ export function ProjectSidebar({
           <Typography
             sx={{
               fontFamily: typography.fontFamily.body,
-              fontSize: "11px",
+              fontSize: fontScale[11],
               // Fase QA (a11y): antes `text.disabled` (~2.7:1 sobre `background.paper`)
               // — es un encabezado de sección real, no texto inhabilitado.
               color: theme.palette.text.secondary,
@@ -195,7 +203,7 @@ export function ProjectSidebar({
                     sx={{
                       fontFamily: typography.fontFamily.heading,
                       fontWeight: 600,
-                      fontSize: "13px",
+                      fontSize: fontScale[13],
                       color: theme.palette.text.primary,
                     }}
                   >
@@ -204,7 +212,7 @@ export function ProjectSidebar({
                   <Typography
                     sx={{
                       fontFamily: typography.fontFamily.body,
-                      fontSize: "11px",
+                      fontSize: fontScale[11],
                       color: theme.palette.text.secondary,
                     }}
                   >
@@ -236,7 +244,7 @@ export function ProjectSidebar({
                       },
                     }}
                   >
-                    <InstagramIcon sx={{ fontSize: 14 }} />
+                    <InstagramIcon sx={{ fontSize: fontScale[14] }} />
                   </IconButton>
                 )}
               </Box>

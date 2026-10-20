@@ -3,7 +3,7 @@
 import Box from "@mui/material/Box";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 export interface AgendaItemProps {
   day: string;
@@ -85,7 +85,7 @@ export function AgendaItem({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 800,
-            fontSize: "26px",
+            fontSize: fontScale[26],
             lineHeight: 1,
             color: onPrimary,
           }}
@@ -117,7 +117,7 @@ export function AgendaItem({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 600,
-            fontSize: "16px",
+            fontSize: fontScale[16],
             color: theme.palette.text.primary,
             mb: 1, // xs (4px)
             transition: colorTransition,

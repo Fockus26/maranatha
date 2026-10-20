@@ -1,8 +1,8 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -38,7 +38,13 @@ import {
   WEEKDAY_NAMES,
 } from "@/lib/agenda/schema";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius, semantic, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  radius,
+  semantic,
+  typography,
+} from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DateField } from "./DateField";
 import { EmptyState } from "./EmptyState";
@@ -300,7 +306,6 @@ function AgendaEventDialog({
             color="primary"
             variant="contained"
             loading={pending}
-            sx={{ color: "#FFFFFF" }}
           >
             {editing ? "Guardar cambios" : "Crear evento"}
           </Button>
@@ -540,7 +545,7 @@ export function DashboardAgenda({
             sx={{
               fontFamily: typography.fontFamily.heading,
               fontWeight: 800,
-              fontSize: 26,
+              fontSize: fontScale[26],
               color: theme.palette.text.primary,
               mb: 0.5,
             }}
@@ -548,7 +553,10 @@ export function DashboardAgenda({
             Agenda
           </Typography>
           <Typography
-            sx={{ fontSize: 13, color: theme.palette.text.secondary }}
+            sx={{
+              fontSize: fontScale[13],
+              color: theme.palette.text.secondary,
+            }}
           >
             Lo que se muestra en la sección «Agenda» de la página de inicio.
           </Typography>
@@ -559,7 +567,6 @@ export function DashboardAgenda({
           startIcon={<AddIcon />}
           onClick={() => openDialog(null)}
           disabled={loadError}
-          sx={{ color: "#FFFFFF" }}
         >
           Nuevo evento
         </Button>
@@ -629,8 +636,10 @@ export function DashboardAgenda({
             toast?.ok
               ? {
                   bgcolor: semantic.successFilled,
-                  color: "#FFFFFF",
-                  "& .MuiAlert-icon, & .MuiAlert-action": { color: "#FFFFFF" },
+                  color: common.white,
+                  "& .MuiAlert-icon, & .MuiAlert-action": {
+                    color: common.white,
+                  },
                 }
               : undefined
           }

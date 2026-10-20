@@ -3,7 +3,7 @@
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { radius, typography } from "@/theme/tokens";
+import { fontScale, radius, typography } from "@/theme/tokens";
 
 export interface TimelineZigzagItemProps {
   year: string;
@@ -67,7 +67,7 @@ export function TimelineZigzagItem({
             display: "block",
             fontFamily: typography.fontFamily.heading,
             fontWeight: 800,
-            fontSize: "34px",
+            fontSize: fontScale[34],
             lineHeight: 1,
             color: theme.palette.secondary.main,
             mb: 1.5,
@@ -80,7 +80,7 @@ export function TimelineZigzagItem({
           sx={{
             fontFamily: typography.fontFamily.heading,
             fontWeight: 700,
-            fontSize: "20px",
+            fontSize: fontScale[20],
             color: theme.palette.text.primary,
             mb: 1.5,
           }}
