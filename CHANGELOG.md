@@ -1,5 +1,12 @@
 # maranatha
 
+## 0.5.1
+
+### Patch Changes
+
+- 92e8094: En el panel de agenda, un corte de red al guardar o eliminar un evento ya no tumba el panel: aparece un aviso y lo escrito se conserva. La agenda rechaza fechas que no existen. En pagos, una página fuera de rango ya no muestra un error de conexión, y las tasas de respaldo muestran el rango aceptado. Mejora el contraste de la sección Agenda.
+- ffbb53b: Los diálogos de confirmación del panel (confirmar pago, eliminar evento) quedan abiertos si la acción falla, para reintentar, y se bloquean mientras se procesa. La página de inicio ya no da error de hidratación con "reducir movimiento" activo.
+
 ## 0.5.0
 
 ### Minor Changes
