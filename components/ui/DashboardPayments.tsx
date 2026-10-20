@@ -32,12 +32,13 @@ import {
   PURPOSE_LABEL,
   STATUS_LABEL,
 } from "@/lib/payments/labels";
-import type {
-  PaymentCurrency,
-  PaymentFrequency,
-  PaymentMethodId,
-  PaymentPurpose,
-  PaymentStatus,
+import {
+  FALLBACK_RATE_RANGE,
+  type PaymentCurrency,
+  type PaymentFrequency,
+  type PaymentMethodId,
+  type PaymentPurpose,
+  type PaymentStatus,
 } from "@/lib/payments/schema";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { radius, semantic, typography } from "@/theme/tokens";
@@ -80,6 +81,10 @@ export interface DashboardPaymentRow {
 export interface DashboardPaymentsProps {
   filter: PaymentFilter;
   rows: DashboardPaymentRow[];
+  /** Página actual (desde 1), tamaño de página y total del filtro. */
+  page: number;
+  pageSize: number;
+  total: number;
   loadError: boolean;
   stats: {
     pendingCount: number;
@@ -114,6 +119,23 @@ const ACTION_ERROR_TEXT: Record<AdminActionError, string> = {
   already_processed: "Este pago ya fue procesado por otra persona.",
   server_error: "No se pudo completar la acción. Prueba de nuevo.",
 };
+
+/**
+ * La Server Action no respondió (red caída o 500). Sin esto la excepción sube
+ * al error boundary y reemplaza todo el panel. Puede que el servidor sí la
+ * haya procesado: por eso se pide revisar la lista antes de repetir.
+ */
+const NETWORK_ERROR_TEXT =
+  "No hubo respuesta del servidor. Revisa tu conexión y la lista antes de intentarlo de nuevo.";
+
+/** Llama a la Server Action y convierte un fallo de red en `null`. */
+async function callAction<T>(action: () => Promise<T>): Promise<T | null> {
+  try {
+    return await action();
+  } catch {
+    return null;
+  }
+}
 
 function formatUsd(value: number) {
   return formatAmount(value, "USD");
@@ -308,12 +330,18 @@ function RatesDialog({
       COP: data.get("COP") ? Number(data.get("COP")) : null,
     };
     startTransition(async () => {
-      const result = await saveFallbackRates(data);
+      const result = await callAction(() => saveFallbackRates(data));
+      if (!result) {
+        onResult(NETWORK_ERROR_TEXT, false);
+        return;
+      }
       if (result.ok) setSaved(next);
       onResult(
         result.ok
           ? "Tasas de respaldo guardadas."
-          : ACTION_ERROR_TEXT[result.error],
+          : result.error === "invalid_input"
+            ? `Revisa las tasas: Bs. entre ${FALLBACK_RATE_RANGE.VES.min} y ${FALLBACK_RATE_RANGE.VES.max.toLocaleString("es-VE")}, COP entre ${FALLBACK_RATE_RANGE.COP.min} y ${FALLBACK_RATE_RANGE.COP.max.toLocaleString("es-VE")} por USD.`
+            : ACTION_ERROR_TEXT[result.error],
         result.ok,
       );
     });
@@ -466,9 +494,83 @@ function RatesDialog({
   );
 }
 
+function paymentsHref(filter: PaymentFilter, page: number) {
+  const params = new URLSearchParams();
+  if (filter !== "pending") params.set("estado", filter);
+  if (page > 1) params.set("pagina", String(page));
+  const query = params.toString();
+  return query ? `/dashboard/pagos?${query}` : "/dashboard/pagos";
+}
+
+/** "Mostrando 51–100 de 232" + anterior / siguiente. */
+function PaymentsPagination({
+  filter,
+  page,
+  pageSize,
+  shown,
+  total,
+}: {
+  filter: PaymentFilter;
+  page: number;
+  pageSize: number;
+  shown: number;
+  total: number;
+}) {
+  const first = (page - 1) * pageSize + 1;
+  const last = first + shown - 1;
+  const hasPrev = page > 1;
+  const hasNext = last < total;
+  return (
+    <Box
+      component="nav"
+      aria-label="Páginas de pagos"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 2,
+        mt: 3,
+      }}
+    >
+      <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
+        {shown > 0
+          ? `Mostrando ${first}–${last} de ${total}`
+          : `Esta página está vacía; hay ${total} en total`}
+      </Typography>
+      <Box sx={{ display: "flex", gap: 1 }}>
+        {hasPrev ? (
+          <Button
+            component={Link}
+            href={paymentsHref(filter, page - 1)}
+            color="inherit"
+            size="small"
+          >
+            Anterior
+          </Button>
+        ) : null}
+        {hasNext ? (
+          <Button
+            component={Link}
+            href={paymentsHref(filter, page + 1)}
+            variant="outlined"
+            color="secondary"
+            size="small"
+          >
+            Siguiente
+          </Button>
+        ) : null}
+      </Box>
+    </Box>
+  );
+}
+
 export function DashboardPayments({
   filter,
   rows,
+  page,
+  pageSize,
+  total,
   loadError,
   stats,
   liveRates,
@@ -491,7 +593,12 @@ export function DashboardPayments({
     const row = approving;
     if (!row) return;
     startTransition(async () => {
-      const result = await approvePayment(row.id);
+      const result = await callAction(() => approvePayment(row.id));
+      // El diálogo queda abierto: el admin puede reintentar sin buscar la fila.
+      if (!result) {
+        notify(NETWORK_ERROR_TEXT, false);
+        return;
+      }
       setApproving(null);
       notify(
         result.ok
@@ -506,7 +613,11 @@ export function DashboardPayments({
     const row = rejecting;
     if (!row) return;
     startTransition(async () => {
-      const result = await rejectPayment(row.id, note);
+      const result = await callAction(() => rejectPayment(row.id, note));
+      if (!result) {
+        notify(NETWORK_ERROR_TEXT, false);
+        return;
+      }
       setRejecting(null);
       notify(
         result.ok
@@ -522,7 +633,12 @@ export function DashboardPayments({
     // await, los bloqueadores de popups la cancelan) y luego se le asigna la URL.
     const win = window.open("", "_blank");
     startTransition(async () => {
-      const result = await getReceiptLink(row.id);
+      const result = await callAction(() => getReceiptLink(row.id));
+      if (!result) {
+        win?.close();
+        notify(NETWORK_ERROR_TEXT, false);
+        return;
+      }
       if (result.ok && win) {
         win.opener = null;
         win.location.href = result.data;
@@ -872,6 +988,15 @@ export function DashboardPayments({
             ))}
           </Box>
         )}
+        {!loadError && total > rows.length ? (
+          <PaymentsPagination
+            filter={filter}
+            page={page}
+            pageSize={pageSize}
+            shown={rows.length}
+            total={total}
+          />
+        ) : null}
       </Box>
 
       <RatesDialog

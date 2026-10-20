@@ -7,7 +7,11 @@ import {
 } from "@/components/ui/DashboardPayments";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getExchangeRateSources } from "@/lib/payments/exchangeRates";
-import { getPaymentStats, listPayments } from "@/lib/payments/repository";
+import {
+  getPaymentStats,
+  listPayments,
+  PAYMENTS_PAGE_SIZE,
+} from "@/lib/payments/repository";
 import { PROJECTS } from "@/lib/projectsData";
 
 export const metadata: Metadata = {
@@ -39,16 +43,22 @@ export default async function DashboardPagosPage({
   const filter: PaymentFilter = (FILTERS as string[]).includes(requested)
     ? (requested as PaymentFilter)
     : "pending";
+  // `?pagina=` empieza en 1 para quien lee la URL; el repositorio cuenta desde 0.
+  const pageParam = typeof params.pagina === "string" ? params.pagina : "";
+  const page = /^\d{1,6}$/.test(pageParam) ? Math.max(1, Number(pageParam)) : 1;
 
   const [payments, stats, rates] = await Promise.all([
-    listPayments(filter === "all" ? {} : { status: filter }),
+    listPayments({
+      ...(filter === "all" ? {} : { status: filter }),
+      page: page - 1,
+    }),
     getPaymentStats(),
     getExchangeRateSources(),
   ]);
 
   const titles = new Map(PROJECTS.map((p) => [p.slug, p.title]));
   const rows: DashboardPaymentRow[] = payments.ok
-    ? payments.data.map((p) => ({
+    ? payments.data.rows.map((p) => ({
         id: p.id,
         createdAt: p.created_at,
         purpose: p.purpose,
@@ -77,6 +87,9 @@ export default async function DashboardPagosPage({
       <DashboardPayments
         filter={filter}
         rows={rows}
+        page={page}
+        pageSize={PAYMENTS_PAGE_SIZE}
+        total={payments.ok ? payments.data.total : 0}
         loadError={!payments.ok}
         stats={stats.ok ? stats.data : null}
         liveRates={rates.live}

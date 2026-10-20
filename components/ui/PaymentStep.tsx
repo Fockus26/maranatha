@@ -355,7 +355,11 @@ function ManualPaymentPanel({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<ReportPaymentError | null>(null);
 
-  const referenceValid = /^[A-Za-z0-9@._\- ]{3,64}$/.test(reference.trim());
+  // Igual que `manualReportSchema`: caracteres permitidos y al menos una
+  // letra o número.
+  const referenceValid =
+    /^[A-Za-z0-9@._\- ]{3,64}$/.test(reference.trim()) &&
+    /[A-Za-z0-9]/.test(reference);
   const amountValid = Number(amountPaid) > 0;
   const dateValid = paidAt !== "" && paidAt <= todayIso();
 
@@ -371,7 +375,8 @@ function ManualPaymentPanel({
     if (contribution.projectSlug)
       data.set("projectSlug", contribution.projectSlug);
     data.set("frequency", contribution.frequency);
-    data.set("amountUsd", String(contribution.amountUsd));
+    // Con 2 decimales, como lo exige el esquema y como se le mostró al donante.
+    data.set("amountUsd", contribution.amountUsd.toFixed(2));
     data.set("name", contribution.name);
     data.set("email", contribution.email);
     data.set("method", method.id);
@@ -575,7 +580,7 @@ function ManualPaymentPanel({
             error={touched && !referenceValid}
             helperText={
               touched && !referenceValid
-                ? "Ingresa la referencia (solo letras, números, guiones o puntos)."
+                ? "Ingresa la referencia: letras o números (puede llevar guiones o puntos)."
                 : method.referenceHint
             }
             sx={SMALL_FIELD_SX}

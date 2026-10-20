@@ -26,6 +26,9 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+/** Monto en edición: hasta 5 enteros (máx. 10.000) y 2 decimales. */
+const CUSTOM_AMOUNT_RE = /^\d{0,5}(\.\d{0,2})?$/;
+
 export function AmountSelector({
   presets,
   onChange,
@@ -48,10 +51,14 @@ export function AmountSelector({
     onChange(value);
   }
 
-  function handleCustomChange(value: string) {
+  function handleCustomChange(raw: string) {
+    // Solo dígitos y hasta 2 decimales (coma o punto): el servidor rechaza
+    // "25.999" o "1e3" en el reporte manual, así que no se dejan escribir.
+    const value = raw.replace(",", ".");
+    if (!CUSTOM_AMOUNT_RE.test(value)) return;
     setCustomAmount(value);
     setSelectedPreset(null);
-    onChange(value === "" ? 0 : Number(value));
+    onChange(value === "" || value === "." ? 0 : Number(value));
   }
 
   return (
@@ -147,15 +154,16 @@ export function AmountSelector({
       </Box>
       <TextField
         placeholder={customLabel}
-        type="number"
+        // "text" y no "number": con "number" el navegador deja pasar "1e3" y
+        // no hay forma de limitar los decimales al escribir.
+        type="text"
         // En el <input> (no en el contenedor): es el que necesita el nombre
         // accesible. "decimal": se aceptan centavos.
         slotProps={{
           htmlInput: {
             "aria-label": customLabel,
             inputMode: "decimal",
-            min: 0,
-            step: "0.01",
+            autoComplete: "off",
           },
         }}
         fullWidth
