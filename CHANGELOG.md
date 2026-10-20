@@ -1,5 +1,15 @@
 # maranatha
 
+## 0.4.0
+
+### Minor Changes
+
+- e5e1038: La agenda del inicio ahora se edita desde el panel: nueva sección «Agenda» en el dashboard para crear, editar y eliminar reuniones semanales y eventos especiales.
+
+### Patch Changes
+
+- 8e07283: El monto personalizado solo admite hasta 2 decimales, así el reporte del pago ya no falla después de transferir. En el panel, un corte de red al confirmar o rechazar muestra un aviso en lugar de la pantalla de error, y el listado de pagos se pagina mostrando el total.
+
 ## 0.3.0
 
 ### Minor Changes
