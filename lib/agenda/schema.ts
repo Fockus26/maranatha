@@ -22,6 +22,25 @@ export interface AgendaEvent {
   location: string;
 }
 
+/** Años aceptados para un evento único: descarta 1800 o 3000 por tipeo. */
+export const AGENDA_MIN_YEAR = 2000;
+export const AGENDA_MAX_YEAR = 2100;
+
+/**
+ * "YYYY-MM-DD" que existe en el calendario y cae en un rango razonable.
+ * `Date.parse` normaliza "2026-02-31" a marzo; aquí se exige ida y vuelta.
+ */
+export function isRealDate(value: string): boolean {
+  const [y, m, d] = value.split("-").map(Number);
+  if (y < AGENDA_MIN_YEAR || y > AGENDA_MAX_YEAR) return false;
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return (
+    date.getUTCFullYear() === y &&
+    date.getUTCMonth() === m - 1 &&
+    date.getUTCDate() === d
+  );
+}
+
 export const WEEKDAY_NAMES = [
   "Domingo",
   "Lunes",
@@ -48,7 +67,7 @@ export const agendaEventInputSchema = z.discriminatedUnion("kind", [
     eventDate: z
       .string()
       .regex(DATE_RE)
-      .refine((v) => !Number.isNaN(Date.parse(v))),
+      .refine(isRealDate, { message: "invalid_date" }),
     startTime: z.string().regex(TIME_RE),
     title: z.string().trim().min(1).max(120),
     location: z.string().trim().min(1).max(120),

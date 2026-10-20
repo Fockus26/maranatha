@@ -161,6 +161,18 @@ export const fallbackRatesSchema = z.object({
   ).optional(),
 });
 
+/**
+ * Pago iniciado por una pasarela (PayPal, o Binance Pay con credenciales): no
+ * tiene referencia del donante y solo lo confirma la captura o el webhook.
+ * Mismo criterio que `isGatewayRow` del panel.
+ */
+export function isGatewayPayment(payment: {
+  method: string;
+  reference: string | null;
+}): boolean {
+  return payment.method === "paypal" || payment.reference === null;
+}
+
 export type Result<T, E extends string = string> =
   | { ok: true; data: T }
   | { ok: false; error: E };

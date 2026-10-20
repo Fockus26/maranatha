@@ -21,6 +21,7 @@ import { hitRateLimit } from "@/lib/payments/rateLimit";
 import { deleteReceipt, uploadReceipt } from "@/lib/payments/receipts";
 import {
   countRecentPendingByEmail,
+  deleteUnsentPayment,
   insertPayment,
   transitionPayment,
   updatePayment,
@@ -208,6 +209,20 @@ const MAX_PAYPAL_PENDING_PER_HOUR = 10;
 const MAX_PAYPAL_PER_IP_HOUR = 20;
 
 /**
+ * Falla al iniciar un checkout de pasarela. Si la orden nunca se creó en la
+ * pasarela, la fila se borra (no hay nada que conciliar); si se creó pero no
+ * se pudo enlazar, queda `cancelled` con la nota, para poder rastrearla.
+ */
+async function discardFailedCheckout(
+  paymentId: string,
+  orderCreated: boolean,
+  notes: string,
+): Promise<void> {
+  if (!orderCreated && (await deleteUnsentPayment(paymentId))) return;
+  await transitionPayment(paymentId, "cancelled", { notes });
+}
+
+/**
  * Crea el pago `pending` y la orden de PayPal (o la suscripción, si es
  * mensual), y devuelve el link al que el navegador tiene que redirigir. El monto sale de lo validado acá, no de lo
  * que el cliente vaya a mandar después: la ruta de retorno y el webhook
@@ -254,6 +269,7 @@ export async function startPaypalCheckout(
     : `${PURPOSE_LABEL[contribution.purpose]} — Iglesia Maranatha`;
 
   if (contribution.frequency === "monthly") {
+    let orderCreated = false;
     try {
       const planId = await ensureMonthlyPlan();
       const { subscriptionId, approveUrl } = await createSubscription({
@@ -264,6 +280,7 @@ export async function startPaypalCheckout(
         returnUrl: `${SITE_URL}/pago/paypal/suscripcion/retorno`,
         cancelUrl: `${SITE_URL}/pago/paypal/suscripcion/cancelado`,
       });
+      orderCreated = true;
       const linked = await updatePayment(payment.id, {
         provider_subscription_id: subscriptionId,
       });
@@ -272,13 +289,16 @@ export async function startPaypalCheckout(
       return { ok: true, data: { approveUrl } };
     } catch (error) {
       console.error("[paypal] startPaypalCheckout (mensual):", error);
-      await transitionPayment(payment.id, "cancelled", {
-        notes: "No se pudo crear la suscripción en PayPal.",
-      });
+      await discardFailedCheckout(
+        payment.id,
+        orderCreated,
+        "No se pudo crear la suscripción en PayPal.",
+      );
       return { ok: false, error: "server_error" };
     }
   }
 
+  let orderCreated = false;
   try {
     const { orderId, approveUrl } = await createOrder({
       paymentId: payment.id,
@@ -287,6 +307,7 @@ export async function startPaypalCheckout(
       returnUrl: `${SITE_URL}/pago/paypal/retorno`,
       cancelUrl: `${SITE_URL}/pago/paypal/cancelado`,
     });
+    orderCreated = true;
     const linked = await updatePayment(payment.id, {
       provider_order_id: orderId,
     });
@@ -294,9 +315,11 @@ export async function startPaypalCheckout(
     return { ok: true, data: { approveUrl } };
   } catch (error) {
     console.error("[paypal] startPaypalCheckout:", error);
-    await transitionPayment(payment.id, "cancelled", {
-      notes: "No se pudo crear la orden en PayPal.",
-    });
+    await discardFailedCheckout(
+      payment.id,
+      orderCreated,
+      "No se pudo crear la orden en PayPal.",
+    );
     return { ok: false, error: "server_error" };
   }
 }
@@ -368,6 +391,7 @@ export async function startBinanceCheckout(
 
   // Binance admite un solo parámetro en las URLs de retorno.
   const back = `?pago=${payment.id}`;
+  let orderCreated = false;
   try {
     const { prepayId, checkoutUrl } = await createBinanceOrder({
       paymentId: payment.id,
@@ -378,6 +402,7 @@ export async function startBinanceCheckout(
       cancelUrl: `${SITE_URL}/pago/binance/cancelado${back}`,
       webhookUrl: `${SITE_URL}/api/payments/binance/webhook`,
     });
+    orderCreated = true;
     const linked = await updatePayment(payment.id, {
       provider_order_id: prepayId,
     });
@@ -385,9 +410,11 @@ export async function startBinanceCheckout(
     return { ok: true, data: { approveUrl: checkoutUrl } };
   } catch (error) {
     console.error("[binance] startBinanceCheckout:", error);
-    await transitionPayment(payment.id, "cancelled", {
-      notes: "No se pudo crear la orden en Binance Pay.",
-    });
+    await discardFailedCheckout(
+      payment.id,
+      orderCreated,
+      "No se pudo crear la orden en Binance Pay.",
+    );
     return { ok: false, error: "server_error" };
   }
 }

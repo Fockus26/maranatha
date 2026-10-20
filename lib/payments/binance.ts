@@ -1,6 +1,7 @@
 import "server-only";
 import {
   binanceSafeText,
+  isFreshTimestamp,
   signedHeaders,
   tradeNoFromPaymentId,
   verifyWebhookSignature as verifyRsa,
@@ -136,6 +137,9 @@ export function queryOrder(paymentId: string): Promise<BinanceOrder> {
 // ─── Webhooks ────────────────────────────────────────────────────────────
 
 let cachedCert: { serial: string; publicKey: string } | null = null;
+/** Último pedido del certificado: limita las descargas que provoca un POST. */
+let lastCertFetchAt = 0;
+const CERT_REFETCH_MS = 60_000;
 
 async function fetchCertificate(): Promise<{
   serial: string;
@@ -169,9 +173,21 @@ export async function verifyWebhook(
     rawBody,
   };
   if (!signed.timestamp || !signed.nonce || !signed.signature) return false;
+  // Antes de tocar la red: un timestamp fuera de la ventana no puede ser una
+  // notificación reciente de Binance.
+  const now = Date.now();
+  if (!isFreshTimestamp(signed.timestamp, now)) return false;
 
   let cert = cachedCert;
-  if (!cert || (serial && cert.serial !== serial))
+  const needsCert = !cert || (serial !== "" && cert.serial !== serial);
+  // Como mucho un pedido por minuto: antes, cada POST con cabeceras de firma
+  // (aunque fueran inventadas) hacía que el servidor llamara a Binance.
+  if (needsCert && now - lastCertFetchAt >= CERT_REFETCH_MS) {
+    lastCertFetchAt = now;
     cert = await fetchCertificate();
+  }
+  // Sin certificado y dentro del minuto: 500 para que Binance reintente.
+  if (!cert)
+    throw new BinancePayError("Certificado de Binance no disponible", 503);
   return verifyRsa({ ...signed, publicKey: cert.publicKey });
 }

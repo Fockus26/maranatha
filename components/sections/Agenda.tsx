@@ -156,8 +156,12 @@ function AgendaTile({
   // (`secondary[700]`) solo en modo claro, sin tocar el tratamiento en modo
   // oscuro ni el de las celdas destacadas (siempre sobre navy, sin este
   // problema).
-  const tagColor =
-    theme.palette.mode === "light"
+  // Las celdas destacadas son navy (`primary[700]`) en los dos modos: ahí el
+  // tag va en `secondary[300]` (8.3:1). `secondary[700]` sobre navy daba
+  // 3.1:1 en modo claro (QA 19-10-2026).
+  const tagColor = isAccented
+    ? secondary[300]
+    : theme.palette.mode === "light"
       ? secondary[700]
       : theme.palette.secondary.light;
   // "Destacado" (fondo navy sólido) — solo el próximo evento recurrente
@@ -515,6 +519,14 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
               <Button
                 variant="text"
                 color="primary"
+                // En modo oscuro `primary.main` (`primary[400]`) da 3.8:1 sobre
+                // el fondo; `primary.light` (`primary[300]`) da 6.6:1.
+                sx={{
+                  color: (t) =>
+                    t.palette.mode === "dark"
+                      ? t.palette.primary.light
+                      : t.palette.primary.main,
+                }}
                 onClick={() => setExpanded((v) => !v)}
                 aria-expanded={expanded}
                 endIcon={

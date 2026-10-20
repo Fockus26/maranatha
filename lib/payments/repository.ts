@@ -169,6 +169,29 @@ export async function updatePayment(
 }
 
 /**
+ * Borra un checkout que nunca llegó a la pasarela: pendiente y sin orden ni
+ * suscripción enlazada. Si la pasarela rechazó crear la orden (credenciales
+ * malas, caída, bloqueo geográfico), dejarlo como `cancelled` llenaba
+ * "Cancelados" con una fila por intento. Devuelve false si no borró nada.
+ */
+export async function deleteUnsentPayment(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  const { data, error } = await supabaseAdmin()
+    .from("payments")
+    .delete()
+    .eq("id", id)
+    .eq("status", "pending")
+    .is("provider_order_id", null)
+    .is("provider_subscription_id", null)
+    .select("id");
+  if (error) {
+    logDbError("deleteUnsentPayment", error);
+    return false;
+  }
+  return data.length > 0;
+}
+
+/**
  * Cambia el estado solo si el pago está en uno de los estados de origen
  * permitidos (por defecto, solo `pending`) — condición en el propio UPDATE,
  * así dos confirmaciones simultáneas (webhook + retorno, o dos admins) no se
@@ -225,6 +248,26 @@ export interface PaymentsPage {
   total: number;
 }
 
+const RANGE_NOT_SATISFIABLE = "PGRST103";
+
+/** Total de filas de un filtro, sin traerlas. `null` si la consulta falla. */
+async function countPayments(
+  filter: ListPaymentsFilter,
+): Promise<number | null> {
+  let query = supabaseAdmin()
+    .from("payments")
+    .select("id", { count: "exact", head: true });
+  if (filter.status) query = query.eq("status", filter.status);
+  if (filter.method) query = query.eq("method", filter.method);
+  if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
+  const { count, error } = await query;
+  if (error) {
+    logDbError("countPayments", error);
+    return null;
+  }
+  return count ?? 0;
+}
+
 export async function listPayments(
   filter: ListPaymentsFilter = {},
 ): Promise<Result<PaymentsPage, RepoError>> {
@@ -245,6 +288,13 @@ export async function listPayments(
   if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
 
   const { data, error, count } = await query;
+  // PGRST103: la página pedida queda después de la última (ej. se confirmó el
+  // único pendiente de la última página). No es un error de conexión: se
+  // devuelve vacía con el total, para que el panel lo diga.
+  if (error?.code === RANGE_NOT_SATISFIABLE) {
+    const total = await countPayments(filter);
+    if (total !== null) return { ok: true, data: { rows: [], total } };
+  }
   if (error) {
     logDbError("listPayments", error);
     return { ok: false, error: "db_error" };

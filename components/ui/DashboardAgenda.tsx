@@ -33,6 +33,7 @@ import {
   type AgendaEventKind,
   agendaEventInputSchema,
   formatStartTime,
+  isRealDate,
   parseLocalDate,
   WEEKDAY_NAMES,
 } from "@/lib/agenda/schema";
@@ -56,6 +57,23 @@ const ACTION_ERROR_TEXT: Record<AgendaActionError, string> = {
   not_found: "Ese evento ya no existe. Recarga la página.",
   server_error: "No se pudo completar la acción. Prueba de nuevo.",
 };
+
+/**
+ * La Server Action no respondió (red caída o 500). Sin esto la excepción sube
+ * al error boundary, reemplaza todo el panel y se pierde lo escrito en el
+ * diálogo (mismo patrón que `DashboardPayments`).
+ */
+const NETWORK_ERROR_TEXT =
+  "No hubo respuesta del servidor. Revisa tu conexión y la lista antes de intentarlo de nuevo.";
+
+/** Llama a la Server Action y convierte un fallo de red en `null`. */
+async function callAction<T>(action: () => Promise<T>): Promise<T | null> {
+  try {
+    return await action();
+  } catch {
+    return null;
+  }
+}
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-VE", {
   weekday: "long",
@@ -135,7 +153,9 @@ function AgendaEventDialog({
   const titleValid = form.title.trim().length > 0;
   const locationValid = form.location.trim().length > 0;
   const timeValid = /^([01]\d|2[0-3]):[0-5]\d$/.test(form.startTime);
-  const dateValid = form.kind === "recurring" || Boolean(form.eventDate);
+  const dateValid =
+    form.kind === "recurring" ||
+    (Boolean(form.eventDate) && isRealDate(form.eventDate));
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -229,7 +249,11 @@ function AgendaEventDialog({
               value={form.eventDate}
               onChange={(v) => set("eventDate", v)}
               error={touched && !dateValid}
-              helperText={touched && !dateValid ? "Elige la fecha." : undefined}
+              helperText={
+                touched && !dateValid
+                  ? "Elige una fecha válida entre 2000 y 2100."
+                  : undefined
+              }
             />
           )}
 
@@ -451,9 +475,14 @@ export function DashboardAgenda({
     const editing = dialog?.editing ?? null;
     startTransition(async () => {
       const input = toInput(form);
-      const result = editing
-        ? await editAgendaEvent(editing.id, input)
-        : await createAgendaEvent(input);
+      const result = await callAction(() =>
+        editing ? editAgendaEvent(editing.id, input) : createAgendaEvent(input),
+      );
+      // El diálogo queda abierto con lo escrito: el admin puede reintentar.
+      if (!result) {
+        setToast({ ok: false, message: NETWORK_ERROR_TEXT });
+        return;
+      }
       if (result.ok) setDialog(null);
       setToast({
         ok: result.ok,
@@ -470,7 +499,11 @@ export function DashboardAgenda({
     if (!deleting) return;
     const target = deleting;
     startTransition(async () => {
-      const result = await removeAgendaEvent(target.id);
+      const result = await callAction(() => removeAgendaEvent(target.id));
+      if (!result) {
+        setToast({ ok: false, message: NETWORK_ERROR_TEXT });
+        return;
+      }
       setDeleting(null);
       setToast({
         ok: result.ok,
