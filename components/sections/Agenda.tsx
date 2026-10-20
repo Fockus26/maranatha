@@ -10,6 +10,8 @@ import Typography from "@mui/material/Typography";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
+import { type AgendaEntry, buildMonthlyAgenda } from "@/lib/agenda/monthly";
+import type { AgendaEvent } from "@/lib/agenda/schema";
 import { secondary } from "@/theme/tokens";
 
 /**
@@ -57,29 +59,20 @@ import { secondary } from "@/theme/tokens";
  * — el de fecha más próxima entre los recurrentes (nunca un puntual).
  * Si ese evento es hoy, el tag dice "Hoy"; si el próximo cae más
  * adelante (p. ej. hoy es 6 y no hay servicio ese día, pero sí el 7),
- * el tag dice "Próximo evento". Los eventos puntuales (`ONE_TIME_EVENTS`)
- * nunca llevan este destacado navy — solo conservan su tag naranja
- * "Evento especial" sobre el fondo bordeado normal, igual que cualquier
- * otra celda.
+ * el tag dice "Próximo evento". Los eventos puntuales nunca llevan este
+ * destacado navy — solo conservan su tag naranja "Evento especial" sobre el
+ * fondo bordeado normal, igual que cualquier otra celda.
  *
- * La agenda sigue combinando dos tipos de evento:
- * - Recurrentes (`RECURRING_EVENTS`): servicios semanales sin fecha fija,
- *   se expanden a todas sus ocurrencias dentro del mes actual.
- * - Puntuales (`ONE_TIME_EVENTS`): eventos especiales de una sola fecha,
- *   definidos como offset en días desde hoy (no ISO fija) para que la
- *   vista previa siempre muestre contenido dentro del mes visible, sin
- *   importar qué día se abra el sitio.
+ * Los eventos llegan por prop desde el home (tabla `agenda_events`, se
+ * editan en `/dashboard/agenda`) y `buildMonthlyAgenda`
+ * (`lib/agenda/monthly.ts`) los expande al resto del mes:
+ * - Recurrentes: servicios semanales, una ocurrencia por cada semana.
+ * - Puntuales: eventos especiales de una sola fecha.
  *
  * Ambos se combinan, se ordenan cronológicamente y se recortan a
  * `INITIAL_COUNT`; si hay más, aparece un botón de texto (sin naranja —
  * no es un CTA de alta prioridad, es solo un toggle de expandir/contraer
  * la propia agenda in-place) para ver el resto sin salir de la sección.
- *
- * NOTA DE CONTENIDO: los eventos (nombres, horarios, ubicaciones y el
- * offset de los puntuales) son placeholders — pendientes de que el
- * cliente entregue la agenda real. Cuando exista un dashboard/admin para
- * gestionarla (fuera de alcance de esta fase, solo visual), esta lista
- * pasaría a venir de esa fuente en vez de estar hardcodeada aquí.
  */
 
 const MONTH_ABBR = [
@@ -97,106 +90,9 @@ const MONTH_ABBR = [
   "DIC",
 ] as const;
 
-const RECURRING_EVENTS = [
-  {
-    weekday: 0,
-    title: "Servicio Dominical",
-    schedule: "10:00 a.m.",
-    location: "Templo principal",
-  },
-  {
-    weekday: 3,
-    title: "Reunión de oración",
-    schedule: "7:00 p.m.",
-    location: "Salón de oración",
-  },
-  {
-    weekday: 5,
-    title: "Reunión de jóvenes",
-    schedule: "7:00 p.m.",
-    location: "Salón de jóvenes",
-  },
-] as const;
-
-const ONE_TIME_EVENTS = [
-  {
-    offsetDays: 4,
-    title: "Noche de alabanza especial",
-    schedule: "6:30 p.m.",
-    location: "Templo principal",
-  },
-  {
-    offsetDays: 9,
-    title: "Bautismos",
-    schedule: "11:00 a.m.",
-    location: "Templo principal",
-  },
-  {
-    offsetDays: 17,
-    title: "Conferencia de matrimonios",
-    schedule: "5:00 p.m.",
-    location: "Salón multiusos",
-  },
-] as const;
-
 const INITIAL_COUNT = 6;
 
 type TileSize = "feature" | "wide" | "tall" | "sm";
-
-interface AgendaEntry {
-  key: string;
-  date: Date;
-  title: string;
-  schedule: string;
-  location: string;
-  kind: "recurring" | "oneTime";
-  weekday: number;
-}
-
-function buildMonthlyAgenda(): AgendaEntry[] {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const entries: AgendaEntry[] = [];
-
-  for (let day = today.getDate(); day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const weekday = date.getDay();
-    RECURRING_EVENTS.forEach((ev) => {
-      if (ev.weekday === weekday) {
-        entries.push({
-          key: `${ev.title}-${date.toISOString()}`,
-          date,
-          title: ev.title,
-          schedule: ev.schedule,
-          location: ev.location,
-          kind: "recurring",
-          weekday,
-        });
-      }
-    });
-  }
-
-  ONE_TIME_EVENTS.forEach((ev) => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + ev.offsetDays);
-    if (date.getMonth() === month && date.getFullYear() === year) {
-      entries.push({
-        key: `${ev.title}-${date.toISOString()}`,
-        date,
-        title: ev.title,
-        schedule: ev.schedule,
-        location: ev.location,
-        kind: "oneTime",
-        weekday: date.getDay(),
-      });
-    }
-  });
-
-  entries.sort((a, b) => a.date.getTime() - b.date.getTime());
-  return entries;
-}
 
 /** Asigna el tamaño de celda del mosaico: el puntual más próximo es el
  * "feature" (el más grande), el resto de puntuales son "wide", el
@@ -442,9 +338,9 @@ const AGENDA_GRID_SX = {
   gap: { xs: 1.25, sm: 1.75 },
 } as const;
 
-export function Agenda() {
+export function Agenda({ events }: { events: AgendaEvent[] }) {
   const reduceMotion = useReducedMotion();
-  const agenda = useMemo(() => buildMonthlyAgenda(), []);
+  const agenda = useMemo(() => buildMonthlyAgenda(events), [events]);
   const tileSizes = useMemo(() => assignTileSizes(agenda), [agenda]);
   const accentKey = useMemo(() => findAccentKey(agenda), [agenda]);
   const [expanded, setExpanded] = useState(false);
@@ -545,6 +441,18 @@ export function Agenda() {
         </Reveal>
 
         <Reveal delay={0.12}>
+          {agenda.length === 0 && (
+            <Typography
+              sx={{
+                fontFamily: "var(--font-body)",
+                fontSize: 16,
+                color: "text.secondary",
+                textAlign: { xs: "center", md: "left" },
+              }}
+            >
+              No hay más eventos programados este mes.
+            </Typography>
+          )}
           {/* Medidores ocultos — nunca visibles, `height: 0` + `overflow: hidden`
               los saca del flujo sin afectar el layout ni el ancho medido. */}
           <Box

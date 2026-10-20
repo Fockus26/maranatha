@@ -1,0 +1,6 @@
+# D080 · Agenda · La agenda vive en Supabase y se edita en /dashboard/agenda · Implementado
+
+**Decisión:** tabla `agenda_events` (recurrentes por día de la semana y puntuales por fecha real, hora en `time`), RLS sin políticas como `payments`. El home la lee en el servidor (`getPublicAgendaEvents`) y se la pasa a `Agenda`; `buildMonthlyAgenda` (`lib/agenda/monthly.ts`) la expande al resto del mes. El panel es una lista en dos grupos (semanales / especiales) con un diálogo para crear y editar y `ConfirmDialog` para borrar; las Server Actions (`app/actions/adminAgenda.ts`) verifican con `getAdminStrict` y revalidan con zod.
+**Por qué:** César pidió poder actualizar la agenda sin tocar código; antes estaba fija en `Agenda.tsx` con desfases de días como placeholder.
+**Detalle:** si Supabase falla, el home cae en las tres reuniones semanales de respaldo (`FALLBACK_AGENDA_EVENTS`) en vez de mostrar la sección vacía. La UI del panel siguió el patrón visual existente (encabezado + tarjeta bordeada de Proyectos/Pagos) en lugar de abrir una decisión visual nueva. El tamaño del mosaico sigue saliendo del tipo de evento (D039); no hay campo para "destacar" un evento a mano.
+**Nota de estado:** Implementado (`feat/agenda-dashboard`)
