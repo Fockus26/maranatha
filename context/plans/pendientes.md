@@ -80,19 +80,19 @@ Contra Supabase local con puertos 544xx, sin tocar `world-flags`. Scripts y resu
 
 Probado en origin/main 598bd34 (PR #20 y #21 incluidos), con Supabase local. Capturas en `..\maranatha-wt\design-qa\.qa\design\`. Resultado: 0 críticos · 4 altos · 5 medios · 3 bajos.
 
-- [ ] Alto: en `forced-colors` no se distingue lo seleccionado (montos, Tipo, Frecuencia, filtros y navegación del panel). Ver `AmountSelector.tsx:75-100`, `SegmentedToggle.tsx:85-113`, `DashboardPayments.tsx:751-775`, `DashboardTopbar.tsx:162` y `app/globals.css:77-89`. Corrección: Highlight/HighlightText o un borde de 3px para `aria-pressed`, `aria-checked` y `aria-current`. Captura: `prefs/diezmo-forced-seleccion.png`.
-- [ ] Alto: `styleOverrides.containedPrimary` (`theme/theme.ts:271-285`) ya no se aplica en MUI 9. Por eso el botón "Ir al inicio" del 404/500 en oscuro queda a 3.54:1, y hay parches con `#FFFFFF` en `DashboardAgenda.tsx:303,562`. Corrección: pasarlo a `variants`. Captura: `404-dark-boton.png`.
-- [ ] Alto: `PageNavbar.tsx:120-153` todavía usa la marca de relleno ("■ Iglesia") en `/proyectos`, el detalle de proyecto, `/historia` y `/pago/resultado`. Corrección: usar `<Logo>` como en `Navbar.tsx`. Captura: `hdr_proyectos.png`.
-- [ ] Alto (decisión de diseño): en la barra superior del panel, entre 320 y 600 px, "Agenda" (y "Pagos" a 320) quedan ocultas, sin ninguna pista de que se puede desplazar (`DashboardTopbar.tsx:108-114`). Captura: `dash/topbar-320.png`.
-- [ ] Medio: la descripción del detalle de proyecto no tiene ancho máximo y llega a unos 117 caracteres por línea desde 1920 (`ProjectDetailContent.tsx:74-84`). Corrección: `maxWidth: 70ch`.
-- [ ] Medio: voseo en `TitheForm.tsx` (~203, 266, 279): "Elegí", "Ingresá". Pasarlo a tuteo.
-- [ ] Medio: objetivos táctiles de menos de 44px: indicadores y pausa del Hero, Instagram de líderes, chips de Prédicas y filtros de proyectos, enlaces del pie, "Abrir menú" (40px).
-- [ ] Medio (decisión de diseño): el modal de pago en horizontal (844×390) mete una tarjeta dentro de otra y deja unos 290px útiles. Captura: `flows/aporte-2-Zelle-844x390-light.png`.
-- [ ] Medio: falta la galería de estados `/estados?screen=…`. Sin ella, 500, sin conexión y mantenimiento quedaron sin verificar.
-- [ ] Bajo: los chips "Pendiente" y "Cancelado" usan el mismo gris (`DashboardPayments.tsx:185-202`).
-- [ ] Bajo: los campos de texto (login, buscador de proyectos) no muestran el anillo de foco naranja.
-- [ ] Bajo: falta `scrollbar-color` estándar en `theme/globalStyles.ts`; en Firefox se verá la barra del sistema.
-- [ ] Deuda de coherencia que sigue desde 77abe88:
+- [x] (PR #23) Alto: en `forced-colors` no se distingue lo seleccionado (montos, Tipo, Frecuencia, filtros y navegación del panel). Ver `AmountSelector.tsx:75-100`, `SegmentedToggle.tsx:85-113`, `DashboardPayments.tsx:751-775`, `DashboardTopbar.tsx:162` y `app/globals.css:77-89`. Corrección: Highlight/HighlightText o un borde de 3px para `aria-pressed`, `aria-checked` y `aria-current`. Captura: `prefs/diezmo-forced-seleccion.png`.
+- [x] (PR #23) Alto: `styleOverrides.containedPrimary` (`theme/theme.ts:271-285`) ya no se aplica en MUI 9. Por eso el botón "Ir al inicio" del 404/500 en oscuro queda a 3.54:1, y hay parches con `#FFFFFF` en `DashboardAgenda.tsx:303,562`. Corrección: pasarlo a `variants`. Captura: `404-dark-boton.png`.
+- [x] (PR #23) Alto: `PageNavbar.tsx:120-153` todavía usa la marca de relleno ("■ Iglesia") en `/proyectos`, el detalle de proyecto, `/historia` y `/pago/resultado`. Corrección: usar `<Logo>` como en `Navbar.tsx`. Captura: `hdr_proyectos.png`.
+- [x] (PR #23) Alto (decisión de diseño): en la barra superior del panel, entre 320 y 600 px, "Agenda" (y "Pagos" a 320) quedan ocultas, sin ninguna pista de que se puede desplazar (`DashboardTopbar.tsx:108-114`). Captura: `dash/topbar-320.png`.
+- [x] (PR #23) Medio: la descripción del detalle de proyecto no tiene ancho máximo y llega a unos 117 caracteres por línea desde 1920 (`ProjectDetailContent.tsx:74-84`). Corrección: `maxWidth: 70ch`.
+- [x] (PR #23) Medio: voseo en `TitheForm.tsx` (~203, 266, 279): "Elegí", "Ingresá". Pasarlo a tuteo.
+- [x] (PR #23) Medio: objetivos táctiles de menos de 44px: indicadores y pausa del Hero, Instagram de líderes, chips de Prédicas y filtros de proyectos, enlaces del pie, "Abrir menú" (40px).
+- [x] (PR #23) Medio (decisión de diseño): el modal de pago en horizontal (844×390) mete una tarjeta dentro de otra y deja unos 290px útiles. Captura: `flows/aporte-2-Zelle-844x390-light.png`.
+- [x] (PR #23) Medio: falta la galería de estados `/estados?screen=…`. Sin ella, 500, sin conexión y mantenimiento quedaron sin verificar.
+- [x] (PR #23) Bajo: los chips "Pendiente" y "Cancelado" usan el mismo gris (`DashboardPayments.tsx:185-202`).
+- [x] (PR #23) Bajo: los campos de texto (login, buscador de proyectos) no muestran el anillo de foco naranja.
+- [x] (PR #23) Bajo: falta `scrollbar-color` estándar en `theme/globalStyles.ts`; en Firefox se verá la barra del sistema.
+- [x] (PR #23) Deuda de coherencia que sigue desde 77abe88:
   - hex sueltos en `Agenda`, `Tithe`, `Sermons`, `SocialLinks` (12 degradados), `Dashboard*`, `SegmentedToggle` y `theme.ts:28,38`
   - 58 radios fuera de la escala (10, 14, 20, 2, 999)
   - sombras sueltas en `Agenda.tsx:206,209`
@@ -101,4 +101,6 @@ Probado en origin/main 598bd34 (PR #20 y #21 incluidos), con Supabase local. Cap
   - el CTA de las pantallas de estado es navy en el 404 y naranja en `/pago/resultado`
 
 **Bien:** cero scroll horizontal en 13 rutas × 11 anchos (320 a 3840) × claro y oscuro, y en todo el checkout. Reflujo al 400 % correcto. Layout correcto desde 1920. axe: 1 violación en 24 corridas. Reduced-motion correcto. Contraste de la selección y del scrollbar correcto. El 404 devuelve HTTP 404 real. Anillo de foco visible.
-**Sin verificar:** 500, mantenimiento y sin conexión; Diezmo en oscuro y en horizontal (cubierto por Aporte); contraste medido sobre la foto del hero; Firefox y Safari.
+**Verificado después (PR #23):** 500, sin conexión y mantenimiento en `/estados`, en claro y oscuro, a 360, 1440 y 2560 (axe 0, sin scroll horizontal). Ahí salieron y se corrigieron dos fallos: el desborde del 500 con código y el subrayado del correo.
+- [ ] Sin conexión al navegar: sale la página de error del navegador porque no hay service worker. En curso en una sesión aparte.
+**Sin verificar:** Diezmo en oscuro y en horizontal (cubierto por Aporte); contraste medido sobre la foto del hero; Firefox y Safari.
