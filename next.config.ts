@@ -17,6 +17,24 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4.5mb",
     },
   },
+  // El service worker nunca se cachea: así cada visita toma la última versión.
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     // AVIF además de WebP: ~20-30% menos peso donde el navegador lo soporta.
     formats: ["image/avif", "image/webp"],
