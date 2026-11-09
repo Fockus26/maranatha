@@ -5,7 +5,5 @@
       "vps": false
     }
   },
-  "regions": [
-    "fra1"
-  ]
+  "regions": ["fra1"]
 }

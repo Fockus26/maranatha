@@ -111,13 +111,9 @@
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "user",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -514,16 +510,12 @@
       "uniqueConstraints": {
         "payments_provider_order_id_unique": {
           "name": "payments_provider_order_id_unique",
-          "columns": [
-            "provider_order_id"
-          ],
+          "columns": ["provider_order_id"],
           "nullsNotDistinct": false
         },
         "payments_provider_capture_id_unique": {
           "name": "payments_provider_capture_id_unique",
-          "columns": [
-            "provider_capture_id"
-          ],
+          "columns": ["provider_capture_id"],
           "nullsNotDistinct": false
         }
       },
@@ -610,9 +602,7 @@
       "uniqueConstraints": {
         "paypal_plans_plan_id_unique": {
           "name": "paypal_plans_plan_id_unique",
-          "columns": [
-            "plan_id"
-          ],
+          "columns": ["plan_id"],
           "nullsNotDistinct": false
         }
       },
@@ -745,13 +735,9 @@
         "session_user_id_user_id_fk": {
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "user",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -760,9 +746,7 @@
       "uniqueConstraints": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "nullsNotDistinct": false
         }
       },
@@ -859,9 +843,7 @@
       "uniqueConstraints": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false
         }
       },

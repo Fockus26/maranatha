@@ -112,12 +112,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -515,16 +511,12 @@
         "payments_provider_order_id_unique": {
           "name": "payments_provider_order_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "provider_order_id"
-          ]
+          "columns": ["provider_order_id"]
         },
         "payments_provider_capture_id_unique": {
           "name": "payments_provider_capture_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "provider_capture_id"
-          ]
+          "columns": ["provider_capture_id"]
         }
       },
       "policies": {},
@@ -611,9 +603,7 @@
         "paypal_plans_plan_id_unique": {
           "name": "paypal_plans_plan_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "plan_id"
-          ]
+          "columns": ["plan_id"]
         }
       },
       "policies": {},
@@ -746,12 +736,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -761,9 +747,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -860,9 +844,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
