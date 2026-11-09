@@ -549,7 +549,8 @@ async function startServer(
       abort(
         '--preview: the project has no "qa:serve", "preview" or "start" script.',
       );
-    env.NODE_ENV = "production";
+    // NODE_ENV is read-only in Next.js's types (@types/node + next): assigned through a cast.
+    (env as Record<string, string | undefined>).NODE_ENV = "production";
     console.log("… bun run build (with the local backend's variables)");
     const build = launch("bun", ["run", "build"], env);
     const code = await new Promise<number | null>((done) =>
