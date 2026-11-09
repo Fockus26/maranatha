@@ -63,12 +63,10 @@ bun run a11y                 # axe-core sobre el sitio corriendo
 **Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
 `functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
 
-**QA contra base local:** `bun run qa:local -- --port <p>` levanta Supabase en Docker
-(migraciones + seed), crea las cuentas de `.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`)
-y arranca el servidor apuntando a lo local, con `ADMIN_EMAILS` = esas cuentas. Nunca contra la base real.
-
-**Scripts con Playwright se corren con `node`, no con `bun`:** en Windows, Playwright bajo
-Bun se cuelga al lanzar Chromium.
+**QA:** `bun run qa:local -- --port <p>` — Supabase en Docker con las cuentas de
+`.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`; `ADMIN_EMAILS` = esas cuentas);
+nunca la base real (`--offline`: solo invitado). Scripts de Playwright con `node` (Bun se
+cuelga en Windows), en `.qa/`.
 
 **Documentación:** Context7 antes de usar la API de cualquier librería. Para Next, además,
 `node_modules/next/dist/docs/` (ver `AGENTS.md`).
