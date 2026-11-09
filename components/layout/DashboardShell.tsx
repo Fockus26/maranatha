@@ -47,7 +47,7 @@ export interface DashboardShellProps {
  * }
  * ```
  */
-// Por defecto el botón de salir del topbar cierra la sesión de Supabase
+// Por defecto el botón de salir del topbar cierra la sesión (Better Auth)
 // (Server Action que borra la cookie y redirige al login).
 function defaultLogout() {
   React.startTransition(() => {

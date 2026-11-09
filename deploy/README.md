@@ -89,8 +89,6 @@ ssh-keygen -t ed25519 -f maranatha-deploy -N "" -C "github-actions"
 | Nombre                                 | Valor                        |
 |----------------------------------------|------------------------------|
 | `NEXT_PUBLIC_SITE_URL`                 | `https://tudominio.com`      |
-| `NEXT_PUBLIC_SUPABASE_URL`             | URL del proyecto Supabase    |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…`           |
 
 No hace falta ningún token personal de GitHub: el workflow usa el
 `GITHUB_TOKEN` automático para subir la imagen y para bajarla en el VPS.
@@ -99,7 +97,7 @@ No hace falta ningún token personal de GitHub: el workflow usa el
 
 1. DNS: registros A de `tudominio.com`, `www` y `admin` (si se usa) → IP del VPS.
 2. `git push origin vercel:vps` y mirar la pestaña Actions.
-3. Supabase → Authentication → URL Configuration: Site URL y Redirect URLs con el dominio nuevo.
+3. `BETTER_AUTH_URL` del `.env` del VPS con el dominio del panel (`https://admin.tudominio.com`, o el principal si no hay `ADMIN_HOST`): es la base de los enlaces de recuperación de contraseña.
 4. PayPal Live: crear el webhook a `https://tudominio.com/api/payments/paypal/webhook`
    y poner su id en `PAYPAL_WEBHOOK_ID` del `.env` del VPS (luego `docker compose up -d`).
 

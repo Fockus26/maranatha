@@ -59,12 +59,12 @@ PENDIENTE (no quedó registrado).
 - Animación: framer-motion (`Reveal`, `PageTransition`), respetando reduced-motion
 - Gestor de paquetes: **bun**
 - Documentación: **Context7** antes de usar la API de cualquier librería
-- Base de datos: Supabase Postgres (`supabase/migrations/`), cliente admin solo en servidor
-- Autenticación: Supabase Auth, solo para el dashboard; acceso por lista `ADMIN_EMAILS`
+- Base de datos: Postgres del VPS (`kit-db`: `maranatha`, `maranatha_preview`, `maranatha_dev`) con Drizzle (`lib/db/`, migraciones en `drizzle/`), solo desde el servidor (D082). Comprobantes en la tabla `payment_receipts`
+- Autenticación: Better Auth, solo para el dashboard, sin registro; acceso por lista `ADMIN_EMAILS`; recuperación de contraseña por correo
 - Pagos: métodos manuales reportados con comprobante (Pago Móvil, Zelle, Bancolombia, Binance,
   Zinli, Wally) + PayPal (orden única y suscripción mensual, con webhook)
 - Datos externos: YouTube (prédicas), Behold.so (feeds de Instagram), DolarApi (tasas)
-- Correo: N/A
+- Correo: Brevo SMTP (`lib/email/`), solo la recuperación de contraseña del panel
 - Analítica: `@vercel/analytics` solo en Vercel
 - Despliegue: Vercel = pruebas (rama `vercel`); VPS Hetzner con Docker + Caddy = producción
   (rama `vps`). Ver `deploy/README.md`.

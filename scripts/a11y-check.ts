@@ -24,6 +24,9 @@ const ROUTES = [
   "/proyectos/techo-para-el-salon-multiusos",
   "/dashboard",
   "/dashboard/proyectos",
+  "/dashboard/recuperar",
+  "/dashboard/restablecer?token=demo",
+  "/dashboard/restablecer?error=INVALID_TOKEN",
 ];
 const MODES = ["light", "dark"] as const;
 

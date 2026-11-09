@@ -4,5 +4,8 @@
     "deploymentEnabled": {
       "vps": false
     }
-  }
+  },
+  "regions": [
+    "fra1"
+  ]
 }

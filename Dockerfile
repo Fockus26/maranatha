@@ -22,15 +22,11 @@ COPY . .
 # Las NEXT_PUBLIC_* se copian dentro del JS del navegador durante el build:
 # si no llegan aquí, quedan vacías aunque el contenedor las tenga después.
 ARG NEXT_PUBLIC_SITE_URL
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
-    NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
     NODE_ENV=production \
     NEXT_OUTPUT=standalone
 
-# Las variables secretas (Supabase, PayPal, PAY_*) no entran al build: las
+# Las variables secretas (DATABASE_URL, BETTER_AUTH_*, SMTP_*, PayPal, PAY_*) no entran al build: las
 # páginas que las usan son dinámicas y las leen del `.env` del VPS al correr.
 RUN bun run build
 

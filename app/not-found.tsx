@@ -3,7 +3,7 @@ import { getAdmin } from "@/lib/auth/admin";
 
 /**
  * 404 (D079). Con sesión de admin ofrece volver al panel; si no, al inicio
- * y a las reuniones. Sin Supabase configurado (build local sin `.env`) se
+ * y a las reuniones. Sin base configurada (build local sin `.env`) se
  * trata como visitante.
  */
 export default async function NotFound() {

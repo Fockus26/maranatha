@@ -38,7 +38,7 @@ Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls con
 Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
 **El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
-**Tech refs:** supabase, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
+**Tech refs:** vps-postgres, migrate-supabase-vps (hasta cerrar el corte, D082), vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
 
 ---
 
@@ -48,7 +48,7 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
 - **Librería de componentes:** MUI 9 · **Estilos:** `sx` de MUI con los tokens de `theme/` — uno solo
   (Tailwind está instalado pero no se usa para estilos nuevos)
 - **bun** para todo — nunca npm, yarn ni pnpm
-- Supabase (Postgres + Auth del dashboard) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
+- Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
 - Deploy: Vercel = pruebas (rama `vercel`) · VPS Hetzner con Docker = producción (rama `vps`)
 
 ```bash
@@ -61,7 +61,7 @@ bun run a11y                 # axe-core sobre el sitio corriendo
 **Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
 `functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
 
-**QA:** `bun run qa:local -- --port <p>` — Supabase en Docker con las cuentas de
+**QA:** `bun run qa:local -- --port <p>` — Postgres + Mailpit en Docker con las cuentas de
 `.env.test.local` (las escribes tú; nunca le pidas a César iniciar sesión para QA;
 `ADMIN_EMAILS` = esas cuentas); nunca la base real. Playwright con `node` (Bun se cuelga en
 Windows), en `.qa/`. **QA: al final** (sin `wave-qa` en las olas).
@@ -116,15 +116,15 @@ el QA de versión · `design-qa` solo en el QA de versión (fase 09 / PR de rele
 
 - **Cero valores mágicos.** Todo color, espaciado, radio y tamaño sale de `theme/tokens.ts`.
 - **Cero secretos en el código.** Variables de entorno, `.env.example` sin valores reales.
-  Lo secreto (Supabase secret, PayPal, `PAY_*`) nunca con prefijo `NEXT_PUBLIC_`.
+  Lo secreto (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `SMTP_*`, PayPal, `PAY_*`) nunca con prefijo `NEXT_PUBLIC_`.
 - **Cero contenido inventado.** Placeholder marcado + fila en `context/CONTENT_CHECKLIST.md`.
 - **Cero lorem ipsum.** Placeholder realista, en español, con la longitud del texto final.
 - **WCAG 2.1 AA** mínimo: 4.5:1 texto, foco visible, ningún estado solo por color, sin
   scroll horizontal a 320 px.
 - **MUI antes que reimplementar** un primitivo.
 - **Pagos:** todo lo que llega del cliente se revalida en el servidor (`app/actions/`); la
-  clave secreta de Supabase solo en código `server-only` (`lib/supabase/admin.ts`).
-- **Migraciones SQL** en `supabase/migrations/` con prefijo de fecha (`supabase migration new <nombre>`), igual que el historial remoto; aplicarlas es acción manual de César
+  base solo desde código `server-only` (`lib/db/`), y cada acción de admin con `getAdminStrict()`.
+- **Migraciones** en `drizzle/` (`bun run db:generate`; SQL a mano con `drizzle-kit generate --custom`). `supabase/migrations/` es historial, ya no se toca. Aplicarlas en preview y producción es acción manual de César
   (se anota en el PR).
 
 ## Cuándo parar y preguntar
@@ -145,6 +145,6 @@ el QA de versión · `design-qa` solo en el QA de versión (fase 09 / PR de rele
 y aportar (diezmo / proyectos) · **Idioma:** español (es-VE)
 
 **Particularidades:**
-- Monedas: USD, USDT, VES y COP; la conversión usa DolarApi con tasa de respaldo en Supabase.
+- Monedas: USD, USDT, VES y COP; la conversión usa DolarApi con tasa de respaldo en la base (`settings`).
 - `ADMIN_HOST` (opcional) sirve el dashboard desde un subdominio (`proxy.ts`).
 - Vercel no se indexa (`SITE_INDEXABLE` en `lib/siteConfig.ts`); solo producción.

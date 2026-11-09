@@ -1,5 +1,20 @@
 import "server-only";
-import { isSupabaseConfigured, supabaseAdmin } from "@/lib/supabase/admin";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  type SQL,
+  sql,
+} from "drizzle-orm";
+import { db, isDbConfigured, pgErrorCode, UNIQUE_VIOLATION } from "@/lib/db";
+import { payments, projectRaised, settings } from "@/lib/db/schema";
 import type {
   PaymentCurrency,
   PaymentFrequency,
@@ -10,10 +25,13 @@ import type {
 } from "./schema";
 
 /**
- * Acceso a la tabla `payments` (supabase/migrations/20260923230207_payments.sql).
+ * Acceso a la tabla `payments` (`lib/db/schema.ts`, Postgres del VPS).
  * Solo servidor. Toda función devuelve un `Result` — los errores esperados
  * (duplicado, no encontrado) se modelan; lo inesperado se registra en el
  * servidor y sale como `db_error` sin detalles internos.
+ *
+ * La forma de `PaymentRow` (snake_case, fechas ISO, montos number) es la que
+ * tenía con Supabase: el resto del código no cambió con la migración (D082).
  */
 
 export interface PaymentRow {
@@ -73,99 +91,155 @@ export type RepoError =
   | "invalid_state"
   | "db_error";
 
-const UNIQUE_VIOLATION = "23505";
+type PaymentSelect = typeof payments.$inferSelect;
+type PaymentInsert = typeof payments.$inferInsert;
+type PaymentPatch = Partial<
+  Omit<PaymentRow, "id" | "created_at" | "updated_at">
+>;
 
 function logDbError(where: string, error: unknown) {
   console.error(`[payments] ${where}:`, error);
 }
 
-// Numeric de Postgres llega como string en PostgREST — se normaliza a number.
-function normalize(row: Record<string, unknown>): PaymentRow {
-  const toNum = (v: unknown) =>
-    v === null || v === undefined ? null : Number(v);
+function fail<T>(where: string, error: unknown): Result<T, RepoError> {
+  if (pgErrorCode(error) === UNIQUE_VIOLATION)
+    return { ok: false, error: "duplicate_reference" };
+  logDbError(where, error);
+  return { ok: false, error: "db_error" };
+}
+
+const iso = (d: Date | null) => (d ? d.toISOString() : null);
+const num = (v: string | null) => (v === null ? null : Number(v));
+
+/** Fila de Drizzle → la forma de siempre (numeric llega como string). */
+export function toPaymentRow(r: PaymentSelect): PaymentRow {
   return {
-    ...(row as unknown as PaymentRow),
-    amount_usd: Number(row.amount_usd),
-    amount_paid: toNum(row.amount_paid),
-    exchange_rate: toNum(row.exchange_rate),
+    id: r.id,
+    created_at: r.createdAt.toISOString(),
+    updated_at: r.updatedAt.toISOString(),
+    purpose: r.purpose as PaymentPurpose,
+    project_slug: r.projectSlug,
+    frequency: r.frequency as PaymentFrequency,
+    amount_usd: Number(r.amountUsd),
+    amount_paid: num(r.amountPaid),
+    currency: r.currency as PaymentCurrency,
+    exchange_rate: num(r.exchangeRate),
+    method: r.method as PaymentMethodId,
+    status: r.status as PaymentStatus,
+    donor_name: r.donorName,
+    donor_email: r.donorEmail,
+    reference: r.reference,
+    paid_at: r.paidAt,
+    receipt_path: r.receiptPath,
+    provider_order_id: r.providerOrderId,
+    provider_capture_id: r.providerCaptureId,
+    provider_subscription_id: r.providerSubscriptionId,
+    confirmed_at: iso(r.confirmedAt),
+    confirmed_by: r.confirmedBy,
+    notes: r.notes,
   };
+}
+
+const numStr = (v: number | null | undefined) =>
+  v === undefined ? undefined : v === null ? null : String(v);
+const toDate = (v: string | null | undefined) =>
+  v === undefined ? undefined : v === null ? null : new Date(v);
+
+/** La forma de siempre → columnas de Drizzle. Las claves ausentes no se tocan. */
+export function toPaymentColumns(p: PaymentPatch): Partial<PaymentInsert> {
+  const out: Partial<PaymentInsert> = {
+    purpose: p.purpose,
+    projectSlug: p.project_slug,
+    frequency: p.frequency,
+    amountUsd: numStr(p.amount_usd) ?? undefined,
+    amountPaid: numStr(p.amount_paid),
+    currency: p.currency,
+    exchangeRate: numStr(p.exchange_rate),
+    method: p.method,
+    status: p.status,
+    donorName: p.donor_name,
+    donorEmail: p.donor_email,
+    reference: p.reference,
+    paidAt: p.paid_at,
+    receiptPath: p.receipt_path,
+    providerOrderId: p.provider_order_id,
+    providerCaptureId: p.provider_capture_id,
+    providerSubscriptionId: p.provider_subscription_id,
+    confirmedAt: toDate(p.confirmed_at),
+    confirmedBy: p.confirmed_by,
+    notes: p.notes,
+  };
+  for (const k of Object.keys(out) as (keyof PaymentInsert)[])
+    if (out[k] === undefined) delete out[k];
+  return out;
 }
 
 export async function insertPayment(
   payment: NewPayment,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .insert(payment)
-    .select()
-    .single();
-  if (error) {
-    if (error.code === UNIQUE_VIOLATION)
-      return { ok: false, error: "duplicate_reference" };
-    logDbError("insertPayment", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .insert(payments)
+      .values(toPaymentColumns(payment) as PaymentInsert)
+      .returning();
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail("insertPayment", error);
   }
-  return { ok: true, data: normalize(data) };
+}
+
+async function getOneBy(
+  where: SQL | undefined,
+  label: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db().select().from(payments).where(where).limit(1);
+    if (!row) return { ok: false, error: "not_found" };
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail(label, error);
+  }
 }
 
 export async function getPayment(
   id: string,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .select()
-    .eq("id", id)
-    .maybeSingle();
-  if (error) {
-    logDbError("getPayment", error);
-    return { ok: false, error: "db_error" };
-  }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: normalize(data) };
+  return getOneBy(eq(payments.id, id), "getPayment");
 }
 
 export async function getPaymentByOrderId(
   orderId: string,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  return getOneBy(eq(payments.providerOrderId, orderId), "getPaymentByOrderId");
+}
 
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .select()
-    .eq("provider_order_id", orderId)
-    .maybeSingle();
-  if (error) {
-    logDbError("getPaymentByOrderId", error);
-    return { ok: false, error: "db_error" };
-  }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: normalize(data) };
+export async function getPaymentByCaptureId(
+  captureId: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  return getOneBy(
+    eq(payments.providerCaptureId, captureId),
+    "getPaymentByCaptureId",
+  );
 }
 
 export async function updatePayment(
   id: string,
-  patch: Partial<Omit<PaymentRow, "id" | "created_at" | "updated_at">>,
+  patch: PaymentPatch,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .update(patch)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-  if (error) {
-    if (error.code === UNIQUE_VIOLATION)
-      return { ok: false, error: "duplicate_reference" };
-    logDbError("updatePayment", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .update(payments)
+      .set(toPaymentColumns(patch))
+      .where(eq(payments.id, id))
+      .returning();
+    if (!row) return { ok: false, error: "not_found" };
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail("updatePayment", error);
   }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: normalize(data) };
 }
 
 /**
@@ -175,20 +249,24 @@ export async function updatePayment(
  * "Cancelados" con una fila por intento. Devuelve false si no borró nada.
  */
 export async function deleteUnsentPayment(id: string): Promise<boolean> {
-  if (!isSupabaseConfigured()) return false;
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .delete()
-    .eq("id", id)
-    .eq("status", "pending")
-    .is("provider_order_id", null)
-    .is("provider_subscription_id", null)
-    .select("id");
-  if (error) {
+  if (!isDbConfigured()) return false;
+  try {
+    const rows = await db()
+      .delete(payments)
+      .where(
+        and(
+          eq(payments.id, id),
+          eq(payments.status, "pending"),
+          isNull(payments.providerOrderId),
+          isNull(payments.providerSubscriptionId),
+        ),
+      )
+      .returning({ id: payments.id });
+    return rows.length > 0;
+  } catch (error) {
     logDbError("deleteUnsentPayment", error);
     return false;
   }
-  return data.length > 0;
 }
 
 /**
@@ -208,26 +286,22 @@ export async function transitionPayment(
   > = {},
   from: PaymentStatus[] = ["pending"],
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
 
-  const patch: Record<string, unknown> = { status: to, ...extra };
+  const patch: PaymentPatch = { status: to, ...extra };
   if (to === "confirmed") patch.confirmed_at = new Date().toISOString();
 
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .update(patch)
-    .eq("id", id)
-    .in("status", from)
-    .select()
-    .maybeSingle();
-  if (error) {
-    if (error.code === UNIQUE_VIOLATION)
-      return { ok: false, error: "duplicate_reference" };
-    logDbError("transitionPayment", error);
-    return { ok: false, error: "db_error" };
+  try {
+    const [row] = await db()
+      .update(payments)
+      .set(toPaymentColumns(patch))
+      .where(and(eq(payments.id, id), inArray(payments.status, from)))
+      .returning();
+    if (!row) return { ok: false, error: "invalid_state" };
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail("transitionPayment", error);
   }
-  if (!data) return { ok: false, error: "invalid_state" };
-  return { ok: true, data: normalize(data) };
 }
 
 export interface ListPaymentsFilter {
@@ -248,137 +322,131 @@ export interface PaymentsPage {
   total: number;
 }
 
-const RANGE_NOT_SATISFIABLE = "PGRST103";
-
-/** Total de filas de un filtro, sin traerlas. `null` si la consulta falla. */
-async function countPayments(
-  filter: ListPaymentsFilter,
-): Promise<number | null> {
-  let query = supabaseAdmin()
-    .from("payments")
-    .select("id", { count: "exact", head: true });
-  if (filter.status) query = query.eq("status", filter.status);
-  if (filter.method) query = query.eq("method", filter.method);
-  if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
-  const { count, error } = await query;
-  if (error) {
-    logDbError("countPayments", error);
-    return null;
-  }
-  return count ?? 0;
+function filterWhere(filter: ListPaymentsFilter): SQL | undefined {
+  return and(
+    filter.status ? eq(payments.status, filter.status) : undefined,
+    filter.method ? eq(payments.method, filter.method) : undefined,
+    filter.excludeMethod
+      ? ne(payments.method, filter.excludeMethod)
+      : undefined,
+  );
 }
 
 export async function listPayments(
   filter: ListPaymentsFilter = {},
 ): Promise<Result<PaymentsPage, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
 
   const pageSize = filter.pageSize ?? PAYMENTS_PAGE_SIZE;
-  const from = Math.max(0, filter.page ?? 0) * pageSize;
-  // El total (`count`) deja al panel decir "51–100 de 232": antes cortaba en
-  // 200 filas sin avisar y el historial más viejo quedaba invisible.
-  let query = supabaseAdmin()
-    .from("payments")
-    .select("*", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .range(from, from + pageSize - 1);
-  if (filter.status) query = query.eq("status", filter.status);
-  if (filter.method) query = query.eq("method", filter.method);
-  if (filter.excludeMethod) query = query.neq("method", filter.excludeMethod);
-
-  const { data, error, count } = await query;
-  // PGRST103: la página pedida queda después de la última (ej. se confirmó el
-  // único pendiente de la última página). No es un error de conexión: se
-  // devuelve vacía con el total, para que el panel lo diga.
-  if (error?.code === RANGE_NOT_SATISFIABLE) {
-    const total = await countPayments(filter);
-    if (total !== null) return { ok: true, data: { rows: [], total } };
+  const offset = Math.max(0, filter.page ?? 0) * pageSize;
+  const where = filterWhere(filter);
+  // El total deja al panel decir "51–100 de 232". Una página después de la
+  // última (ej. se confirmó el único pendiente) sale vacía con su total.
+  try {
+    const [rows, [{ total }]] = await Promise.all([
+      db()
+        .select()
+        .from(payments)
+        .where(where)
+        .orderBy(desc(payments.createdAt), desc(payments.id))
+        .limit(pageSize)
+        .offset(offset),
+      db().select({ total: count() }).from(payments).where(where),
+    ]);
+    return { ok: true, data: { rows: rows.map(toPaymentRow), total } };
+  } catch (error) {
+    return fail("listPayments", error);
   }
-  if (error) {
-    logDbError("listPayments", error);
-    return { ok: false, error: "db_error" };
-  }
-  return {
-    ok: true,
-    data: { rows: data.map(normalize), total: count ?? data.length },
-  };
 }
 
 /**
  * Pagos pendientes (manuales, o checkouts de una pasarela sin completar) de un
- * mismo correo en la última hora — freno básico contra spam del formulario público (no hay Redis para un rate limit
- * por IP). Si falla la consulta se devuelve 0: no se bloquea a un donante
- * real por un error de infraestructura.
+ * mismo correo en la última hora — freno básico contra spam del formulario
+ * público, además del rate limit por IP. Si falla la consulta se devuelve 0:
+ * no se bloquea a un donante real por un error de infraestructura.
  */
 export async function countRecentPendingByEmail(
   email: string,
   kind: "manual" | "paypal" | "binance" = "manual",
 ): Promise<number> {
-  if (!isSupabaseConfigured()) return 0;
-  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const base = supabaseAdmin()
-    .from("payments")
-    .select("id", { count: "exact", head: true })
-    .eq("donor_email", email.toLowerCase())
-    .eq("status", "pending")
-    .gte("created_at", since);
+  if (!isDbConfigured()) return 0;
+  const since = new Date(Date.now() - 60 * 60 * 1000);
   // Manual = con referencia reportada; pasarela = sin ella (PayPal siempre,
   // Binance cuando va por Binance Pay Merchant).
-  const { count, error } = await (kind === "manual"
-    ? base.not("reference", "is", null)
-    : base.eq("method", kind).is("reference", null));
-  if (error) {
+  const byKind =
+    kind === "manual"
+      ? isNotNull(payments.reference)
+      : and(eq(payments.method, kind), isNull(payments.reference));
+  try {
+    const [{ n }] = await db()
+      .select({ n: count() })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.donorEmail, email.toLowerCase()),
+          eq(payments.status, "pending"),
+          gte(payments.createdAt, since),
+          byKind,
+        ),
+      );
+    return n;
+  } catch (error) {
     logDbError("countRecentPendingByEmail", error);
     return 0;
   }
-  return count ?? 0;
 }
 
-/** Recaudado confirmado por proyecto, en USD. Sin Supabase → mapa vacío. */
+/** Recaudado confirmado por proyecto, en USD. Sin base → mapa vacío. */
 export async function getRaisedBySlug(): Promise<Map<string, number>> {
   const raised = new Map<string, number>();
-  if (!isSupabaseConfigured()) return raised;
-
-  const { data, error } = await supabaseAdmin()
-    .from("project_raised")
-    .select("project_slug, raised_usd");
-  if (error) {
+  if (!isDbConfigured()) return raised;
+  try {
+    const rows = await db()
+      .select({
+        slug: projectRaised.projectSlug,
+        usd: projectRaised.raisedUsd,
+      })
+      .from(projectRaised);
+    for (const row of rows) if (row.slug) raised.set(row.slug, Number(row.usd));
+  } catch (error) {
     logDbError("getRaisedBySlug", error);
-    return raised;
   }
-  for (const row of data)
-    raised.set(row.project_slug as string, Number(row.raised_usd));
   return raised;
 }
 
 export async function getSetting<T>(key: string): Promise<T | null> {
-  if (!isSupabaseConfigured()) return null;
-  const { data, error } = await supabaseAdmin()
-    .from("settings")
-    .select("value")
-    .eq("key", key)
-    .maybeSingle();
-  if (error) {
+  if (!isDbConfigured()) return null;
+  try {
+    const [row] = await db()
+      .select({ value: settings.value })
+      .from(settings)
+      .where(eq(settings.key, key))
+      .limit(1);
+    return (row?.value as T) ?? null;
+  } catch (error) {
     logDbError("getSetting", error);
     return null;
   }
-  return (data?.value as T) ?? null;
 }
 
 export async function setSetting(
   key: string,
   value: unknown,
 ): Promise<Result<null, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-  const { error } = await supabaseAdmin()
-    .from("settings")
-    .upsert({ key, value, updated_at: new Date().toISOString() });
-  if (error) {
-    logDbError("setSetting", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  const updatedAt = new Date();
+  try {
+    await db()
+      .insert(settings)
+      .values({ key, value, updatedAt })
+      .onConflictDoUpdate({
+        target: settings.key,
+        set: { value, updatedAt },
+      });
+    return { ok: true, data: null };
+  } catch (error) {
+    return fail("setSetting", error);
   }
-  return { ok: true, data: null };
 }
 
 export interface PaymentStats {
@@ -389,50 +457,31 @@ export interface PaymentStats {
 
 /**
  * KPIs del panel de pagos: mes calendario en hora de Venezuela, sumado en la
- * base (función `payment_month_stats`, migración 0003).
+ * base (función `payment_month_stats`, `drizzle/0001_*`).
  */
 export async function getPaymentStats(): Promise<
   Result<PaymentStats, RepoError>
 > {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .rpc("payment_month_stats")
-    .single<{
-      pending_count: number;
-      confirmed_usd: number | string;
-      confirmed_count: number;
-    }>();
-  if (error || !data) {
-    logDbError("getPaymentStats", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const result = await db().execute<{
+      pending_count: string;
+      confirmed_usd: string;
+      confirmed_count: string;
+    }>(sql`select * from public.payment_month_stats()`);
+    const data = result.rows[0];
+    if (!data) return { ok: false, error: "db_error" };
+    return {
+      ok: true,
+      data: {
+        pendingCount: Number(data.pending_count),
+        confirmedThisMonthUsd: Number(data.confirmed_usd),
+        confirmedThisMonthCount: Number(data.confirmed_count),
+      },
+    };
+  } catch (error) {
+    return fail("getPaymentStats", error);
   }
-  return {
-    ok: true,
-    data: {
-      pendingCount: Number(data.pending_count),
-      confirmedThisMonthUsd: Number(data.confirmed_usd),
-      confirmedThisMonthCount: Number(data.confirmed_count),
-    },
-  };
-}
-
-export async function getPaymentByCaptureId(
-  captureId: string,
-): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .select()
-    .eq("provider_capture_id", captureId)
-    .maybeSingle();
-  if (error) {
-    logDbError("getPaymentByCaptureId", error);
-    return { ok: false, error: "db_error" };
-  }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: normalize(data) };
 }
 
 // ─── Suscripciones ──────────────────────────────────────────────────────
@@ -441,62 +490,54 @@ export async function getPaymentByCaptureId(
 export async function getSubscriptionSignup(
   subscriptionId: string,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .select()
-    .eq("provider_subscription_id", subscriptionId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (error) {
-    logDbError("getSubscriptionSignup", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .select()
+      .from(payments)
+      .where(eq(payments.providerSubscriptionId, subscriptionId))
+      .orderBy(asc(payments.createdAt))
+      .limit(1);
+    if (!row) return { ok: false, error: "not_found" };
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail("getSubscriptionSignup", error);
   }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: normalize(data) };
 }
 
 /**
  * Asocia el primer cobro de una suscripción a su fila original — solo si esa
  * fila todavía no tiene cobro asociado (condición dentro del UPDATE, así el
- * retorno y el webhook no se pisan). La confirma si seguía pendiente.
+ * retorno y el webhook no se pisan). La confirma si seguía pendiente, y
+ * completa `confirmed_at` en el mismo UPDATE si no lo tenía.
  */
 export async function attachFirstSale(
   paymentId: string,
   saleId: string,
   amountPaid: number,
 ): Promise<Result<PaymentRow, RepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("payments")
-    .update({
-      provider_capture_id: saleId,
-      amount_paid: amountPaid,
-      status: "confirmed",
-      confirmed_by: "paypal",
-    })
-    .eq("id", paymentId)
-    .is("provider_capture_id", null)
-    .in("status", ["pending", "confirmed", "cancelled"])
-    .select()
-    .maybeSingle();
-  if (error) {
-    if (error.code === UNIQUE_VIOLATION)
-      return { ok: false, error: "duplicate_reference" };
-    logDbError("attachFirstSale", error);
-    return { ok: false, error: "db_error" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .update(payments)
+      .set({
+        providerCaptureId: saleId,
+        amountPaid: String(amountPaid),
+        status: "confirmed",
+        confirmedBy: "paypal",
+        confirmedAt: sql`coalesce(${payments.confirmedAt}, now())`,
+      })
+      .where(
+        and(
+          eq(payments.id, paymentId),
+          isNull(payments.providerCaptureId),
+          inArray(payments.status, ["pending", "confirmed", "cancelled"]),
+        ),
+      )
+      .returning();
+    if (!row) return { ok: false, error: "invalid_state" };
+    return { ok: true, data: toPaymentRow(row) };
+  } catch (error) {
+    return fail("attachFirstSale", error);
   }
-  if (!data) return { ok: false, error: "invalid_state" };
-  const row = normalize(data);
-  // El trigger no toca confirmed_at: se completa si recién se confirmó.
-  if (!row.confirmed_at) {
-    const stamped = await updatePayment(row.id, {
-      confirmed_at: new Date().toISOString(),
-    });
-    if (stamped.ok) return stamped;
-  }
-  return { ok: true, data: row };
 }

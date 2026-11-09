@@ -800,7 +800,8 @@ export function DashboardPayments({
 
         {loadError ? (
           <Alert severity="error" role="alert">
-            No se pudieron cargar los pagos. Revisa la conexión con Supabase.
+            No se pudieron cargar los pagos. Revisa la conexión con la base de
+            datos.
           </Alert>
         ) : rows.length === 0 ? (
           <EmptyState
