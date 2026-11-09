@@ -102,9 +102,9 @@ En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS
 decisions/, GIT_STATE — más `phases/` y `deploy/`.
 Local: `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
 plans/ (respaldo: `bun run context:backup`). `.env.local` se baja de Vercel, no a mano.
-Los slots del pool (`..\maranatha-wt\wtN`) traen los `.env*`, pero **no** `context/` local:
-se lee en la carpeta principal (`C:\Users\Admin\Documents\Work\maranatha`). Sin permiso de escritura ahí, el
-subagente los devuelve en su informe.
+Los worktrees (slots del pool, `.claude/worktrees/`) traen los `.env*`, pero **no** `context/`
+local: vive en la carpeta principal (primera línea de `git worktree list`); sin permiso de
+escritura ahí, devuelve los cambios de `context/` en tu informe.
 
 ### Puertas de calidad
 
