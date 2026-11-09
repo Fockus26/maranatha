@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# kit-db — one database per project on César's central Postgres. Installed by bootstrap.sh in
+# /usr/local/bin. Runs as root on the VPS; from the PC: `ssh kit-vps kit-db <command>`.
+#
+#   kit-db create <name>            role + database <name>, random password; prints the URLs
+#   kit-db url <name> [--direct]    prints DATABASE_URL (PgBouncer) or the direct URL
+#                                   (for migrations, through `ssh -N -L 5433:127.0.0.1:5432 kit-vps`)
+#   kit-db list                     databases with size
+#   kit-db status                   per database: last dump; and the last backup failures
+#   kit-db rotate <name>            new password (the old one stops working at once)
+#   kit-db backup <name>|--all      pg_dump -Fc to /var/backups/kit-pg (+ rclone if configured)
+#   kit-db restore <name> <file>    pg_restore a dump INTO the existing database (clean first)
+#   kit-db drop <name> --yes        final backup, then drops database and role
+#
+# Why the passwords live here (/etc/kit-vps/dbs, root only) and not in the kit or on the PC:
+# the agent never needs to know a password, only to pipe `kit-db url` into an env file or
+# `vercel env add`. César authenticates once with his SSH key; nothing secret is typed.
+set -euo pipefail
+
+STATE=/etc/kit-vps
+BACKUPS=/var/backups/kit-pg
+LOG=/var/log/kit-db-backup.log
+[ "$(id -u)" = 0 ] || { echo "kit-db runs as root." >&2; exit 1; }
+[ -f "$STATE/vps.env" ] || { echo "No $STATE/vps.env: run bootstrap.sh first." >&2; exit 1; }
+. "$STATE/vps.env"
+[ -f "$STATE/backup.env" ] && . "$STATE/backup.env"
+
+psql_su() { su postgres -s /bin/sh -c "psql -v ON_ERROR_STOP=1 -qAtX $*"; }
+
+# Lowercase, starts with a letter, letters/digits/underscore: a valid unquoted identifier,
+# so it can go into SQL without quoting games. Not postgres, not the auth role.
+check_name() {
+  [[ "${1:-}" =~ ^[a-z][a-z0-9_]{1,40}$ ]] || { echo "Name: lowercase letters, digits, _ (e.g. melao, world_flags)." >&2; exit 1; }
+  case "$1" in postgres|pgbouncer_auth|template0|template1) echo "Reserved name: $1" >&2; exit 1 ;; esac
+}
+exists() { [ "$(psql_su "-d postgres -c \"SELECT 1 FROM pg_database WHERE datname = '$1'\"")" = 1 ]; }
+pw_of() { . "$STATE/dbs/$1.env"; printf '%s' "$PASSWORD"; }
+
+print_url() { # name [--direct]
+  local pw; pw=$(pw_of "$1")
+  if [ "${2:-}" = --direct ]; then
+    printf 'postgresql://%s:%s@127.0.0.1:5433/%s\n' "$1" "$pw" "$1"
+  else
+    printf 'postgresql://%s:%s@%s:%s/%s?sslmode=%s\n' "$1" "$pw" "$KIT_VPS_HOST" "$KIT_VPS_PORT" "$1" "$KIT_VPS_SSLMODE"
+  fi
+}
+
+# Prints the dump's path on stdout. Returns 1 if the dump or the off-VPS copy failed, with a
+# FAIL line on stderr: the caller decides. Why not let `set -e` stop it: one failed upload
+# ended the whole nightly run, and the databases after it got no backup at all (Docker test,
+# 2026-11-04). A dump goes to .partial first, so a failed one is never taken for a good one.
+backup_one() {
+  local f="$BACKUPS/$1-$(date +%Y%m%d-%H%M%S).dump"
+  if ! su postgres -s /bin/sh -c "pg_dump -Fc -d $1" > "$f.partial"; then
+    rm -f "$f.partial"
+    echo "FAIL $(date -Is) $1: pg_dump" >&2
+    return 1
+  fi
+  mv "$f.partial" "$f"
+  chmod 600 "$f"
+  echo "$f"
+  [ -n "${KIT_BACKUP_REMOTE:-}" ] || return 0
+  if ! command -v rclone >/dev/null; then
+    echo "FAIL $(date -Is) $1: KIT_BACKUP_REMOTE is set but rclone is not installed" >&2
+    return 1
+  fi
+  if ! rclone copy -q "$f" "$KIT_BACKUP_REMOTE/$1/"; then
+    echo "FAIL $(date -Is) $1: upload to $KIT_BACKUP_REMOTE (the dump is on this disk)" >&2
+    return 1
+  fi
+}
+
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  create)
+    check_name "${1:-}"; name="$1"
+    exists "$name" && { echo "$name already exists: kit-db url $name" >&2; exit 1; }
+    pw=$(openssl rand -hex 24)   # hex: nothing to escape in a URL or in SQL
+    # CREATE DATABASE cannot go in a transaction, so a failure used to leave the role behind
+    # and every retry died on "role already exists" (Docker test, 2026-11-04). Now a retry
+    # reuses that role with a new password. template0: a session open on template1 cannot
+    # block it, and nobody edits template1 here.
+    psql_su "-d postgres" <<SQL
+DO \$\$ BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$name') THEN
+    CREATE ROLE $name LOGIN;
+  END IF;
+END \$\$;
+ALTER ROLE $name PASSWORD '$pw';
+CREATE DATABASE $name OWNER $name TEMPLATE template0;
+REVOKE CONNECT ON DATABASE $name FROM PUBLIC;
+GRANT CONNECT ON DATABASE $name TO $name;
+SQL
+    # Inside it: only the owner uses schema public (Postgres 15+ already denies CREATE to PUBLIC).
+    psql_su "-d $name -c \"REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT ALL ON SCHEMA public TO $name;\""
+    printf 'PASSWORD=%s\n' "$pw" > "$STATE/dbs/$name.env"; chmod 600 "$STATE/dbs/$name.env"
+    echo "Created $name. Its URLs: kit-db url $name   ·   kit-db url $name --direct"
+    ;;
+  url)
+    check_name "${1:-}"; [ -f "$STATE/dbs/$1.env" ] || { echo "kit-db did not create $1." >&2; exit 1; }
+    print_url "$1" "${2:-}"
+    ;;
+  list)
+    psql_su "-d postgres -F ' ' -c \"SELECT datname, pg_size_pretty(pg_database_size(datname)) FROM pg_database WHERE datname NOT IN ('postgres','template0','template1') ORDER BY 1\""
+    ;;
+  status)
+    # A failed backup only reaches a log nobody reads: this is the one place to look.
+    for db in $(psql_su "-d postgres -c \"SELECT datname FROM pg_database WHERE datname NOT IN ('postgres','template0','template1') ORDER BY 1\""); do
+      last=$(ls -t "$BACKUPS/$db"-*.dump 2>/dev/null | head -1 || true)
+      echo "$db: ${last:+$(basename "$last")}${last:-NO BACKUP}" | sed "s#$BACKUPS/.*##"
+    done
+    echo "Off-VPS: ${KIT_BACKUP_REMOTE:-NOT CONFIGURED}"
+    echo "Last failures:"; grep '^FAIL' "$LOG" 2>/dev/null | tail -5 || true
+    ;;
+  rotate)
+    check_name "${1:-}"; exists "$1" || { echo "No database $1." >&2; exit 1; }
+    pw=$(openssl rand -hex 24)
+    psql_su "-d postgres -c \"ALTER ROLE $1 PASSWORD '$pw'\""
+    printf 'PASSWORD=%s\n' "$pw" > "$STATE/dbs/$1.env"
+    echo "New password for $1. Update the env file (bun run vps:env $1) and Vercel (kit-db url $1)."
+    ;;
+  backup)
+    mkdir -p "$BACKUPS"
+    if [ "${1:-}" = --all ]; then
+      failed=0
+      for db in $(psql_su "-d postgres -c \"SELECT datname FROM pg_database WHERE datname NOT IN ('postgres','template0','template1')\""); do
+        backup_one "$db" || failed=1
+      done
+      find "$BACKUPS" -name '*.dump' -mtime +"${KIT_BACKUP_DAYS:-14}" -delete
+      find "$BACKUPS" -name '*.partial' -mtime +1 -delete
+      exit "$failed"
+    else
+      check_name "${1:-}"; exists "$1" || { echo "No database $1." >&2; exit 1; }
+      backup_one "$1"
+    fi
+    ;;
+  restore)
+    check_name "${1:-}"; file="${2:-}"
+    exists "$1" || { echo "No database $1: kit-db create $1 first." >&2; exit 1; }
+    [ -f "$file" ] || { echo "No dump file: $file" >&2; exit 1; }
+    # As the project's role, so every restored object is owned by it and not by postgres.
+    PGPASSWORD=$(pw_of "$1") pg_restore -h 127.0.0.1 -U "$1" -d "$1" --clean --if-exists --no-owner --no-privileges "$file"
+    echo "Restored $file into $1."
+    ;;
+  drop)
+    check_name "${1:-}"; [ "${2:-}" = --yes ] || { echo "Irreversible: kit-db drop $1 --yes (a final backup is made first)." >&2; exit 1; }
+    exists "$1" || { echo "No database $1." >&2; exit 1; }
+    # Assigned apart: inside `echo "$(…)"` a failed backup did not stop the drop.
+    final=$(backup_one "$1") || { echo "Final backup failed: nothing dropped." >&2; exit 1; }
+    echo "Final backup: $final"
+    psql_su "-d postgres -c \"DROP DATABASE $1 WITH (FORCE)\""
+    psql_su "-d postgres -c \"DROP ROLE $1\""
+    rm -f "$STATE/dbs/$1.env"
+    echo "Dropped $1."
+    ;;
+  *)
+    sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+    exit 1
+    ;;
+esac

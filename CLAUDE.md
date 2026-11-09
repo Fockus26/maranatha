@@ -37,6 +37,9 @@ grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
 Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
 Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
+**El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
+**Tech refs:** supabase, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
+
 ---
 
 ## Stack
@@ -49,29 +52,23 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
 - Deploy: Vercel = pruebas (rama `vercel`) · VPS Hetzner con Docker = producción (rama `vps`)
 
 ```bash
-bun install
-bun run build
-bun run typecheck             # next typegen && tsc --noEmit
-bun run lint                  # Biome (hoy falla por formato heredado: ver CURRENT_PHASE)
-bun run test:related         # mientras trabajas: solo los tests afectados
-bun run test                 # antes del PR: toda la suite
-bun run shots                # capturas para el PR (node + Playwright)
-bun run shots:publish        # las sube a la rama pr-shots e imprime el markdown
+bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
+bun run test:related         # mientras trabajas; `bun run test` (toda la suite) antes del PR
+bun run shots                # capturas del PR; luego `shots:publish` → .pr-shots/README.md
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
 **Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
 `functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
 
-**QA contra base local:** `bun run qa:local -- --port <p>` levanta Supabase en Docker
-(migraciones + seed), crea las cuentas de `.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`)
-y arranca el servidor apuntando a lo local, con `ADMIN_EMAILS` = esas cuentas. Nunca contra la base real.
+**QA:** `bun run qa:local -- --port <p>` — Supabase en Docker con las cuentas de
+`.env.test.local` (las escribes tú; nunca le pidas a César iniciar sesión para QA;
+`ADMIN_EMAILS` = esas cuentas); nunca la base real. Playwright con `node` (Bun se cuelga en
+Windows), en `.qa/`. **QA: al final** (sin `wave-qa` en las olas).
 
-**Scripts con Playwright se corren con `node`, no con `bun`:** en Windows, Playwright bajo
-Bun se cuelga al lanzar Chromium.
-
-**Documentación:** Context7 antes de usar la API de cualquier librería. Para Next, además,
-`node_modules/next/dist/docs/` (ver `AGENTS.md`).
+**Docs:** Context7 antes de la API de una librería (Next: también `node_modules/next/dist/docs/`,
+ver `AGENTS.md`). **Modelo por tarea:** `Modelo recomendado: <modelo · esfuerzo>` antes de cada
+una (kit `TOKEN-ECONOMY.md` §12; riesgo → `opus`), ambos pasados a `Agent(...)`.
 
 ---
 
@@ -88,6 +85,8 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 
 - **Modo `pr`:** en tu rama puedes commitear y empujar sin pedir permiso — la aprobación de
   César es la revisión del PR. **Nunca** push a `main`, nunca `gh pr merge`, nunca auto-merge.
+- **Sesión en la nube** (`CLAUDE_CODE_REMOTE=true`): skill `cloud-session` al inicio y al cierre;
+  anula la regla de arriba (cada unidad termina mergeada: PR + CI verde).
 - **Versión:** nadie toca `version` ni `CHANGELOG.md`. Cambio visible → `.changeset/<desc>.md`
   (`git-flow` §2.1.3). El PR `chore(release): versión` lo abre la Action y lo mergea César.
 - **Ramas de deploy** `vercel` y `vps`: nadie commitea en ellas; César las avanza
@@ -100,20 +99,16 @@ En git: `context/` fijo — PROJECT_CONTEXT, DESIGN_RULES, COLORS, DESIGN_TOKENS
 decisions/, GIT_STATE — más `phases/` y `deploy/`.
 Local: `context/` CURRENT_PHASE, CONTENT_CHECKLIST, KIT_FEEDBACK, `*_INVENTORY`, PHASE_LOG/,
 plans/ (respaldo: `bun run context:backup`). `.env.local` se baja de Vercel, no a mano.
-Los slots del pool (`..\maranatha-wt\wtN`) traen los `.env*`, pero **no** `context/` local:
-se lee en la carpeta principal (`C:\Users\Admin\Documents\Work\maranatha`). Sin permiso de escritura ahí, el
-subagente los devuelve en su informe.
+Los worktrees (slots del pool, `.claude/worktrees/`) traen los `.env*`, pero **no** `context/`
+local: vive en la carpeta principal (primera línea de `git worktree list`); sin permiso de
+escritura ahí, devuelve los cambios de `context/` en tu informe.
 
 ### Puertas de calidad
 
-| Skill / agente | Cuándo |
-|---|---|
-| `a11y` | Siempre que se toque UI, antes de pedir revisión |
-| `seo` | Cierre de sección con contenido · cierre de página |
-| `git-flow` | Al abrir y al cerrar cada unidad |
-| `orchestrate` | Llega una lista, o una fase se hace en olas (una ola por sesión) |
-| `wave-qa` | Lo lanza `orchestrate` con la ola mergeada, antes de cerrarla |
-| `design-qa` / `functional-qa` | Al cerrar una página / un flujo completo |
+`a11y` siempre que se toque UI · `seo` al cerrar una sección o página con contenido ·
+`git-flow` al abrir y cerrar cada unidad · `orchestrate` para una lista o una fase en olas ·
+`wave-qa` tras una ola con flujos de riesgo · `functional-qa` al cerrar un flujo de riesgo y en
+el QA de versión · `design-qa` solo en el QA de versión (fase 09 / PR de release).
 
 ---
 

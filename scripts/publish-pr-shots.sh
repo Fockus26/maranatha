@@ -30,32 +30,45 @@ if [ ${#files[@]} -eq 0 ]; then
   exit 1
 fi
 
-TMP="$(mktemp -d)"
+# The temporary worktree goes inside .git, not in mktemp's /tmp: with MSYS_NO_PATHCONV=1,
+# Windows git could not resolve /tmp (melao).
+TMP="$(git rev-parse --path-format=absolute --git-common-dir)/pr-shots-tmp.$$"
 cleanup() { git worktree remove --force "$TMP" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-PARENT=""
-if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
-  git fetch -q origin "$BRANCH"
-  PARENT="$(git rev-parse FETCH_HEAD)"
-  git worktree add -q --detach "$TMP" "$PARENT"
-else
-  # First time: an orphan commit (no history), starting from an empty tree.
-  git worktree add -q --detach "$TMP" HEAD
-  git -C "$TMP" rm -rq --cached . >/dev/null
-fi
+# Two units publishing at once collided on the branch (melao): the push is retried on top of
+# the other one's commit (each unit writes only its own subfolder, so nothing is lost).
+COMMIT=""
+for attempt in 1 2 3 4 5; do
+  PARENT=""
+  if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+    git fetch -q origin "$BRANCH"
+    PARENT="$(git rev-parse FETCH_HEAD)"
+  fi
+  cleanup
+  if [ -n "$PARENT" ]; then
+    git worktree add -q --detach "$TMP" "$PARENT"
+  else
+    # First time: an orphan commit (no history), starting from an empty tree.
+    git worktree add -q --detach "$TMP" HEAD
+    git -C "$TMP" rm -rq --cached --ignore-unmatch . >/dev/null
+  fi
 
-mkdir -p "$TMP/$DEST"
-cp "${files[@]}" "$TMP/$DEST/"
-printf '{ "git": { "deploymentEnabled": false } }\n' > "$TMP/vercel.json"
-git -C "$TMP" add -f "$DEST" vercel.json
-TREE="$(git -C "$TMP" write-tree)"
-if [ -n "$PARENT" ]; then
-  COMMIT="$(git -C "$TMP" commit-tree "$TREE" -p "$PARENT" -m "capturas: $DEST")"
-else
-  COMMIT="$(git -C "$TMP" commit-tree "$TREE" -m "capturas: $DEST")"
-fi
-git push -q origin "$COMMIT:refs/heads/$BRANCH"
+  mkdir -p "$TMP/$DEST"
+  cp "${files[@]}" "$TMP/$DEST/"
+  printf '{ "git": { "deploymentEnabled": false } }\n' > "$TMP/vercel.json"
+  git -C "$TMP" add -f "$DEST" vercel.json
+  TREE="$(git -C "$TMP" write-tree)"
+  if [ -n "$PARENT" ]; then
+    COMMIT="$(git -C "$TMP" commit-tree "$TREE" -p "$PARENT" -m "capturas: $DEST")"
+  else
+    COMMIT="$(git -C "$TMP" commit-tree "$TREE" -m "capturas: $DEST")"
+  fi
+  if git push -q origin "$COMMIT:refs/heads/$BRANCH" 2>/dev/null; then break; fi
+  [ "$attempt" = 5 ] && { echo "Could not push $BRANCH after 5 attempts" >&2; exit 1; }
+  echo "… $BRANCH moved (another publish?); retrying on top of it ($attempt/5)" >&2
+  sleep $((attempt * 2))
+done
 
 # The markdown also goes to $SRC/README.md: with many screenshots, a `tail` on the output
 # cut it off and the PR was left with half.

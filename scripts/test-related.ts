@@ -1,24 +1,30 @@
 /**
- * Tests afectados — corre solo los tests cuyo grafo de imports toca algún archivo cambiado.
+ * Affected tests — runs only the tests whose import graph touches a changed file.
  *
- * Uso (desde la raíz del proyecto):
- *   bun run test:related                         # = bun scripts/test-related.ts; cambios vs. origin/main + sin commitear
+ * Usage (from the project root):
+ *   bun run test:related                         # = bun scripts/test-related.ts; changes vs. origin/main + uncommitted
  *   bun scripts/test-related.ts --base=main
- *   bun scripts/test-related.ts --list           # solo lista, no ejecuta
+ *   bun scripts/test-related.ts --list           # only lists, does not run
+ *   bun scripts/test-related.ts --dir=tests/unit  # only the tests in that folder (repeatable)
  *
- * Cómo decide: por cada archivo de test sigue sus imports (relativos y alias de tsconfig,
- * p. ej. `@/…`) hasta el fondo, y lo elige si alguno de esos archivos cambió. Así, un
- * cambio en logros NO corre el test del tutorial… salvo que el tutorial importe algo de
- * logros, que es justo cuando sí debe correr.
+ * `--dir` replaces the default folders (`tests/`, `src/`). A project with integration tests
+ * that need something running (an emulator, a database) puts it in its `test:related`
+ * script, so they stay out: otherwise a change in package.json runs everything and fails
+ * without the emulator (inversiones-js, `tests/rules` with Firebase).
  *
- * Es para el bucle de trabajo del agente (rápido y con poca salida). **No sustituye a la
- * suite completa**: la corre CI en cada PR. Si cambió algo que no es código importable
- * (lockfile, tsconfig, config del bundler, dependencias o scripts de package.json, el
- * propio runner), corre todo por seguridad. Subir solo la `version` no cuenta.
+ * How it decides: for each test file it follows its imports (relative and tsconfig aliases,
+ * e.g. `@/…`) all the way down, and picks it if any of those files changed. So a change in
+ * achievements does NOT run the tutorial's test… unless the tutorial imports something from
+ * achievements, which is exactly when it should run.
  *
- * Validado sobre World Flags (commits reales): el panel de racha → 0 tests; un arreglo de
- * logros → su test + el del changelog (lo lee con fs); un cambio en `learning-storage.ts`
- * → sync, logros, preferencia de sonido y la guardia del tutorial.
+ * It is for the agent's work loop (fast and with little output). **It does not replace the
+ * full suite**: CI runs that on every PR. If something that is not importable code changed
+ * (lockfile, tsconfig, bundler config, package.json dependencies or scripts, the runner
+ * itself), it runs everything to be safe. Bumping only the `version` does not count.
+ *
+ * Validated on World Flags (real commits): the streak panel → 0 tests; an achievements fix
+ * → its test + the changelog's (which reads it with fs); a change in `learning-storage.ts`
+ * → sync, achievements, sound preference and the tutorial guard.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -31,9 +37,14 @@ const base =
   args.find((a) => a.startsWith("--base="))?.slice(7) ?? "origin/main";
 const listOnly = args.includes("--list");
 
-const TEST_GLOBS = ["tests/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"];
-// Si cambia algo de esto, el grafo no basta: se corre la suite entera.
-// (`package.json` va aparte: subir solo la `version` no es motivo, pasa en casi cada PR.)
+const dirs = args
+  .filter((a) => a.startsWith("--dir="))
+  .map((a) => a.slice(6).replace(/[\\/]+$/, ""));
+const TEST_GLOBS = (dirs.length ? dirs : ["tests", "src"]).map(
+  (d) => `${d}/**/*.test.{ts,tsx}`,
+);
+// If any of this changes, the graph is not enough: the whole suite runs.
+// (`package.json` is handled apart: bumping only the `version` is no reason, it happens in almost every PR.)
 const RUN_ALL_IF_CHANGED = [
   /^bun\.lockb?$/,
   /^tsconfig.*\.json$/,
@@ -64,14 +75,14 @@ const tests = TEST_GLOBS.flatMap((g) => [...new Glob(g).scanSync(ROOT)]).map(
 );
 
 function runAll(reason: string): string[] {
-  console.log(`→ Suite completa (${reason}).`);
+  console.log(`→ Full suite (${reason}).`);
   return tests;
 }
 
 const transpiler = new Bun.Transpiler({ loader: "tsx" });
 const graphCache = new Map<string, Set<string>>();
 
-/** Archivos del proyecto (relativos a ROOT) que `file` importa, directa o indirectamente. */
+/** Project files (relative to ROOT) that `file` imports, directly or indirectly. */
 function dependencies(file: string, seen = new Set<string>()): Set<string> {
   if (seen.has(file)) return seen;
   seen.add(file);
@@ -82,25 +93,25 @@ function dependencies(file: string, seen = new Set<string>()): Set<string> {
   try {
     imports = transpiler.scanImports(readFileSync(abs, "utf8"));
   } catch {
-    return seen; // archivo que el transpilador no entiende: se queda como hoja
+    return seen; // a file the transpiler does not understand: it stays a leaf
   }
 
   for (const { path } of imports) {
     const spec = path.split("?")[0]; // `./CHANGELOG.md?raw` → `./CHANGELOG.md`
     let target: string;
     try {
-      target = Bun.resolveSync(spec, dirname(abs)); // respeta los alias de tsconfig
+      target = Bun.resolveSync(spec, dirname(abs)); // respects tsconfig aliases
     } catch {
       continue;
     }
     const rel = relative(ROOT, target).replaceAll("\\", "/");
-    if (rel.startsWith("..") || rel.includes("node_modules/")) continue; // dependencias externas
+    if (rel.startsWith("..") || rel.includes("node_modules/")) continue; // external dependencies
     dependencies(rel, seen);
   }
   return seen;
 }
 
-/** ¿Cambió en `package.json` algo más que la línea de `version`? */
+/** Did something other than the `version` line change in `package.json`? */
 function packageJsonChangedBeyondVersion(): boolean {
   const diff = [
     sh(["git", "diff", "-U0", `${base}...HEAD`, "--", "package.json"]),
@@ -112,7 +123,7 @@ function packageJsonChangedBeyondVersion(): boolean {
     .some((l) => !/^[+-]\s*"version"\s*:/.test(l));
 }
 
-/** Archivos que un test lee por nombre en vez de importarlos (`readFileSync("CHANGELOG.md")`). */
+/** Files a test reads by name instead of importing them (`readFileSync("CHANGELOG.md")`). */
 function mentionsChangedFile(test: string): boolean {
   const source = readFileSync(resolve(ROOT, test), "utf8");
   return [...changed].some((f) => {
@@ -126,9 +137,9 @@ function selectTests(): string[] {
   const trigger = [...changed].find((f) =>
     RUN_ALL_IF_CHANGED.some((re) => re.test(f)),
   );
-  if (trigger) return runAll(`cambió ${trigger}`);
+  if (trigger) return runAll(`${trigger} changed`);
   if (changed.has("package.json") && packageJsonChangedBeyondVersion()) {
-    return runAll("cambiaron dependencias o scripts en package.json");
+    return runAll("dependencies or scripts changed in package.json");
   }
 
   return tests.filter((test) => {
@@ -146,7 +157,7 @@ const selected = selectTests();
 
 if (tests.length === 0) {
   console.log(
-    "→ El proyecto aún no tiene tests (tests/unit/ ni src/**/*.test.ts).",
+    "→ The project has no tests yet (tests/unit/ or src/**/*.test.ts).",
   );
   process.exit(0);
 }
@@ -154,18 +165,18 @@ if (tests.length === 0) {
 if (selected.length === 0) {
   console.log(
     changed.size === 0
-      ? "→ Sin cambios: no hay tests que correr."
-      : "→ Ningún test depende de lo que cambió.",
+      ? "→ No changes: no tests to run."
+      : "→ No test depends on what changed.",
   );
   process.exit(0);
 }
 
 console.log(
-  `→ ${selected.length}/${tests.length} tests afectados:\n  ${selected.join("\n  ")}`,
+  `→ ${selected.length}/${tests.length} affected tests:\n  ${selected.join("\n  ")}`,
 );
 if (listOnly) process.exit(0);
 
-// `--dots`: un punto por test que pasa y el detalle completo solo de los que fallan.
+// `--dots`: one dot per passing test and the full detail only for the failing ones.
 const run = Bun.spawnSync(
   ["bun", "test", "--dots", ...selected.map((t) => `./${t}`)],
   {
