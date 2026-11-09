@@ -62,9 +62,9 @@ bun run a11y                 # axe-core sobre el sitio corriendo
 `functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
 
 **QA:** `bun run qa:local -- --port <p>` — Supabase en Docker con las cuentas de
-`.env.test.local` (`ADMIN_EMAIL_TEST`/`ADMIN_PASSWORD_TEST`; `ADMIN_EMAILS` = esas cuentas);
-nunca la base real (`--offline`: solo invitado). Scripts de Playwright con `node` (Bun se
-cuelga en Windows), en `.qa/`.
+`.env.test.local` (las escribes tú; nunca le pidas a César iniciar sesión para QA;
+`ADMIN_EMAILS` = esas cuentas); nunca la base real. Playwright con `node` (Bun se cuelga en
+Windows), en `.qa/`. **QA: al final** (sin `wave-qa` en las olas).
 
 **Docs:** Context7 antes de la API de una librería (Next: también `node_modules/next/dist/docs/`,
 ver `AGENTS.md`). **Modelo por tarea:** `Modelo recomendado: <modelo · esfuerzo>` antes de cada
