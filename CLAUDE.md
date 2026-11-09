@@ -38,7 +38,7 @@ Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls con
 Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
 **El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
-**Tech refs:** supabase → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
+**Tech refs:** supabase, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
 
 ---
 
@@ -52,14 +52,9 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
 - Deploy: Vercel = pruebas (rama `vercel`) · VPS Hetzner con Docker = producción (rama `vps`)
 
 ```bash
-bun install
-bun run build
-bun run typecheck             # next typegen && tsc --noEmit
-bun run lint                  # Biome (hoy falla por formato heredado: ver CURRENT_PHASE)
-bun run test:related         # mientras trabajas: solo los tests afectados
-bun run test                 # antes del PR: toda la suite
-bun run shots                # capturas para el PR (node + Playwright)
-bun run shots:publish        # las sube a la rama pr-shots e imprime el markdown
+bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
+bun run test:related         # mientras trabajas; `bun run test` (toda la suite) antes del PR
+bun run shots                # capturas del PR; luego `shots:publish` → .pr-shots/README.md
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
