@@ -88,6 +88,8 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
 
 - **Modo `pr`:** en tu rama puedes commitear y empujar sin pedir permiso — la aprobación de
   César es la revisión del PR. **Nunca** push a `main`, nunca `gh pr merge`, nunca auto-merge.
+- **Sesión en la nube** (`CLAUDE_CODE_REMOTE=true`): skill `cloud-session` al inicio y al cierre;
+  anula la regla de arriba (cada unidad termina mergeada: PR + CI verde).
 - **Versión:** nadie toca `version` ni `CHANGELOG.md`. Cambio visible → `.changeset/<desc>.md`
   (`git-flow` §2.1.3). El PR `chore(release): versión` lo abre la Action y lo mergea César.
 - **Ramas de deploy** `vercel` y `vps`: nadie commitea en ellas; César las avanza
