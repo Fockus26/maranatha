@@ -37,6 +37,9 @@ grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
 Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
 Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
+**El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
+**Tech refs:** supabase → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
+
 ---
 
 ## Stack
