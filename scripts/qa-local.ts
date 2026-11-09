@@ -831,6 +831,14 @@ if (
     SMTP_PASS: "",
     SMTP_FROM: "QA <qa@example.test>",
   });
+  // Roles por lista de correos (ROLE_BY_ENV), igual que en la rama Supabase.
+  // Maranatha: faltaba aquí y ADMIN_EMAILS quedaba con los correos reales.
+  for (const [role, variable] of Object.entries(ROLE_BY_ENV)) {
+    env[variable] = accounts
+      .filter((a) => a.role === role && a.email)
+      .map((a) => a.email)
+      .join(",");
+  }
 
   await startServer(env, async () => {
     for (const a of accounts) {

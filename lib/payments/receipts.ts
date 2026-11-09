@@ -1,21 +1,27 @@
 import "server-only";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { eq } from "drizzle-orm";
+import { db, isDbConfigured } from "@/lib/db";
+import { paymentReceipts } from "@/lib/db/schema";
 
 /**
- * Comprobantes de pago subidos por los donantes (bucket privado `receipts`).
+ * Comprobantes de pago subidos por los donantes, en la tabla
+ * `payment_receipts` (D082: antes, bucket privado de Supabase Storage). Así
+ * entran en el respaldo nocturno de la base sin un bucket propio, y funcionan
+ * igual en Vercel y en el VPS.
  *
  * El tipo se valida por los primeros bytes del archivo, no por el
  * `Content-Type` ni la extensión que manda el navegador (ambos los controla
  * el cliente). Límite de 4 MB: las funciones de Vercel cortan el body de la
  * petición en ~4.5 MB, y el multipart agrega algo de overhead.
+ *
+ * Solo un admin los ve, por `app/dashboard/comprobantes/[id]/route.ts`.
  */
 
 export const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
-const BUCKET = "receipts";
 
 type ReceiptKind = { ext: string; mime: string };
 
-function sniff(bytes: Uint8Array): ReceiptKind | null {
+export function sniffReceipt(bytes: Uint8Array): ReceiptKind | null {
   const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
   if (starts(0xff, 0xd8, 0xff)) return { ext: "jpg", mime: "image/jpeg" };
   if (starts(0x89, 0x50, 0x4e, 0x47)) return { ext: "png", mime: "image/png" };
@@ -39,18 +45,22 @@ export async function uploadReceipt(
     return { ok: false, error: "invalid_receipt" };
 
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const kind = sniff(bytes);
+  const kind = sniffReceipt(bytes);
   if (!kind) return { ok: false, error: "invalid_receipt" };
+  if (!isDbConfigured()) return { ok: false, error: "upload_failed" };
 
   const month = new Date().toISOString().slice(0, 7);
   const path = `${month}/${crypto.randomUUID()}.${kind.ext}`;
-  const { error } = await supabaseAdmin()
-    .storage.from(BUCKET)
-    .upload(path, bytes, {
-      contentType: kind.mime,
-      upsert: false,
-    });
-  if (error) {
+  try {
+    await db()
+      .insert(paymentReceipts)
+      .values({
+        path,
+        mime: kind.mime,
+        size: bytes.byteLength,
+        bytes: Buffer.from(bytes),
+      });
+  } catch (error) {
     console.error("[payments] uploadReceipt:", error);
     return { ok: false, error: "upload_failed" };
   }
@@ -58,18 +68,32 @@ export async function uploadReceipt(
 }
 
 export async function deleteReceipt(path: string): Promise<void> {
-  const { error } = await supabaseAdmin().storage.from(BUCKET).remove([path]);
-  if (error) console.error("[payments] deleteReceipt:", error);
+  if (!isDbConfigured()) return;
+  try {
+    await db().delete(paymentReceipts).where(eq(paymentReceipts.path, path));
+  } catch (error) {
+    console.error("[payments] deleteReceipt:", error);
+  }
 }
 
-/** URL temporal (5 min) para que un admin vea el comprobante. */
-export async function getReceiptUrl(path: string): Promise<string | null> {
-  const { data, error } = await supabaseAdmin()
-    .storage.from(BUCKET)
-    .createSignedUrl(path, 300);
-  if (error) {
-    console.error("[payments] getReceiptUrl:", error);
+export async function getReceipt(
+  path: string,
+): Promise<{ mime: string; bytes: Buffer } | null> {
+  if (!isDbConfigured()) return null;
+  try {
+    const [row] = await db()
+      .select({ mime: paymentReceipts.mime, bytes: paymentReceipts.bytes })
+      .from(paymentReceipts)
+      .where(eq(paymentReceipts.path, path))
+      .limit(1);
+    return row ?? null;
+  } catch (error) {
+    console.error("[payments] getReceipt:", error);
     return null;
   }
-  return data.signedUrl;
+}
+
+/** Ruta del panel que sirve el comprobante de un pago (solo admins). */
+export function receiptHref(paymentId: string): string {
+  return `/dashboard/comprobantes/${paymentId}`;
 }

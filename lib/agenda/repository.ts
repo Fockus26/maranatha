@@ -1,6 +1,8 @@
 import "server-only";
+import { eq, gte, or } from "drizzle-orm";
+import { db, isDbConfigured } from "@/lib/db";
+import { agendaEvents } from "@/lib/db/schema";
 import type { Result } from "@/lib/payments/schema";
-import { isSupabaseConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 import {
   type AgendaEvent,
   type AgendaEventInput,
@@ -8,37 +10,38 @@ import {
 } from "./schema";
 
 /**
- * Acceso a la tabla `agenda_events`. Solo servidor, con la clave secreta
- * (RLS sin políticas). Mismo contrato que `lib/payments/repository.ts`:
- * errores esperados modelados, lo inesperado se registra y sale `db_error`.
+ * Acceso a la tabla `agenda_events`. Solo servidor; la autorización (solo
+ * admins escriben) está en `app/actions/adminAgenda.ts`. Mismo contrato que
+ * `lib/payments/repository.ts`: errores esperados modelados, lo inesperado
+ * se registra y sale `db_error`.
  */
 
 export type AgendaRepoError = "not_configured" | "not_found" | "db_error";
 
-interface AgendaEventRow {
-  id: string;
-  kind: AgendaEvent["kind"];
-  weekday: number | null;
-  event_date: string | null;
-  start_time: string;
-  title: string;
-  location: string;
-}
+type AgendaSelect = typeof agendaEvents.$inferSelect;
 
-const COLUMNS = "id, kind, weekday, event_date, start_time, title, location";
+const COLUMNS = {
+  id: agendaEvents.id,
+  kind: agendaEvents.kind,
+  weekday: agendaEvents.weekday,
+  eventDate: agendaEvents.eventDate,
+  startTime: agendaEvents.startTime,
+  title: agendaEvents.title,
+  location: agendaEvents.location,
+};
 
 function logDbError(where: string, error: unknown) {
   console.error(`[agenda] ${where}:`, error);
 }
 
 // `time` de Postgres llega como "HH:MM:SS".
-function toEvent(row: AgendaEventRow): AgendaEvent {
+function toEvent(row: Pick<AgendaSelect, keyof typeof COLUMNS>): AgendaEvent {
   return {
     id: row.id,
-    kind: row.kind,
+    kind: row.kind as AgendaEvent["kind"],
     weekday: row.weekday,
-    eventDate: row.event_date,
-    startTime: row.start_time.slice(0, 5),
+    eventDate: row.eventDate,
+    startTime: row.startTime.slice(0, 5),
     title: row.title,
     location: row.location,
   };
@@ -48,8 +51,8 @@ function toRow(input: AgendaEventInput) {
   return {
     kind: input.kind,
     weekday: input.kind === "recurring" ? input.weekday : null,
-    event_date: input.kind === "one_time" ? input.eventDate : null,
-    start_time: input.startTime,
+    eventDate: input.kind === "one_time" ? input.eventDate : null,
+    startTime: input.startTime,
     title: input.title,
     location: input.location,
   };
@@ -70,16 +73,14 @@ function sortEvents(events: AgendaEvent[]): AgendaEvent[] {
 export async function listAgendaEvents(): Promise<
   Result<AgendaEvent[], AgendaRepoError>
 > {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("agenda_events")
-    .select(COLUMNS);
-  if (error) {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const rows = await db().select(COLUMNS).from(agendaEvents);
+    return { ok: true, data: sortEvents(rows.map(toEvent)) };
+  } catch (error) {
     logDbError("listAgendaEvents", error);
     return { ok: false, error: "db_error" };
   }
-  return { ok: true, data: sortEvents(data.map(toEvent)) };
 }
 
 /**
@@ -88,76 +89,78 @@ export async function listAgendaEvents(): Promise<
  * falla, cae en las reuniones semanales de respaldo.
  */
 export async function getPublicAgendaEvents(): Promise<AgendaEvent[]> {
-  if (!isSupabaseConfigured()) return FALLBACK_AGENDA_EVENTS;
+  if (!isDbConfigured()) return FALLBACK_AGENDA_EVENTS;
 
   // Un día de margen: el servidor corre en UTC y Venezuela va 4 h detrás,
   // así que la última noche del mes el servidor ya "está" en el siguiente.
   // Lo que sobre lo descarta `buildMonthlyAgenda` en el cliente.
   const now = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  const { data, error } = await supabaseAdmin()
-    .from("agenda_events")
-    .select(COLUMNS)
-    .or(`kind.eq.recurring,event_date.gte.${monthStart}`);
-  if (error) {
+  try {
+    const rows = await db()
+      .select(COLUMNS)
+      .from(agendaEvents)
+      .where(
+        or(
+          eq(agendaEvents.kind, "recurring"),
+          gte(agendaEvents.eventDate, monthStart),
+        ),
+      );
+    return sortEvents(rows.map(toEvent));
+  } catch (error) {
     logDbError("getPublicAgendaEvents", error);
     return FALLBACK_AGENDA_EVENTS;
   }
-  return sortEvents(data.map(toEvent));
 }
 
 export async function insertAgendaEvent(
   input: AgendaEventInput,
 ): Promise<Result<AgendaEvent, AgendaRepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("agenda_events")
-    .insert(toRow(input))
-    .select(COLUMNS)
-    .single();
-  if (error) {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .insert(agendaEvents)
+      .values(toRow(input))
+      .returning(COLUMNS);
+    return { ok: true, data: toEvent(row) };
+  } catch (error) {
     logDbError("insertAgendaEvent", error);
     return { ok: false, error: "db_error" };
   }
-  return { ok: true, data: toEvent(data) };
 }
 
 export async function updateAgendaEvent(
   id: string,
   input: AgendaEventInput,
 ): Promise<Result<AgendaEvent, AgendaRepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("agenda_events")
-    .update(toRow(input))
-    .eq("id", id)
-    .select(COLUMNS)
-    .maybeSingle();
-  if (error) {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .update(agendaEvents)
+      .set(toRow(input))
+      .where(eq(agendaEvents.id, id))
+      .returning(COLUMNS);
+    if (!row) return { ok: false, error: "not_found" };
+    return { ok: true, data: toEvent(row) };
+  } catch (error) {
     logDbError("updateAgendaEvent", error);
     return { ok: false, error: "db_error" };
   }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: toEvent(data) };
 }
 
 export async function deleteAgendaEvent(
   id: string,
 ): Promise<Result<null, AgendaRepoError>> {
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
-
-  const { data, error } = await supabaseAdmin()
-    .from("agenda_events")
-    .delete()
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-  if (error) {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const rows = await db()
+      .delete(agendaEvents)
+      .where(eq(agendaEvents.id, id))
+      .returning({ id: agendaEvents.id });
+    if (!rows.length) return { ok: false, error: "not_found" };
+    return { ok: true, data: null };
+  } catch (error) {
     logDbError("deleteAgendaEvent", error);
     return { ok: false, error: "db_error" };
   }
-  if (!data) return { ok: false, error: "not_found" };
-  return { ok: true, data: null };
 }

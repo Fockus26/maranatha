@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Tipos y validación de la agenda (tabla `agenda_events`,
- * supabase/migrations/20261019210000_agenda_events.sql). Sin `server-only`:
+ * `lib/db/schema.ts`). Sin `server-only`:
  * el formulario del dashboard valida con el mismo esquema que la Server
  * Action, que vuelve a validar todo lo que llega del cliente.
  */
@@ -90,7 +90,7 @@ export function parseLocalDate(value: string): Date {
 }
 
 /**
- * Respaldo si Supabase no está configurado o no responde: las mismas
+ * Respaldo si la base no está configurada o no responde: las mismas
  * reuniones semanales que siembra la migración, para que el home nunca
  * muestre la agenda vacía por un fallo de la base.
  */

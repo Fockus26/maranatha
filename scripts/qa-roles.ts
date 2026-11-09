@@ -75,10 +75,10 @@ export async function existingAccount({
   email: string;
   role: string;
 }): Promise<boolean> {
-  // e.g. return email.endsWith('@seed.test')
+  // Maranatha (D082): disableSignUp, así que scripts/seed-db.ts crea las dos
+  // cuentas de .env.test.local: ADMIN_* (rol admin) y EMAIL_TEST (rol user).
   void email;
-  void role;
-  return false;
+  return role === "admin" || role === "user";
 }
 
 /** The Postgres backend: `sql` runs a statement in the QA database and returns its output. */

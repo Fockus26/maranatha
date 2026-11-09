@@ -1,5 +1,6 @@
 "use server";
 
+import { isDbConfigured } from "@/lib/db";
 import {
   createOrder as createBinanceOrder,
   isBinancePayConfigured,
@@ -35,7 +36,6 @@ import {
 } from "@/lib/payments/schema";
 import { getProjectBySlug } from "@/lib/projectsData";
 import { SITE_URL } from "@/lib/siteConfig";
-import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
 /**
  * Server Actions del checkout público (sin sesión: cualquiera puede aportar).
@@ -61,7 +61,7 @@ export async function getCheckoutOptions(input: {
   const parsed = contributionSchema.shape.amountUsd.safeParse(input.amountUsd);
   const frequency = input.frequency === "monthly" ? "monthly" : "once";
   if (!parsed.success) return { ok: false, error: "invalid_input" };
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
 
   const rates = await getExchangeRates();
   const methods = getEnabledMethods()
@@ -134,7 +134,7 @@ export async function reportManualPayment(
   if (paidAt > Date.now() + DAY || paidAt < Date.now() - 60 * DAY)
     return { ok: false, error: "invalid_input" };
 
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
 
   const method = getEnabledMethod(report.data.method);
   if (!method || method.kind !== "manual")
@@ -236,7 +236,7 @@ export async function startPaypalCheckout(
   const contribution = parsed.data;
   if (!validateProject(contribution))
     return { ok: false, error: "invalid_project" };
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
   if (!isPaypalConfigured() || !getEnabledMethod("paypal"))
     return { ok: false, error: "method_unavailable" };
 
@@ -351,7 +351,7 @@ export async function startBinanceCheckout(
     return { ok: false, error: "invalid_input" };
   if (!validateProject(contribution))
     return { ok: false, error: "invalid_project" };
-  if (!isSupabaseConfigured()) return { ok: false, error: "not_configured" };
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
   const method = getEnabledMethod("binance");
   if (!isBinancePayConfigured() || method?.kind !== "gateway")
     return { ok: false, error: "method_unavailable" };

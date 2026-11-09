@@ -11,11 +11,15 @@ export const metadata: Metadata = {
 /**
  * Login del dashboard. Vive fuera del grupo `(panel)` para no heredar su
  * chequeo de admin (si no, redirigiría a sí mismo en bucle). Si ya hay una
- * sesión de admin válida, va directo al panel.
+ * sesión de admin válida, va directo al panel. `?restablecida=1` llega desde
+ * "restablecer" con la contraseña nueva guardada.
  */
-export default async function DashboardLoginPage() {
+export default async function DashboardLoginPage({
+  searchParams,
+}: PageProps<"/dashboard/login">) {
   if (await getAdmin()) redirect("/dashboard");
+  const { restablecida } = await searchParams;
 
   // El formulario trae su propio layout de página completa (opción C).
-  return <DashboardLoginForm />;
+  return <DashboardLoginForm passwordReset={restablecida === "1"} />;
 }

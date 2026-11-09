@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminStrict } from "@/lib/auth/admin";
-import { getReceiptUrl } from "@/lib/payments/receipts";
+import { receiptHref } from "@/lib/payments/receipts";
 import {
   getPayment,
   type PaymentRow,
@@ -18,7 +18,7 @@ import {
 
 /**
  * Server Actions del panel de pagos. Cada una verifica al admin con
- * `getAdminStrict()` (consulta a Supabase Auth, detecta sesiones revocadas):
+ * `getAdminStrict()` (lee la sesión en la base: detecta sesiones revocadas):
  * estas funciones son alcanzables por POST directo, sin pasar por la UI.
  */
 
@@ -98,7 +98,10 @@ export async function rejectPayment(
   return { ok: true, data: null };
 }
 
-/** URL firmada (5 min) del comprobante — se pide al hacer clic, no se lista. */
+/**
+ * Enlace al comprobante — se pide al hacer clic, no se lista. La ruta vuelve a
+ * verificar al admin antes de servir el archivo.
+ */
 export async function getReceiptLink(
   id: string,
 ): Promise<Result<string, AdminActionError>> {
@@ -111,9 +114,7 @@ export async function getReceiptLink(
   if (!payment.ok) return { ok: false, error: mapRepoError(payment.error) };
   if (!payment.data.receipt_path) return { ok: false, error: "not_found" };
 
-  const url = await getReceiptUrl(payment.data.receipt_path);
-  if (!url) return { ok: false, error: "server_error" };
-  return { ok: true, data: url };
+  return { ok: true, data: receiptHref(payment.data.id) };
 }
 
 /**

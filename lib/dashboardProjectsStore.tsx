@@ -83,7 +83,7 @@ function withDerived(project: DashboardProject): DashboardProjectWithStatus {
   };
 }
 
-// `raisedBySlug`: pagos confirmados por proyecto (Supabase), sumados al
+// `raisedBySlug`: pagos confirmados por proyecto (Postgres), sumados al
 // monto base del array estático — los lee el layout del dashboard en el servidor.
 function seedProjects(
   raisedBySlug: Record<string, number>,
