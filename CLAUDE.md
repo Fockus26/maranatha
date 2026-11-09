@@ -68,8 +68,9 @@ bun run a11y                 # axe-core sobre el sitio corriendo
 nunca la base real (`--offline`: solo invitado). Scripts de Playwright con `node` (Bun se
 cuelga en Windows), en `.qa/`.
 
-**Documentación:** Context7 antes de usar la API de cualquier librería. Para Next, además,
-`node_modules/next/dist/docs/` (ver `AGENTS.md`).
+**Docs:** Context7 antes de la API de una librería (Next: también `node_modules/next/dist/docs/`,
+ver `AGENTS.md`). **Modelo por tarea:** `Modelo recomendado: <modelo · esfuerzo>` antes de cada
+una (kit `TOKEN-ECONOMY.md` §12; riesgo → `opus`), ambos pasados a `Agent(...)`.
 
 ---
 
@@ -106,14 +107,10 @@ escritura ahí, devuelve los cambios de `context/` en tu informe.
 
 ### Puertas de calidad
 
-| Skill / agente | Cuándo |
-|---|---|
-| `a11y` | Siempre que se toque UI, antes de pedir revisión |
-| `seo` | Cierre de sección con contenido · cierre de página |
-| `git-flow` | Al abrir y al cerrar cada unidad |
-| `orchestrate` | Llega una lista, o una fase se hace en olas (una ola por sesión) |
-| `wave-qa` | Lo lanza `orchestrate` con la ola mergeada, antes de cerrarla |
-| `design-qa` / `functional-qa` | Al cerrar una página / un flujo completo |
+`a11y` siempre que se toque UI · `seo` al cerrar una sección o página con contenido ·
+`git-flow` al abrir y cerrar cada unidad · `orchestrate` para una lista o una fase en olas ·
+`wave-qa` tras una ola con flujos de riesgo · `functional-qa` al cerrar un flujo de riesgo y en
+el QA de versión · `design-qa` solo en el QA de versión (fase 09 / PR de release).
 
 ---
 
