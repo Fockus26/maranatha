@@ -1,0 +1,73 @@
+# Deploy over FTPS, for hosts without SSH (web-agent-kit, reference/tech/wordpress.md §5).
+# Never plain FTP. Copy to .github/workflows/deploy.yml and fill `env`. Each merge to main goes
+# to staging; production is this same workflow run by hand (Actions → Deploy → Run workflow).
+#
+# Secrets per GitHub environment (staging, production) — an action for César:
+#   DEPLOY_HOST (the server name ON THE CERTIFICATE: on shared hosts often the server's, not the
+#   domain's), DEPLOY_USER, DEPLOY_PASSWORD (an FTP account limited to wp-content if the panel
+#   allows it), DEPLOY_PATH (the WordPress root, relative to the account's home or absolute).
+# The production environment has César as a required reviewer.
+#
+# Without SSH, migrations run on the first wp-admin visit of an administrator after the deploy:
+# César opens wp-admin (it is in the PR's "Acciones manuales").
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: staging or production
+        type: choice
+        options: [staging, production]
+        default: staging
+
+env:
+  SITE_PLUGIN: acme-site
+  CHILD_THEME: ""          # e.g. acme-child; empty if the site has none
+
+concurrency:
+  group: deploy-${{ inputs.target || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: php -l
+        run: bash scripts/php-lint.sh
+
+      - name: lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      # Upload to wp-content/.deploy/<name>.new, then swap by rename: a request never meets a
+      # half-uploaded plugin (a partial upload is a fatal error on the live site). The previous
+      # version stays in wp-content/.deploy/<name>.old until the next deploy, so a rollback is
+      # two renames. Outside plugins/ on purpose: WordPress would list a copy there as a second
+      # plugin, and activating it is a fatal error (functions declared twice).
+      - name: Upload and swap
+        env:
+          LFTP_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          ROOT: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          SETUP="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes;
+            set net:max-retries 5; set net:reconnect-interval-base 5; set mirror:parallel-transfer-count 4;
+            open --env-password -u $USER ftp://$HOST"
+          ship() {
+            local dir=$1 name stage="$ROOT/wp-content/.deploy"
+            name=$(basename "$dir")
+            lftp -c "$SETUP; mkdir -p -f $stage; rm -r -f $stage/$name.new;
+              mirror -R --verbose=1 --exclude-glob .git* --exclude-glob node_modules/ --exclude-glob *.scss $dir $stage/$name.new"
+            # The live folder is missing on the first deploy: its move aside may fail, the swap may not.
+            lftp -c "$SETUP; rm -r -f $stage/$name.old; mv $ROOT/$dir $stage/$name.old" || echo "first deploy of $dir"
+            lftp -c "$SETUP; set cmd:fail-exit true; mv $stage/$name.new $ROOT/$dir"
+          }
+          ship "wp-content/plugins/$SITE_PLUGIN"
+          [ -z "$CHILD_THEME" ] || ship "wp-content/themes/$CHILD_THEME"

@@ -1,0 +1,5 @@
+# Local copy only (mounted into the wpcli container by docker-compose.yml). The MariaDB 11
+# client in wordpress:cli requires TLS by default and the local database has none, so
+# `wp db export` / `wp db import` failed with "SSL is required" (kit test, 2026-11-07).
+[client]
+skip-ssl

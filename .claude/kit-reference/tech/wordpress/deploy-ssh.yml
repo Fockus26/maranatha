@@ -1,0 +1,63 @@
+# Deploy over SSH (web-agent-kit, reference/tech/wordpress.md §5). Copy to
+# .github/workflows/deploy.yml and fill `env`. Each merge to main goes to staging; production is
+# this same workflow run by hand (Actions → Deploy → Run workflow → production).
+#
+# Secrets per GitHub environment (staging, production) — an action for César:
+#   DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH (the WordPress root on the server),
+#   DEPLOY_SSH_KEY (a deploy-only private key), DEPLOY_KNOWN_HOSTS (the host's ssh-keyscan
+#   line, checked once by César: never scanned here, which would trust whatever answers).
+# The production environment has César as a required reviewer.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: staging or production
+        type: choice
+        options: [staging, production]
+        default: staging
+
+env:
+  SITE_PLUGIN: acme-site
+  CHILD_THEME: ""          # e.g. acme-child; empty if the site has none
+
+concurrency:
+  group: deploy-${{ inputs.target || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: php -l
+        run: bash scripts/php-lint.sh
+
+      - name: SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      # --delay-updates: the new files are put in place at the end, all together, so a request
+      # does not meet half of the plugin. --delete: a file removed in git is removed there.
+      - name: Upload
+        env:
+          REMOTE: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          ROOT: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          rs() { rsync -rlz --checksum --delete --delay-updates --exclude '.git*' --exclude 'node_modules/' --exclude '*.scss' \
+            -e "ssh -i ~/.ssh/id_deploy -o BatchMode=yes" "$1/" "$REMOTE:$ROOT/$1/"; }
+          rs "wp-content/plugins/$SITE_PLUGIN"
+          [ -z "$CHILD_THEME" ] || rs "wp-content/themes/$CHILD_THEME"
+
+      - name: Migrations
+        env:
+          REMOTE: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          ROOT: ${{ secrets.DEPLOY_PATH }}
+        run: ssh -i ~/.ssh/id_deploy -o BatchMode=yes "$REMOTE" "cd '$ROOT' && wp $SITE_PLUGIN migrate && wp cache flush"
