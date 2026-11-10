@@ -56,9 +56,8 @@ button:focus-visible,
 [role="button"]:focus-visible,
 [tabindex]:focus-visible,
 .MuiButtonBase-root:focus-visible {
-  outline: 2px solid #f9750d;
+  outline: 2px solid var(--focus-ring, #f9750d);
   outline-offset: 2px;
-  border-radius: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -107,10 +106,11 @@ button:focus-visible,
     color: HighlightText;
   }
 
-  /* Foco de campos de texto: el anillo propio no existe en alto contraste. */
-  .MuiInputBase-root.Mui-focused {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
+  /* Foco de campos de texto: sin outline exterior; el fieldset se pinta con
+     colores de sistema y el grosor de 2px marca el foco (D085). */
+  .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: Highlight;
+    border-width: 2px;
   }
 
   .MuiLinearProgress-root {
