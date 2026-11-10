@@ -154,7 +154,9 @@ function Column({ label, options, onChoose }: ColumnProps) {
               ? theme.palette.secondary.main
               : "transparent",
             color: option.selected
-              ? theme.palette.secondary.contrastText
+              ? // El contrastText del tema (blanco) no llega a 4,5:1 sobre el
+                // naranja en oscuro; se calcula sobre el fondo real.
+                theme.palette.getContrastText(theme.palette.secondary.main)
               : theme.palette.text.primary,
             border: `1px solid ${option.selected ? theme.palette.text.primary : "transparent"}`,
             transition: theme.transitions.create(["background-color"], {
@@ -302,7 +304,6 @@ export function TimeField({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-labelledby={labelId}
-        aria-required={required || undefined}
         aria-invalid={error || undefined}
         aria-describedby={error && helperText ? `${labelId}-error` : undefined}
         sx={{
