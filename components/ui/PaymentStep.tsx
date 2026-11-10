@@ -37,6 +37,7 @@ import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { fontScale, radius, typography } from "@/theme/tokens";
 import { DateField } from "./DateField";
 import { DonationFormCard } from "./DonationFormCard";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 /** Igual a `MAX_RECEIPT_BYTES` de lib/payments/receipts.ts (solo servidor). */
 const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
@@ -614,14 +615,13 @@ function ManualPaymentPanel({
             }
             aria-describedby={receipt ? `${fileInputId}-name` : undefined}
             variant="outlined"
-            color="inherit"
             startIcon={<AttachFileRoundedIcon fontSize="small" />}
-            sx={{
+            sx={(t) => ({
+              ...outlinedActionSx(t),
               height: 40,
-              textTransform: "none",
               fontSize: fontScale[12],
               whiteSpace: "nowrap",
-            }}
+            })}
           >
             {receipt ? "Cambiar" : "Comprobante"}
           </Button>

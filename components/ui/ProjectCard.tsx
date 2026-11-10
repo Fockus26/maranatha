@@ -16,6 +16,7 @@ import {
   semantic,
   typography,
 } from "@/theme/tokens";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 export type ProjectStatus = "active" | "completed";
 
@@ -179,10 +180,9 @@ export function ProjectCard({
     </>
   );
 
-  // "Ver proyecto" (completado): antes un outlined `color="primary"` plano
-  // (D048 lo señaló como "el mismo botón repetido" en Proyectos/Historia/
-  // Prédicas). Ahora imita el CTA del Hero — neutro en reposo, y al
-  // interactuar toma color, aquí azul en vez del naranja del Hero (fase 07).
+  // "Ver proyecto" (completado): mismo botón outlined con contraste que
+  // "Seguir" (D084, `outlinedActionSx`). El estilo neutro anterior (borde
+  // `divider`, texto gris) no llegaba a 3:1 en el borde.
   // "Aportar" (activo) no cambia: sigue siendo el CTA de alta prioridad
   // contained/secondary reservado por D011.
   const CtaButton = ({ sx = {} }: { sx?: object }) => (
@@ -191,15 +191,7 @@ export function ProjectCard({
       variant={isCompleted ? "outlined" : "contained"}
       color={isCompleted ? "primary" : "secondary"}
       sx={{
-        ...(isCompleted && {
-          borderColor: theme.palette.divider,
-          color: theme.palette.text.secondary,
-          "&:hover": {
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
-            backgroundColor: alpha(theme.palette.primary.main, 0.08),
-          },
-        }),
+        ...(isCompleted && outlinedActionSx(theme)),
         ...sx,
       }}
     >

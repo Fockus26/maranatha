@@ -53,6 +53,7 @@ import {
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
 import { EmptyState } from "./EmptyState";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 // Patrón de animación de listas (D087).
 const LIST_EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -754,10 +755,10 @@ export function DashboardPayments({
           </Box>
           <Button
             variant="outlined"
-            color="inherit"
             size="small"
             startIcon={<CurrencyExchangeRoundedIcon fontSize="small" />}
             onClick={() => setRatesOpen(true)}
+            sx={outlinedActionSx}
           >
             Tasas de cambio
           </Button>
@@ -1049,7 +1050,7 @@ export function DashboardPayments({
                           <Button
                             size="small"
                             variant="outlined"
-                            color="inherit"
+                            sx={outlinedActionSx}
                             startIcon={
                               <ReceiptLongOutlinedIcon fontSize="small" />
                             }

@@ -17,6 +17,7 @@ import {
   semantic,
   typography,
 } from "@/theme/tokens";
+import { outlinedActionSx } from "./outlinedActionSx";
 import type { ProjectStatus } from "./ProjectCard";
 
 export interface Encargado {
@@ -157,13 +158,7 @@ export function ProjectSidebar({
         sx={{
           mb: 4.5,
           ...(isCompleted && {
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.secondary,
-            "&:hover": {
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              backgroundColor: alpha(theme.palette.primary.main, 0.08),
-            },
+            ...outlinedActionSx(theme),
           }),
         }}
       >
