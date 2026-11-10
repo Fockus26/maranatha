@@ -14,6 +14,7 @@ import { useTitheModal } from "@/lib/titheModalStore";
 import { patternLayerSx } from "@/theme/patterns";
 import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
 import { PaymentStep, type PaymentStepContribution } from "./PaymentStep";
+import { StepTransition } from "./StepTransition";
 import {
   type ContributionType,
   FREQUENCY_LABEL,
@@ -339,23 +340,24 @@ export function TitheModal() {
               </Box>
 
               <Box sx={{ flexShrink: 0, width: "100%", maxWidth: 440 }}>
-                {/* El formulario queda montado (oculto) durante el paso 2 para que
-                "Volver" conserve monto, tipo y datos ya ingresados. */}
-                <Box
-                  ref={stepOneRef}
-                  sx={{ display: contribution ? "none" : "block" }}
-                >
-                  <TitheForm width={440} onSubmit={handleSubmit} />
-                </Box>
-                {contribution && (
-                  <PaymentStep
-                    width={440}
-                    contribution={contribution}
-                    summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
-                    onBack={handleBack}
-                    onReported={handleReported}
-                  />
-                )}
+                {/* El formulario queda montado durante el paso 2 para que
+                "Volver" conserve monto, tipo y datos ya ingresados (D087). */}
+                <StepTransition
+                  showSecond={!!contribution}
+                  firstRef={stepOneRef}
+                  first={<TitheForm width={440} onSubmit={handleSubmit} />}
+                  second={
+                    contribution && (
+                      <PaymentStep
+                        width={440}
+                        contribution={contribution}
+                        summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                        onBack={handleBack}
+                        onReported={handleReported}
+                      />
+                    )
+                  }
+                />
               </Box>
             </Box>
           </Box>

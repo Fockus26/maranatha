@@ -17,6 +17,7 @@ import Snackbar from "@mui/material/Snackbar";
 import { useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { type FormEvent, useState, useTransition } from "react";
 import {
@@ -52,6 +53,13 @@ import {
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
 import { EmptyState } from "./EmptyState";
+
+// Patrón de animación de listas (D087).
+const LIST_EASE = [0.2, 0.8, 0.2, 1] as const;
+const LIST_DURATION = 0.28;
+const LIST_SHIFT = 8;
+const LIST_STAGGER = 0.03;
+const LIST_STAGGER_MAX = 0.2;
 
 /**
  * Panel de pagos del dashboard. Recibe los datos ya leídos en el servidor
@@ -604,6 +612,7 @@ export function DashboardPayments({
   fallbackRates,
 }: DashboardPaymentsProps) {
   const theme = useTheme();
+  const reduceMotion = useReducedMotion();
   const [ratesOpen, setRatesOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [approving, setApproving] = useState<DashboardPaymentRow | null>(null);
@@ -803,234 +812,288 @@ export function DashboardPayments({
             No se pudieron cargar los pagos. Revisa la conexión con la base de
             datos.
           </Alert>
-        ) : rows.length === 0 ? (
-          <EmptyState
-            icon={PaymentsOutlinedIcon}
-            title={
-              filter === "pending"
-                ? "No hay pagos pendientes"
-                : "No hay pagos en esta vista"
-            }
-            description={
-              filter === "pending"
-                ? "Cuando alguien reporte un pago manual, aparecerá acá para que lo verifiques."
-                : undefined
-            }
-          />
         ) : (
-          <Box
-            component="ul"
-            aria-label={`Pagos: ${FILTER_LABEL[filter].toLowerCase()}`}
-            sx={{ listStyle: "none", m: 0, p: 0, display: "grid", gap: 2 }}
-          >
-            {rows.map((row) => (
+          <>
+            {rows.length === 0 && (
               <Box
-                component="li"
-                key={row.id}
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: `${radius.md}px`,
-                  bgcolor: "background.paper",
-                  p: { xs: 2.5, md: 3 },
+                component={motion.div}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{
+                  duration: reduceMotion ? 0 : LIST_DURATION,
+                  delay: reduceMotion ? 0 : LIST_DURATION,
+                  ease: LIST_EASE,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: 2,
-                    flexWrap: "wrap",
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      component="h2"
+                <EmptyState
+                  icon={PaymentsOutlinedIcon}
+                  title={
+                    filter === "pending"
+                      ? "No hay pagos pendientes"
+                      : "No hay pagos en esta vista"
+                  }
+                  description={
+                    filter === "pending"
+                      ? "Cuando alguien reporte un pago manual, aparecerá acá para que lo verifiques."
+                      : undefined
+                  }
+                />
+              </Box>
+            )}
+            <Box
+              component="ul"
+              aria-label={`Pagos: ${FILTER_LABEL[filter].toLowerCase()}`}
+              aria-hidden={rows.length === 0 || undefined}
+              sx={{
+                listStyle: "none",
+                m: 0,
+                p: 0,
+                display: "grid",
+                gap: 2,
+                position: "relative",
+              }}
+            >
+              <AnimatePresence mode="popLayout" initial={false}>
+                {rows.map((row, index) => (
+                  <Box
+                    component={motion.li}
+                    key={row.id}
+                    layout={!reduceMotion}
+                    initial={
+                      reduceMotion ? false : { opacity: 0, y: LIST_SHIFT }
+                    }
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: reduceMotion ? 0 : LIST_DURATION,
+                        ease: LIST_EASE,
+                        delay: reduceMotion
+                          ? 0
+                          : Math.min(index * LIST_STAGGER, LIST_STAGGER_MAX),
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: reduceMotion ? 0 : -LIST_SHIFT,
+                      transition: {
+                        duration: reduceMotion ? 0 : LIST_DURATION / 2,
+                      },
+                    }}
+                    sx={{
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: `${radius.md}px`,
+                      bgcolor: "background.paper",
+                      p: { xs: 2.5, md: 3 },
+                    }}
+                  >
+                    <Box
                       sx={{
-                        fontWeight: 700,
-                        fontSize: fontScale[15],
-                        overflowWrap: "anywhere",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 2,
+                        flexWrap: "wrap",
+                        mb: 2,
                       }}
                     >
-                      {row.donorName}{" "}
-                      <Box
-                        component="span"
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: fontScale[13],
-                          color: "text.secondary",
-                        }}
-                      >
-                        · {row.donorEmail}
-                      </Box>
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: fontScale[12],
-                        color: "text.secondary",
-                        mt: 0.25,
-                      }}
-                    >
-                      {PURPOSE_LABEL[row.purpose]}
-                      {row.projectTitle ? `: ${row.projectTitle}` : ""}
-                      {row.frequency === "monthly" ? " · Mensual" : ""} ·
-                      Reportado {formatDate(row.createdAt, true)}
-                    </Typography>
-                    {isGatewayRow(row) && row.status === "pending" && (
-                      <Typography
-                        sx={{
-                          fontSize: fontScale[12],
-                          color: "text.secondary",
-                          mt: 0.5,
-                        }}
-                      >
-                        Esperando que el donante complete el pago en{" "}
-                        {row.method === "binance" ? "Binance Pay" : "PayPal"}.
-                        Se confirma solo; no hace falta verificarlo.
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Typography
-                      sx={{
-                        fontFamily: typography.fontFamily.heading,
-                        fontWeight: 800,
-                        fontSize: fontScale[20],
-                      }}
-                    >
-                      {formatUsd(row.amountUsd)}
-                    </Typography>
-                    <StatusBadge status={row.status} />
-                  </Box>
-                </Box>
-
-                <Box
-                  component="dl"
-                  sx={{
-                    m: 0,
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr 1fr",
-                      md: "repeat(4, 1fr)",
-                    },
-                    gap: 2,
-                  }}
-                >
-                  <Field label="Método">{METHOD_LABEL[row.method]}</Field>
-                  <Field label="Monto pagado">
-                    {row.amountPaid != null
-                      ? formatAmount(row.amountPaid, row.currency)
-                      : "—"}
-                    {row.exchangeRate &&
-                      row.currency !== "USD" &&
-                      row.currency !== "USDT" && (
-                        <Box
-                          component="span"
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          component="h2"
                           sx={{
-                            display: "block",
-                            fontSize: fontScale[11],
-                            fontWeight: 400,
-                            color: "text.secondary",
+                            fontWeight: 700,
+                            fontSize: fontScale[15],
+                            overflowWrap: "anywhere",
                           }}
                         >
-                          Tasa {formatAmount(row.exchangeRate, row.currency)}
-                        </Box>
-                      )}
-                    {expectedIfMismatch(row) != null && (
+                          {row.donorName}{" "}
+                          <Box
+                            component="span"
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: fontScale[13],
+                              color: "text.secondary",
+                            }}
+                          >
+                            · {row.donorEmail}
+                          </Box>
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: fontScale[12],
+                            color: "text.secondary",
+                            mt: 0.25,
+                          }}
+                        >
+                          {PURPOSE_LABEL[row.purpose]}
+                          {row.projectTitle ? `: ${row.projectTitle}` : ""}
+                          {row.frequency === "monthly" ? " · Mensual" : ""} ·
+                          Reportado {formatDate(row.createdAt, true)}
+                        </Typography>
+                        {isGatewayRow(row) && row.status === "pending" && (
+                          <Typography
+                            sx={{
+                              fontSize: fontScale[12],
+                              color: "text.secondary",
+                              mt: 0.5,
+                            }}
+                          >
+                            Esperando que el donante complete el pago en{" "}
+                            {row.method === "binance"
+                              ? "Binance Pay"
+                              : "PayPal"}
+                            . Se confirma solo; no hace falta verificarlo.
+                          </Typography>
+                        )}
+                      </Box>
                       <Box
-                        component="span"
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: typography.fontFamily.heading,
+                            fontWeight: 800,
+                            fontSize: fontScale[20],
+                          }}
+                        >
+                          {formatUsd(row.amountUsd)}
+                        </Typography>
+                        <StatusBadge status={row.status} />
+                      </Box>
+                    </Box>
+
+                    <Box
+                      component="dl"
+                      sx={{
+                        m: 0,
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr 1fr",
+                          md: "repeat(4, 1fr)",
+                        },
+                        gap: 2,
+                      }}
+                    >
+                      <Field label="Método">{METHOD_LABEL[row.method]}</Field>
+                      <Field label="Monto pagado">
+                        {row.amountPaid != null
+                          ? formatAmount(row.amountPaid, row.currency)
+                          : "—"}
+                        {row.exchangeRate &&
+                          row.currency !== "USD" &&
+                          row.currency !== "USDT" && (
+                            <Box
+                              component="span"
+                              sx={{
+                                display: "block",
+                                fontSize: fontScale[11],
+                                fontWeight: 400,
+                                color: "text.secondary",
+                              }}
+                            >
+                              Tasa{" "}
+                              {formatAmount(row.exchangeRate, row.currency)}
+                            </Box>
+                          )}
+                        {expectedIfMismatch(row) != null && (
+                          <Box
+                            component="span"
+                            sx={{
+                              display: "block",
+                              fontSize: fontScale[11],
+                              fontWeight: 600,
+                              color: "error.main",
+                            }}
+                          >
+                            ⚠ No coincide: se esperaba ≈{" "}
+                            {formatAmount(
+                              expectedIfMismatch(row) ?? 0,
+                              row.currency,
+                            )}
+                          </Box>
+                        )}
+                      </Field>
+                      <Field label="Referencia">{row.reference ?? "—"}</Field>
+                      <Field label="Fecha del pago">
+                        {row.paidAt ? formatDate(row.paidAt) : "—"}
+                      </Field>
+                    </Box>
+
+                    {(row.reviewedBy || row.notes) &&
+                      row.status !== "pending" && (
+                        <Typography
+                          sx={{
+                            fontSize: fontScale[12],
+                            color: "text.secondary",
+                            mt: 2,
+                          }}
+                        >
+                          {STATUS_LABEL[row.status]} por {row.reviewedBy ?? "—"}
+                          {row.notes ? ` · Nota: ${row.notes}` : ""}
+                        </Typography>
+                      )}
+
+                    {(row.hasReceipt ||
+                      (row.status === "pending" && !isGatewayRow(row))) && (
+                      <Box
                         sx={{
-                          display: "block",
-                          fontSize: fontScale[11],
-                          fontWeight: 600,
-                          color: "error.main",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 1,
+                          mt: 2.5,
+                          pt: 2.5,
+                          borderTop: `1px solid ${theme.palette.divider}`,
                         }}
                       >
-                        ⚠ No coincide: se esperaba ≈{" "}
-                        {formatAmount(
-                          expectedIfMismatch(row) ?? 0,
-                          row.currency,
+                        {row.hasReceipt && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="inherit"
+                            startIcon={
+                              <ReceiptLongOutlinedIcon fontSize="small" />
+                            }
+                            onClick={() => handleReceipt(row)}
+                            disabled={pending}
+                            aria-label={`Ver comprobante de ${row.donorName}`}
+                          >
+                            Ver comprobante
+                          </Button>
+                        )}
+                        {row.status === "pending" && !isGatewayRow(row) && (
+                          <>
+                            <Box sx={{ flex: 1 }} />
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              startIcon={<CloseRoundedIcon fontSize="small" />}
+                              onClick={() => setRejecting(row)}
+                              disabled={pending}
+                              aria-label={`Rechazar pago de ${row.donorName}`}
+                            >
+                              Rechazar
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="secondary"
+                              startIcon={<CheckRoundedIcon fontSize="small" />}
+                              onClick={() => setApproving(row)}
+                              disabled={pending}
+                              aria-label={`Confirmar pago de ${row.donorName}`}
+                            >
+                              Confirmar
+                            </Button>
+                          </>
                         )}
                       </Box>
                     )}
-                  </Field>
-                  <Field label="Referencia">{row.reference ?? "—"}</Field>
-                  <Field label="Fecha del pago">
-                    {row.paidAt ? formatDate(row.paidAt) : "—"}
-                  </Field>
-                </Box>
-
-                {(row.reviewedBy || row.notes) && row.status !== "pending" && (
-                  <Typography
-                    sx={{
-                      fontSize: fontScale[12],
-                      color: "text.secondary",
-                      mt: 2,
-                    }}
-                  >
-                    {STATUS_LABEL[row.status]} por {row.reviewedBy ?? "—"}
-                    {row.notes ? ` · Nota: ${row.notes}` : ""}
-                  </Typography>
-                )}
-
-                {(row.hasReceipt ||
-                  (row.status === "pending" && !isGatewayRow(row))) && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1,
-                      mt: 2.5,
-                      pt: 2.5,
-                      borderTop: `1px solid ${theme.palette.divider}`,
-                    }}
-                  >
-                    {row.hasReceipt && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="inherit"
-                        startIcon={<ReceiptLongOutlinedIcon fontSize="small" />}
-                        onClick={() => handleReceipt(row)}
-                        disabled={pending}
-                        aria-label={`Ver comprobante de ${row.donorName}`}
-                      >
-                        Ver comprobante
-                      </Button>
-                    )}
-                    {row.status === "pending" && !isGatewayRow(row) && (
-                      <>
-                        <Box sx={{ flex: 1 }} />
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          startIcon={<CloseRoundedIcon fontSize="small" />}
-                          onClick={() => setRejecting(row)}
-                          disabled={pending}
-                          aria-label={`Rechazar pago de ${row.donorName}`}
-                        >
-                          Rechazar
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="secondary"
-                          startIcon={<CheckRoundedIcon fontSize="small" />}
-                          onClick={() => setApproving(row)}
-                          disabled={pending}
-                          aria-label={`Confirmar pago de ${row.donorName}`}
-                        >
-                          Confirmar
-                        </Button>
-                      </>
-                    )}
                   </Box>
-                )}
-              </Box>
-            ))}
-          </Box>
+                ))}
+              </AnimatePresence>
+            </Box>
+          </>
         )}
         {!loadError && total > rows.length ? (
           <PaymentsPagination

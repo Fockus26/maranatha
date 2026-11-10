@@ -9,7 +9,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Skeleton from "@mui/material/Skeleton";
 import { useTheme } from "@mui/material/styles";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { common, fontScale, radius, secondary, semantic } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -73,6 +73,7 @@ export function DashboardTable({
   onCreate,
 }: DashboardTableProps) {
   const theme = useTheme();
+  const reduceMotion = useReducedMotion();
   const [sortColumn, setSortColumn] = useState<SortColumn>("deadline");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [deleteTarget, setDeleteTarget] = useState<DashboardProjectRow | null>(
@@ -150,6 +151,7 @@ export function DashboardTable({
           borderRadius: `${radius.lg}px`,
           backgroundColor: theme.palette.background.paper,
           overflow: "hidden",
+          position: "relative",
         }}
       >
         <Box
@@ -277,7 +279,7 @@ export function DashboardTable({
             </Box>
           ))
         ) : (
-          <AnimatePresence initial={false}>
+          <AnimatePresence mode="popLayout" initial={false}>
             {sortedProjects.map((row) => {
               const isCompleted = row.status === "completed";
               const percent = progressOf(row);
@@ -287,11 +289,11 @@ export function DashboardTable({
                   key={row.id}
                   role="row"
                   component={motion.div}
-                  layout
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.28, ease: EASE }}
+                  layout={!reduceMotion}
+                  initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE }}
                   sx={{
                     display: "grid",
                     gridTemplateColumns: GRID_COLUMNS,
@@ -439,6 +441,7 @@ export function DashboardTable({
           display: { xs: "flex", sm: "none" },
           flexDirection: "column",
           gap: 2,
+          position: "relative",
         }}
       >
         {loading ? (
@@ -486,7 +489,7 @@ export function DashboardTable({
             </Box>
           ))
         ) : (
-          <AnimatePresence initial={false}>
+          <AnimatePresence mode="popLayout" initial={false}>
             {sortedProjects.map((row) => {
               const isCompleted = row.status === "completed";
               const percent = progressOf(row);
@@ -496,11 +499,11 @@ export function DashboardTable({
                   key={row.id}
                   role="row"
                   component={motion.div}
-                  layout
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.28, ease: EASE }}
+                  layout={!reduceMotion}
+                  initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE }}
                   sx={{
                     border: `1px solid ${theme.palette.divider}`,
                     borderRadius: `${radius.md}px`,

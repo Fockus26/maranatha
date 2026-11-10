@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
+import { motion, useReducedMotion } from "framer-motion";
 import { type ChangeEvent, useMemo, useState } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import {
@@ -38,6 +39,7 @@ import { fontScale, radius, typography } from "@/theme/tokens";
 
 export default function DashboardProyectosPage() {
   const theme = useTheme();
+  const reduceMotion = useReducedMotion();
   const { projects, isLoading, deleteProject } = useDashboardProjects();
   const { openCreate, openEdit } = useDashboardProjectModal();
   const [query, setQuery] = useState("");
@@ -168,6 +170,13 @@ export default function DashboardProyectosPage() {
             `DashboardTable` vía su prop `onCreate` (fase 09, D067). */}
         {!isLoading && query.trim() && filteredRows.length === 0 ? (
           <Box
+            component={motion.div}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.28,
+              ease: [0.2, 0.8, 0.2, 1],
+            }}
             sx={{
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: `${radius.lg}px`,
