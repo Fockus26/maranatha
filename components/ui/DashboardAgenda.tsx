@@ -48,6 +48,7 @@ import {
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DateField } from "./DateField";
 import { EmptyState } from "./EmptyState";
+import { TimeField } from "./TimeField";
 
 /**
  * Panel de la agenda (`/dashboard/agenda`): las reuniones semanales y los
@@ -263,18 +264,13 @@ function AgendaEventDialog({
             />
           )}
 
-          <TextField
-            size="small"
-            type="time"
+          <TimeField
             label="Hora"
             required
-            fullWidth
             value={form.startTime}
-            onChange={(e) => set("startTime", e.target.value)}
+            onChange={(v) => set("startTime", v)}
             error={touched && !timeValid}
             helperText={touched && !timeValid ? "Elige la hora." : undefined}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={SMALL_FIELD_SX}
           />
 
           <TextField
