@@ -52,7 +52,6 @@ export function StepTransition({
   const [height, setHeight] = useState<number | undefined>(undefined);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: `content` hace aparecer el nodo del paso 2 que se observa
-
   useEffect(() => {
     const el = showSecond ? secondInner.current : firstInner.current;
     if (!el) return;
