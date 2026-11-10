@@ -1,0 +1,5 @@
+# D084 · Componentes · Botón outlined de acción: borde y texto `primary` (claro) / `primary[200]` (oscuro), relleno sólido al hover · Implementado
+
+**Decisión:** "Seguir" (`SocialLinkCard`) y "Dar like o comentar" (visor de Instagram) comparten `components/ui/outlinedActionSx.ts`: reposo con borde y texto `primary[700]` (claro) o `primary[200]` (oscuro); hover con relleno de ese color y texto invertido (blanco / `gray[900]`). El CTA del visor lleva `OpenInNewRounded` al final, sin icono de Instagram, y `aria-label="Dar like o comentar en Instagram (pestaña nueva)"`.
+**Por qué:** el borde `divider` + texto `text.secondary` no llegaba a 3:1 (borde) y el hover era casi imperceptible. Pares: claro 16,6:1 (texto y borde sobre blanco), hover blanco sobre `primary[700]` 16,6:1; oscuro `primary[200]` sobre paper `gray[800]` 8,1:1, hover `gray[900]` sobre `primary[200]` 9,3:1.
+**Alternativa descartada:** hover solo con borde/texto `primary.main` y alpha 0.08 (el cambio sigue siendo sutil); `primary.main` en oscuro (`primary[400]`, 3,1:1 sobre paper, no sirve para texto).

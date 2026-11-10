@@ -6,8 +6,10 @@
  * lectura: no permite dar like ni comentar (eso solo desde Instagram).
  *
  * Qué se aprovecha del feed:
- * - `sizes` (400/700/1000/2000 px, cuadrados, URLs estables de Behold) →
- *   `srcSet` para que el navegador elija la resolución según la pantalla.
+ * - `sizes` (small/medium/large/full, URLs estables de Behold; escalan por
+ *   alto y conservan la proporción del original, p. ej. 302x400 … 1511x2000)
+ *   → `srcSet` para que el navegador elija la resolución según la pantalla, y
+ *   la proporción real del medio (`aspectRatio`) para el visor.
  * - `children` de los carruseles → todas las fotos/videos del álbum.
  * - `mediaUrl` de los videos (reels) → se reproducen dentro del sitio. Son
  *   URLs del CDN de Instagram que caducan a los pocos días; la revalidación
@@ -37,6 +39,8 @@ export interface InstagramMedia {
   videoUrl?: string;
   /** Color dominante `rgb(...)` para el fondo mientras carga. */
   placeholder?: string;
+  /** Ancho / alto del medio, acotada a `[MIN_ASPECT, MAX_ASPECT]` (D083). */
+  aspectRatio: number;
 }
 
 export interface InstagramPost {
@@ -54,6 +58,8 @@ export interface InstagramPost {
   /** Portada para la grilla. */
   cover: InstagramImageSource;
   placeholder?: string;
+  /** Proporción del escenario del visor: la del primer elemento (D083). */
+  aspectRatio: number;
   /** Un elemento para foto/video; todos los del álbum para carruseles. */
   media: InstagramMedia[];
 }
@@ -119,6 +125,31 @@ export interface BeholdFeed {
 
 const SIZE_ORDER: SizeKey[] = ["small", "medium", "large", "full"];
 
+/** Límites de proporción (ancho/alto): de 9:16 (reel) a 1.91:1 (Instagram). */
+export const MIN_ASPECT = 9 / 16;
+export const MAX_ASPECT = 1.91;
+/** Sin `sizes`: 4:5 para imagen (formato por defecto de Instagram), 9:16 video. */
+export const DEFAULT_IMAGE_ASPECT = 4 / 5;
+export const DEFAULT_VIDEO_ASPECT = 9 / 16;
+
+/**
+ * Proporción ancho/alto del medio a partir de los tamaños de Behold, acotada
+ * para que un dato raro no rompa el layout. Sin tamaños válidos, el valor por
+ * defecto del tipo de medio.
+ */
+export function mediaAspectRatio(
+  sizes: BeholdSizes | undefined,
+  isVideo: boolean,
+): number {
+  const fallback = isVideo ? DEFAULT_VIDEO_ASPECT : DEFAULT_IMAGE_ASPECT;
+  const s = SIZE_ORDER.map((k) => sizes?.[k]).find(
+    (x) => x && x.width > 0 && x.height > 0,
+  );
+  if (!s) return fallback;
+  const ratio = s.width / s.height;
+  return Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, ratio));
+}
+
 /** `"60,68,56"` → `"rgb(60 68 56)"`; cualquier otra forma → undefined. */
 export function paletteToCss(rgb: string | undefined): string | undefined {
   if (!rgb || !/^\d{1,3},\d{1,3},\d{1,3}$/.test(rgb)) return undefined;
@@ -154,6 +185,7 @@ function toMedia(item: BeholdChild): InstagramMedia {
     ),
     videoUrl: isVideo ? item.mediaUrl : undefined,
     placeholder: paletteToCss(item.colorPalette?.dominant),
+    aspectRatio: mediaAspectRatio(item.sizes, isVideo),
   };
 }
 
@@ -184,6 +216,7 @@ export function normalizePost(p: BeholdPost): InstagramPost {
     isCarousel,
     cover: self.image,
     placeholder: self.placeholder,
+    aspectRatio: media[0].aspectRatio,
     media,
   };
 }
