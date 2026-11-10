@@ -2,6 +2,11 @@ import { describe, expect, test } from "bun:test";
 import {
   type BeholdPost,
   buildImageSource,
+  DEFAULT_IMAGE_ASPECT,
+  DEFAULT_VIDEO_ASPECT,
+  MAX_ASPECT,
+  MIN_ASPECT,
+  mediaAspectRatio,
   normalizeFeed,
   normalizePost,
   paletteToCss,
@@ -37,6 +42,38 @@ describe("buildImageSource", () => {
       src: "orig.jpg",
       srcSet: "",
     });
+  });
+});
+
+const sz = (w: number, h: number) => ({
+  mediaUrl: `u${w}`,
+  width: w,
+  height: h,
+});
+
+describe("mediaAspectRatio", () => {
+  test("toma la proporción real de los tamaños de Behold (3:4, no cuadrado)", () => {
+    const sizes = { small: sz(302, 400), large: sz(756, 1000) };
+    expect(mediaAspectRatio(sizes, false)).toBeCloseTo(0.755, 3);
+  });
+  test("sin tamaños: 4:5 en imagen y 9:16 en video", () => {
+    expect(mediaAspectRatio(undefined, false)).toBe(DEFAULT_IMAGE_ASPECT);
+    expect(mediaAspectRatio({}, true)).toBe(DEFAULT_VIDEO_ASPECT);
+  });
+  test("ignora tamaños con dimensiones inválidas", () => {
+    expect(mediaAspectRatio({ small: sz(0, 400) }, false)).toBe(
+      DEFAULT_IMAGE_ASPECT,
+    );
+  });
+  test("acota las proporciones extremas", () => {
+    expect(mediaAspectRatio({ small: sz(4000, 400) }, false)).toBe(MAX_ASPECT);
+    expect(mediaAspectRatio({ small: sz(100, 4000) }, false)).toBe(MIN_ASPECT);
+  });
+  test("reel 225x400 queda en 9:16", () => {
+    expect(mediaAspectRatio({ small: sz(225, 400) }, true)).toBeCloseTo(
+      9 / 16,
+      2,
+    );
   });
 });
 
@@ -110,6 +147,30 @@ describe("normalizePost", () => {
     expect(p.media.map((m) => m.type)).toEqual(["image", "video"]);
     expect(p.media[1].videoUrl).toBe("b.mp4");
     expect(p.cover.src).toBe("https://hop.behold.pictures/l.jpg");
+  });
+
+  test("carrusel: el post usa la proporción del primer elemento", () => {
+    const p = normalizePost({
+      ...base,
+      mediaType: "CAROUSEL_ALBUM",
+      sizes: { small: sz(300, 400) },
+      children: [
+        {
+          id: "a",
+          mediaType: "IMAGE",
+          mediaUrl: "a.jpg",
+          sizes: { small: sz(300, 400) },
+        },
+        {
+          id: "b",
+          mediaType: "IMAGE",
+          mediaUrl: "b.jpg",
+          sizes: { small: sz(400, 400) },
+        },
+      ],
+    });
+    expect(p.aspectRatio).toBeCloseTo(0.75, 3);
+    expect(p.media[1].aspectRatio).toBe(1);
   });
 });
 

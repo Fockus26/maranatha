@@ -6,33 +6,37 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import InstagramIcon from "@mui/icons-material/Instagram";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   InstagramMedia,
   InstagramPost,
   InstagramProfile,
 } from "@/lib/instagram";
 import { fontScale, gray, primary, radius } from "@/theme/tokens";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 /**
  * Visor de una publicación de Instagram (feed de Behold, ver
  * `lib/instagram.ts`). Se abre desde la grilla de `SocialLinks`.
  *
  * - Carruseles: todas las fotos/videos del álbum, con flechas, contador y
- *   flechas del teclado. Transición deslizante entre elementos (solo
+ *   flechas del teclado, arrastre y scroll horizontal (rueda/trackpad).
+ *   Transición deslizante entre elementos (solo
  *   fundido con `prefers-reduced-motion`) y deslizar con el dedo en fotos.
- * - El escenario toma la proporción del contenido (1:1 en fotos y álbumes,
- *   9:16 en reels) y el medio lo cubre entero: sin franjas de fondo.
+ * - El escenario toma la proporción real del medio (la del primer elemento en
+ *   álbumes) y el medio se ve entero (`contain`): sin recortes ni franjas. El
+ *   ancho del diálogo sale de esa proporción (D083).
  * - Reels y videos: se reproducen aquí con los controles nativos (sin
  *   autoplay). Si el `.mp4` del CDN de Instagram ya caducó, se ofrece abrir
  *   el post en Instagram.
@@ -40,7 +44,20 @@ import { fontScale, gray, primary, radius } from "@/theme/tokens";
  *   que dar like o comentar se hace en Instagram (botón al pie).
  */
 
-const IMAGE_SIZES = "(min-width: 900px) 640px, 100vw";
+/** Alto máximo del escenario en md+ (px); de él y la proporción sale el ancho. */
+const STAGE_MAX_PX = 640;
+/** Ancho que ocupan el panel de texto (360) y los márgenes del diálogo (64). */
+const STAGE_RESERVED_PX = 424;
+
+/** Scroll horizontal acumulado (px) para pasar de diapositiva. */
+const WHEEL_PX = 40;
+/** Silencio (ms) sin eventos de rueda para dar por terminado un gesto. */
+const WHEEL_IDLE_MS = 400;
+
+/** `sizes` del `<img>`: ancho real del escenario (md+ = alto × proporción). */
+function imageSizes(aspect: number) {
+  return `(min-width: 900px) ${Math.round(STAGE_MAX_PX * aspect)}px, 100vw`;
+}
 
 /** Desplazamiento mínimo (px) para que un deslizamiento cambie de foto. */
 const SWIPE_PX = 60;
@@ -63,10 +80,12 @@ function MediaSlide({
   media,
   permalink,
   label,
+  stageAspect,
 }: {
   media: InstagramMedia;
   permalink: string;
   label: string;
+  stageAspect: number;
 }) {
   const [failed, setFailed] = useState(false);
 
@@ -87,7 +106,7 @@ function MediaSlide({
           display: "block",
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          objectFit: "contain",
         }}
       />
     );
@@ -100,14 +119,14 @@ function MediaSlide({
         key={media.id}
         src={media.image.src}
         srcSet={media.image.srcSet || undefined}
-        sizes={media.image.srcSet ? IMAGE_SIZES : undefined}
+        sizes={media.image.srcSet ? imageSizes(stageAspect) : undefined}
         alt={label}
         draggable={false}
         sx={{
           display: "block",
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          objectFit: "contain",
         }}
       />
       {failed && (
@@ -164,6 +183,9 @@ export function InstagramPostDialog({
   // `direction`: 1 avanza, -1 retrocede — decide hacia dónde se desliza.
   const [[index, direction], setSlide] = useState<[number, number]>([0, 0]);
   const [prevPostId, setPrevPostId] = useState(post?.id);
+  const [stageEl, setStageEl] = useState<HTMLDivElement | null>(null);
+  const goRef = useRef<(delta: number) => void>(() => {});
+  const total = post?.media.length ?? 0;
 
   // Al abrir otro post, vuelve a la primera diapositiva.
   if (post?.id !== prevPostId) {
@@ -171,17 +193,58 @@ export function InstagramPostDialog({
     setSlide([0, 0]);
   }
 
+  const go = (delta: number) =>
+    setSlide(([i]) => [Math.max(0, Math.min(total - 1, i + delta)), delta]);
+
+  useEffect(() => {
+    goRef.current = go;
+  });
+
+  // Scroll horizontal (rueda / trackpad): un gesto = una diapositiva. Un gesto
+  // de trackpad dispara decenas de eventos (y la inercia sigue después), así
+  // que se acumula hasta `WHEEL_PX` y se bloquea hasta que pasa
+  // `WHEEL_IDLE_MS` sin eventos. Listener no pasivo para poder frenar el
+  // gesto de "atrás" del navegador; el scroll vertical no se toca.
+  useEffect(() => {
+    if (!stageEl || total < 2) return;
+    let acc = 0;
+    let locked = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        locked = false;
+        acc = 0;
+      }, WHEEL_IDLE_MS);
+      if (locked) return;
+      acc += e.deltaX;
+      if (Math.abs(acc) >= WHEEL_PX) {
+        goRef.current(acc > 0 ? 1 : -1);
+        locked = true;
+        acc = 0;
+      }
+    };
+    stageEl.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      stageEl.removeEventListener("wheel", onWheel);
+      clearTimeout(timer);
+    };
+  }, [stageEl, total]);
+
   if (!post) return <Dialog open={false} onClose={onClose} />;
 
-  const total = post.media.length;
   const current = post.media[Math.min(index, total - 1)];
   const kind = post.isReel ? "Reel" : post.isVideo ? "Video" : "Publicación";
   const date = formatDate(post.timestamp);
-  const go = (delta: number) =>
-    setSlide(([i]) => [Math.max(0, Math.min(total - 1, i + delta)), delta]);
-  // Proporción del escenario: los tamaños de Behold son cuadrados; los reels,
-  // verticales. Fija por post para que el diálogo no salte entre diapositivas.
-  const aspect = post.isVideo ? "9 / 16" : "1 / 1";
+  // Proporción del escenario: la real del primer elemento (Behold conserva la
+  // del original, p. ej. 3:4). Fija por post para que el diálogo no salte
+  // entre diapositivas; las demás van en `contain` sobre su color dominante.
+  const aspect = post.aspectRatio;
+  // Alto del escenario en md+: el ancho del diálogo = alto × proporción, y el
+  // último término evita que desborde la pantalla con el panel de texto.
+  const stageHeight = `min(${STAGE_MAX_PX}px, 85vh, calc((100vw - ${STAGE_RESERVED_PX}px) / ${aspect}))`;
   const canSwipe = total > 1 && current.type === "image";
   const slideLabel =
     total > 1
@@ -193,7 +256,7 @@ export function InstagramPostDialog({
       open
       onClose={onClose}
       fullScreen={fullScreen}
-      maxWidth="lg"
+      maxWidth={false}
       aria-labelledby="ig-post-title"
       onKeyDown={(e) => {
         if (total < 2) return;
@@ -216,21 +279,25 @@ export function InstagramPostDialog({
         sx={{
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
-          height: { md: "min(640px, 85vh, calc(100vw - 424px))" },
+          height: { md: stageHeight },
           minHeight: { xs: "100%", md: "auto" },
         }}
       >
         {/* Escenario del medio */}
         <Box
+          ref={setStageEl}
           sx={{
             position: "relative",
             flexShrink: 0,
             overflow: "hidden",
             aspectRatio: aspect,
             width: { xs: "100%", md: "auto" },
+            // En móvil el alto sale de la proporción, con tope para que el
+            // panel de texto siga a la vista.
+            maxHeight: { xs: "60dvh", md: "none" },
             // Altura explícita (no 100%) para que el ancho intrínseco del diálogo
-            // salga del aspect-ratio; el último término evita desbordar en md.
-            height: { md: "min(640px, 85vh, calc(100vw - 424px))" },
+            // salga del aspect-ratio.
+            height: { md: stageHeight },
             backgroundColor: current.placeholder ?? primary[900],
             transition: "background-color 0.3s ease",
           }}
@@ -272,6 +339,7 @@ export function InstagramPostDialog({
                 media={current}
                 permalink={post.permalink}
                 label={slideLabel}
+                stageAspect={aspect}
               />
             </motion.div>
           </AnimatePresence>
@@ -366,7 +434,11 @@ export function InstagramPostDialog({
                 {date && ` · ${date}`}
               </Typography>
             </Box>
-            <IconButton onClick={onClose} aria-label="Cerrar" edge="end">
+            <IconButton
+              onClick={onClose}
+              aria-label="Cerrar"
+              sx={{ width: 44, height: 44, mr: 0.5 }}
+            >
               <CloseRoundedIcon />
             </IconButton>
           </Box>
@@ -478,22 +550,13 @@ export function InstagramPostDialog({
               href={post.permalink}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Dar like o comentar en Instagram (pestaña nueva)"
               variant="outlined"
               fullWidth
-              startIcon={<InstagramIcon />}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderColor: "divider",
-                color: "text.primary",
-                "&:hover": {
-                  borderColor: "primary.main",
-                  color: "primary.main",
-                  backgroundColor: (t) => alpha(t.palette.primary.main, 0.08),
-                },
-              }}
+              endIcon={<OpenInNewRoundedIcon />}
+              sx={(t) => ({ ...outlinedActionSx(t), minHeight: 44 })}
             >
-              Dar like o comentar en Instagram
+              Dar like o comentar
             </Button>
           </Box>
         </Box>

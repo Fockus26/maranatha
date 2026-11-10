@@ -3,9 +3,10 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { fontScale, radius } from "@/theme/tokens";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 export interface SocialLinkCardProps {
   platform: string;
@@ -117,9 +118,7 @@ export function SocialLinkCard({
         </Typography>
       </Box>
 
-      {/* Mismo tratamiento que "Ver proyecto" en ProjectCard (fase 07): neutro en
-          reposo, azul al interactuar — imita el CTA del Hero (blanco → efecto
-          naranja) pero con el efecto en azul, en vez del outlined plano anterior. */}
+      {/* Outlined con contraste real en reposo y relleno al hover (D084). */}
       <Button
         component="a"
         href={href}
@@ -127,17 +126,11 @@ export function SocialLinkCard({
         rel="noopener noreferrer"
         variant="outlined"
         size="small"
-        sx={{
+        sx={(t) => ({
+          ...outlinedActionSx(t),
           flexShrink: 0,
           minHeight: 44, // área táctil (design-qa fase 09)
-          borderColor: theme.palette.divider,
-          color: theme.palette.text.secondary,
-          "&:hover": {
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
-            backgroundColor: alpha(theme.palette.primary.main, 0.08),
-          },
-        }}
+        })}
       >
         {ctaLabel}
       </Button>
