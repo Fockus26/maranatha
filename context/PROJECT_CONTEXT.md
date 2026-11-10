@@ -66,8 +66,8 @@ PENDIENTE (no quedó registrado).
 - Datos externos: YouTube (prédicas), Behold.so (feeds de Instagram), DolarApi (tasas)
 - Correo: Brevo SMTP (`lib/email/`), solo la recuperación de contraseña del panel
 - Analítica: `@vercel/analytics` solo en Vercel
-- Despliegue: Vercel = pruebas (rama `vercel`); VPS Hetzner con Docker + Caddy = producción
-  (rama `vps`). Ver `deploy/README.md`.
+- Despliegue: hoy Vercel es el sitio en vivo (rama `vercel`) y usa la base del VPS (D082); VPS Hetzner con Docker + Caddy
+  (rama `vps`) previsto, sin uso aún. Ver `deploy/README.md`.
 - Dominio: PENDIENTE
 
 ## Alcance de páginas
@@ -98,7 +98,7 @@ PENDIENTE (no quedó registrado).
 ## Repo y despliegue
 
 - Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
-- Vercel: hoy el único despliegue, publica la rama `vercel` (no indexable, D073); sin `.vercel/` enlazado en local
+- Vercel: hoy el único despliegue, publica la rama `vercel` (no indexable, D073). Producción usa la base `maranatha`; preview y development, `maranatha_preview`
 - Producción: VPS Hetzner con Docker, rama `vps` (D071, D072), previsto pero aún sin uso · Previews: los de Vercel
 - Mantenimiento: no aplica (no hay página de mantenimiento)
 - Secretos duplicados en GitHub (se reponen si cambian en Vercel): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (`deploy-vps.yml`)
@@ -117,9 +117,10 @@ Detalle de tamaños y archivos: `reference/BRAND-ASSETS.md` del kit.
 
 ## Correos
 
-No aplica: la app no manda correos. Las cuentas del dashboard se crean a mano en Supabase y el
-login es con contraseña, sin recuperación por correo. Si eso cambia, se diseña entonces
-(`reference/EMAIL-TEMPLATES.md` del kit).
+Un solo correo: la recuperación de contraseña del dashboard (D082), con React Email
+(`lib/email/`) por Brevo SMTP (`SMTP_*`; remitente hoy `alejandrorey2654@gmail.com`, sin
+dominio propio). Las cuentas se crean con `bun scripts/create-admin.ts`; sin registro.
+En QA los correos caen en Mailpit.
 
 ## Track de fases
 
