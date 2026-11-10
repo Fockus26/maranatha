@@ -224,6 +224,18 @@ export function getTheme(mode: PaletteMode) {
       MuiCssBaseline: {
         styleOverrides: getGlobalStyles(mode),
       },
+      // D085: sin el ripple pulsante de foco de MUI (el de clic se conserva):
+      // el anillo de foco es solo el outline de `globals.css`. Cada
+      // componente que lo activa por su cuenta expone `disableFocusRipple`.
+      MuiButtonBase: { defaultProps: { focusRipple: false } },
+      MuiIconButton: { defaultProps: { disableFocusRipple: true } },
+      MuiFab: { defaultProps: { disableFocusRipple: true } },
+      MuiTab: { defaultProps: { disableFocusRipple: true } },
+      MuiToggleButton: { defaultProps: { disableFocusRipple: true } },
+      MuiCheckbox: { defaultProps: { disableFocusRipple: true } },
+      MuiRadio: { defaultProps: { disableFocusRipple: true } },
+      MuiSwitch: { defaultProps: { disableFocusRipple: true } },
+      MuiAccordionSummary: { defaultProps: { disableFocusRipple: true } },
       MuiInputLabel: {
         styleOverrides: {
           // Label flotante del campo enfocado: en oscuro `primary.main`
@@ -244,6 +256,7 @@ export function getTheme(mode: PaletteMode) {
       MuiButton: {
         defaultProps: {
           disableElevation: true,
+          disableFocusRipple: true,
         },
         // MUI v9 aplica el color de `contained` vía la API `variants`, que
         // gana sobre `styleOverrides.containedSecondary` — el naranja fijo
@@ -328,12 +341,19 @@ export function getTheme(mode: PaletteMode) {
       },
       MuiOutlinedInput: {
         styleOverrides: {
-          // Mismo anillo de foco naranja que botones y enlaces (design-qa
-          // fase 09): antes solo cambiaba el color del borde.
+          // D085: sin outline exterior (cruzaba la etiqueta flotante); el
+          // foco se marca en el borde del propio campo: naranja 2px, o rojo
+          // 2px si hay error (el estado de error manda).
           root: {
-            "&.Mui-focused": {
-              outline: `2px solid ${secondary[500]}`,
-              outlineOffset: 2,
+            "&.Mui-focused": { outline: "none" },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "var(--focus-ring)",
+              borderWidth: 2,
+            },
+            "&.Mui-focused.Mui-error .MuiOutlinedInput-notchedOutline": {
+              borderColor:
+                mode === "light" ? semantic.errorOnLight : semantic.errorOnDark,
+              borderWidth: 2,
             },
           },
         },

@@ -1,5 +1,5 @@
 import type { PaletteMode } from "@mui/material";
-import { radius, scrollbar, selection } from "./tokens";
+import { radius, scrollbar, secondary, selection } from "./tokens";
 
 /**
  * Selección de texto y barra de scroll globales (adenda de diseño).
@@ -63,6 +63,14 @@ export function getGlobalStyles(mode: PaletteMode) {
   const { size, inset } = scrollbar;
 
   return {
+    // Color del anillo de foco (D085). Naranja de marca `secondary[500]` da
+    // 2.8:1 sobre blanco (< 3:1 de WCAG 1.4.11): en claro se usa
+    // `secondary[600]` (3.7:1); en oscuro y en las piezas navy fijas,
+    // `secondary[500]` (5.8:1 sobre el paper oscuro, 7.1:1 sobre navy).
+    ":root": {
+      "--focus-ring": mode === "light" ? secondary[600] : secondary[500],
+    },
+    [NAVY]: { "--focus-ring": secondary[500] },
     // `forced-colors`: no se pinta nada; manda el sistema.
     "@media not all and (forced-colors: active)": {
       html: {
