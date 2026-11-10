@@ -11,6 +11,7 @@ import TextField from "@mui/material/TextField";
 import { useRef, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import { fontScale, radius } from "@/theme/tokens";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 export interface ImageUploadFieldProps {
   label: string;
@@ -116,10 +117,13 @@ export function ImageUploadField({
           <Button
             type="button"
             variant="outlined"
-            color="inherit"
             startIcon={<AttachFileRoundedIcon fontSize="small" />}
             onClick={() => inputRef.current?.click()}
-            sx={{ height: 40, textTransform: "none", fontSize: fontScale[12] }}
+            sx={(t) => ({
+              ...outlinedActionSx(t),
+              height: 40,
+              fontSize: fontScale[12],
+            })}
           >
             {value ? "Cambiar imagen" : "Elegir imagen"}
           </Button>

@@ -7,9 +7,10 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
+import { outlinedActionSx } from "@/components/ui/outlinedActionSx";
 import { Reveal } from "@/components/ui/Reveal";
 import { YoutubeEmbedCard } from "@/components/ui/YoutubeEmbedCard";
 import { YOUTUBE_CHANNEL_URL } from "@/lib/siteConfig";
@@ -150,14 +151,9 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
               justifyContent: { xs: "center", md: "flex-start" },
             }}
           >
-            {/* Mismo tratamiento que "Ver proyecto" (ProjectCard/ProjectSidebar)
-                y "Seguir" (SocialLinkCard): neutro en reposo, acento al
-                interactuar. Antes el acento era navy (D050-siguiente), pero
-                eso chocaba con el hover naranja de las `YoutubeEmbedCard` de
-                arriba — dos acentos distintos en la misma sección se sentían
-                inconsistentes (feedback directo del cliente). Se cambia a
-                naranja para que el botón "cierre" la sección con el mismo
-                acento que ya usan las cards al hacer hover. */}
+            {/* Mismo botón outlined con contraste que "Seguir" y "Ver
+                proyecto" (D084, `outlinedActionSx`): César pidió unificar
+                todos los botones del estilo neutro anterior (2026-11-10). */}
             <Button
               variant="outlined"
               size="large"
@@ -166,15 +162,7 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
               target="_blank"
               rel="noopener noreferrer"
               startIcon={<YouTubeIcon />}
-              sx={{
-                borderColor: "divider",
-                color: "text.secondary",
-                "&:hover": {
-                  borderColor: "secondary.main",
-                  color: "secondary.main",
-                  backgroundColor: alpha(theme.palette.secondary.main, 0.08),
-                },
-              }}
+              sx={outlinedActionSx(theme)}
             >
               Ver canal de YouTube
             </Button>
