@@ -8,7 +8,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
 **Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `/kit-update`) ·
-**Despliegue:** hoy solo Vercel (rama `vercel`); el VPS (rama `vps`) está previsto, sin uso aún
+**Despliegue:** hoy solo Vercel (rama `vercel`, el sitio en vivo) contra la base `maranatha` del Postgres del VPS; el hosting en Docker del VPS (rama `vps`) está previsto, sin uso aún
 
 ---
 
@@ -38,7 +38,7 @@ Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls con
 Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
 
 **El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
-**Tech refs:** vps-postgres, migrate-supabase-vps (hasta cerrar el corte, D082), vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
+**Tech refs:** vps-postgres, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
 
 ---
 
@@ -49,7 +49,7 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
   (Tailwind está instalado pero no se usa para estilos nuevos)
 - **bun** para todo — nunca npm, yarn ni pnpm
 - Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
-- Deploy: Vercel = pruebas (rama `vercel`) · VPS Hetzner con Docker = producción (rama `vps`)
+- Deploy: Vercel = el sitio en vivo (rama `vercel`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker (rama `vps`) previsto, sin uso aún
 
 ```bash
 bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
