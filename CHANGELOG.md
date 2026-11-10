@@ -1,5 +1,12 @@
 # maranatha
 
+## 0.6.1
+
+### Patch Changes
+
+- 0fce957: Foco de teclado más limpio: el anillo naranja sigue la forma de cada botón y los campos de texto marcan el foco en su borde sin tapar la etiqueta.
+- dcdcb62: Visor de Instagram: las fotos se ven completas y nítidas, el modal se adapta a cada imagen, se puede pasar de foto con el scroll horizontal y los botones Seguir y Dar like o comentar tienen mejor contraste.
+
 ## 0.6.0
 
 ### Minor Changes
