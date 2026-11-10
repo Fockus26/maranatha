@@ -16,7 +16,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  radius,
+  secondary,
+  typography,
+} from "@/theme/tokens";
 
 export interface DateFieldProps {
   label: string;
@@ -371,11 +377,13 @@ export function DateField({
                       aspectRatio: "1 / 1",
                       border: "none",
                       borderRadius: `${radius.sm}px`,
+                      // Blanco sobre `secondary[700]` (5,31:1, AA): sobre el
+                      // naranja `main` el blanco daba 2,77:1.
                       backgroundColor: isSelected
-                        ? theme.palette.secondary.main
+                        ? secondary[700]
                         : "transparent",
                       color: isSelected
-                        ? theme.palette.secondary.contrastText
+                        ? common.white
                         : inCurrentMonth
                           ? theme.palette.text.primary
                           : theme.palette.text.secondary,
@@ -397,7 +405,7 @@ export function DateField({
                       ),
                       "&:hover:not(:disabled)": {
                         backgroundColor: isSelected
-                          ? theme.palette.secondary.main
+                          ? secondary[700]
                           : theme.palette.action.hover,
                       },
                     }}
