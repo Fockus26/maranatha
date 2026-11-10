@@ -1,4 +1,4 @@
-# D071 · Deploy · Vercel = staging (rama vercel), VPS = producción (rama vps), mismo código · Implementado
+# D071 · Deploy · Vercel = staging (rama vercel), VPS = producción (rama vps), mismo código · Reemplazada por D091
 
 **Decisión:** rama `vercel` → Vercel (staging); rama `vps` → VPS Hetzner (producción). Las dos tienen el mismo código que `main` y todos los archivos de deploy; cambian solo las variables de entorno. Se avanzan `main → vercel → vps`.
 **Por qué:** una rama con archivos distintos por servicio obligaría a pasar cada cambio a mano y resolver conflictos.

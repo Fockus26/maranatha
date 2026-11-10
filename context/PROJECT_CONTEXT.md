@@ -66,8 +66,8 @@ PENDIENTE (no quedó registrado).
 - Datos externos: YouTube (prédicas), Behold.so (feeds de Instagram), DolarApi (tasas)
 - Correo: Brevo SMTP (`lib/email/`), solo la recuperación de contraseña del panel
 - Analítica: `@vercel/analytics` solo en Vercel
-- Despliegue: hoy Vercel es el sitio en vivo (rama `vercel`) y usa la base del VPS (D082); VPS Hetzner con Docker + Caddy
-  (rama `vps`) previsto, sin uso aún. Ver `deploy/README.md`.
+- Despliegue: Vercel es el sitio en vivo, publica `main` (D091) y usa la base del VPS (D082); VPS Hetzner con Docker + Caddy
+  previsto, sin uso aún. Ver `deploy/README.md`.
 - Dominio: PENDIENTE
 
 ## Alcance de páginas
@@ -98,8 +98,8 @@ PENDIENTE (no quedó registrado).
 ## Repo y despliegue
 
 - Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
-- Vercel: hoy el único despliegue, publica la rama `vercel` (no indexable, D073). Producción usa la base `maranatha`; preview y development, `maranatha_preview`
-- Producción: VPS Hetzner con Docker, rama `vps` (D071, D072), previsto pero aún sin uso · Previews: los de Vercel
+- Vercel: hoy el único despliegue, publica `main` (D091; no indexable, D073). Producción usa la base `maranatha`; preview y development, `maranatha_preview`
+- VPS Hetzner con Docker (D072): previsto pero aún sin uso, deploy manual por workflow (D091) · Previews: los de Vercel
 - Mantenimiento: no aplica (no hay página de mantenimiento)
 - Secretos duplicados en GitHub (se reponen si cambian en Vercel): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (`deploy-vps.yml`)
 

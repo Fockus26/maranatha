@@ -81,8 +81,8 @@ Los de MUI, definidos en `theme/tokens.ts`:
 ## Git
 
 - Modo `pr` (ver `GIT_STATE.md`): en la rama de la unidad se commitea y empuja sin pedir
-  permiso; la aprobación de César es la revisión del PR. Nunca push a `main` ni a las ramas
-  de deploy (`vercel`, `vps`), nunca `gh pr merge`.
+  permiso; la aprobación de César es la revisión del PR. Nunca push a `main`, nunca
+  `gh pr merge`.
 - Nada destructivo: ni `reset --hard`, ni `push --force`, ni borrar ramas, ni reescribir
   historia.
 

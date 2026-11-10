@@ -7,9 +7,8 @@ export const SITE_URL = (
     : "http://localhost:3000")
 ).replace(/\/$/, "");
 
-// Vercel es el entorno de pruebas (rama `vercel`) y producción corre en el VPS
-// (rama `vps`). En Vercel el sitio no se deja indexar, para que Google no
-// publique el staging ni lo trate como copia del dominio real.
+// Vercel publica `main` (D091). En Vercel el sitio no se deja indexar (D073),
+// pensado para cuando el dominio real viva en el VPS y Vercel quede de staging.
 export const SITE_INDEXABLE = process.env.VERCEL !== "1";
 
 export const SITE_NAME = "Iglesia Maranatha";

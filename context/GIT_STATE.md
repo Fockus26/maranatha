@@ -18,14 +18,10 @@ En modo `pr` el estado de las ramas es `gh pr list`: no hay tabla que mantener.
 
 `main`
 
-## Ramas de deploy (permanentes)
+## Deploy
 
-Mismo código que `main`; solo se avanzan, nunca se commitea directo en ellas. Las avanza
-César. Detalle en `deploy/README.md` (D071).
-
-| Rama | Publica en | Cómo avanzarla |
-|---|---|---|
-| `vercel` | Vercel (pruebas, no indexable) | `git push origin main:vercel` |
-| `vps` | VPS Hetzner (producción) | `git push origin vercel:vps` |
+No hay ramas de deploy (D091): Vercel publica `main` en cada merge. El deploy al VPS
+queda manual (Actions › Deploy VPS › Run workflow) hasta que se defina el cambio de
+hosting. Detalle en `deploy/README.md`.
 
 <!-- No se borran ramas mergeadas: borrar es destructivo y lo decide César. -->
