@@ -1,5 +1,12 @@
 # maranatha
 
+## 0.7.1
+
+### Patch Changes
+
+- a842003: Los botones secundarios ("Ver proyecto", "Ver canal de YouTube", "Tasas de cambio", "Ver comprobante", "Comprobante" y "Elegir imagen") usan ahora el mismo estilo con contraste que "Seguir".
+- 87113e6: La hora y el día elegidos en los selectores del panel muestran el texto en blanco sobre un naranja más oscuro, legible en modo claro y oscuro.
+
 ## 0.7.0
 
 ### Minor Changes
