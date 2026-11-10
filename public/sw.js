@@ -13,7 +13,9 @@ async function precacheOffline() {
   const res = await fetch(OFFLINE_URL, { cache: "reload" });
   if (!res.ok) throw new Error(`offline page: ${res.status}`);
   const html = await res.clone().text();
-  const assets = new Set(html.match(/\/(?:_next\/static|brand)\/[^"'\s)\\]+/g) ?? []);
+  const assets = new Set(
+    html.match(/\/(?:_next\/static|brand)\/[^"'\s)\\]+/g) ?? [],
+  );
   await cache.addAll([...assets]);
   await cache.put(OFFLINE_URL, res);
 }
