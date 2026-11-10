@@ -24,7 +24,13 @@ import {
   type Period,
   parseTime24,
 } from "@/lib/timeOfDay";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import {
+  common,
+  fontScale,
+  radius,
+  secondary,
+  typography,
+} from "@/theme/tokens";
 
 export interface TimeFieldProps {
   label: string;
@@ -150,21 +156,18 @@ function Column({ label, options, onChoose }: ColumnProps) {
             fontSize: fontScale[14],
             // Marcada: relleno + peso + borde, no solo color.
             fontWeight: option.selected ? 700 : 500,
-            backgroundColor: option.selected
-              ? theme.palette.secondary.main
-              : "transparent",
-            color: option.selected
-              ? // El contrastText del tema (blanco) no llega a 4,5:1 sobre el
-                // naranja en oscuro; se calcula sobre el fondo real.
-                theme.palette.getContrastText(theme.palette.secondary.main)
-              : theme.palette.text.primary,
+            // Texto blanco en claro y oscuro (pedido de César): sobre
+            // `secondary[500]` el blanco da 2,77:1; sobre `secondary[700]`,
+            // 5,31:1 (AA). Mismo par que el día elegido de `DateField`.
+            backgroundColor: option.selected ? secondary[700] : "transparent",
+            color: option.selected ? common.white : theme.palette.text.primary,
             border: `1px solid ${option.selected ? theme.palette.text.primary : "transparent"}`,
             transition: theme.transitions.create(["background-color"], {
               duration: theme.transitions.duration.shortest,
             }),
             "&:hover": {
               backgroundColor: option.selected
-                ? theme.palette.secondary.main
+                ? secondary[700]
                 : theme.palette.action.hover,
             },
           }}
