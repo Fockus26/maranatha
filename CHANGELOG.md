@@ -1,5 +1,12 @@
 # maranatha
 
+## 0.7.0
+
+### Minor Changes
+
+- f6815ce: Selector de hora propio en la agenda del panel, con el mismo estilo que el calendario.
+- 13c1600: Transiciones suaves al pasar al paso de pago y animación de las listas de pagos y proyectos del panel al filtrar o buscar.
+
 ## 0.6.1
 
 ### Patch Changes
