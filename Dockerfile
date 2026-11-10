@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 #
-# Imagen de producción para el VPS (rama `vps`). Vercel no usa este archivo.
-# La construye `.github/workflows/deploy-vps.yml`; ver `deploy/README.md`.
+# Imagen para el VPS (previsto, sin uso aún). Vercel no usa este archivo.
+# La construye `.github/workflows/deploy-vps.yml` (manual); ver `deploy/README.md`.
 
 # ─── Base: Node (runtime oficial de Next) + bun para instalar y correr scripts
 FROM node:22-slim AS base

@@ -1,11 +1,10 @@
-# Deploy de producción al VPS: cada push a la rama `vps` construye la imagen,
-# la sube a GitHub Container Registry y la levanta en el servidor.
+# Deploy al VPS: construye la imagen, la sube a GitHub Container Registry y la
+# levanta en el servidor. Hoy solo manual (Actions › Deploy VPS › Run workflow):
+# no hay rama `vps` (D091) y el cambio de hosting está por definir.
 # Secrets y variables necesarios: ver deploy/README.md.
 name: Deploy VPS
 
 on:
-  push:
-    branches: [vps]
   workflow_dispatch:
 
 concurrency:

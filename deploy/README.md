@@ -1,26 +1,20 @@
 # Deploy
 
-| Rama     | Dónde se publica           | Para qué                  | Cómo se dispara                         |
-|----------|----------------------------|---------------------------|-----------------------------------------|
-| `main`   | —                          | Integración de features   | Merge de las ramas de trabajo           |
-| `vercel` | Vercel                     | Pruebas (staging)         | Push → Vercel lo publica solo           |
-| `vps`    | VPS de Hetzner (Docker)    | Producción                | Push → `.github/workflows/deploy-vps.yml` |
+Una sola rama: **`main`** (D091). Cada merge a `main` lo publica Vercel solo;
+los PRs tienen su preview de Vercel. No hay ramas de deploy que avanzar.
 
-Las tres ramas tienen **el mismo código y los mismos archivos**; lo que cambia
-entre Vercel y el VPS son las variables de entorno. Así nunca hay que
-resolver conflictos entre ellas: solo se avanzan.
+| Dónde                   | Qué publica | Cómo se dispara                                                     |
+|-------------------------|-------------|---------------------------------------------------------------------|
+| Vercel                  | `main`      | Merge a `main` → Vercel lo publica solo                             |
+| VPS de Hetzner (Docker) | `main`      | Manual: Actions › Deploy VPS › Run workflow (previsto, sin uso aún) |
 
-```bash
-# Publicar en pruebas lo que está en main
-git push origin main:vercel
-
-# Pasar a producción lo que ya se probó en Vercel
-git push origin vercel:vps
-```
+El cambio de hosting (pasar el dominio al VPS) está por definir; mientras tanto el
+VPS no se despliega solo. Lo que cambia entre Vercel y el VPS son solo las
+variables de entorno.
 
 Cada archivo se usa solo en un lado:
 
-- `vercel.json`: solo Vercel. Le dice que no publique la rama `vps`.
+- `vercel.json`: solo Vercel.
 - `Dockerfile`, `.dockerignore`, `deploy/`, `.github/workflows/deploy-vps.yml`: solo el VPS.
 
 En Vercel el sitio no se indexa (`SITE_INDEXABLE` en `lib/siteConfig.ts`), así
@@ -32,7 +26,7 @@ Google solo ve el dominio real.
 
 ### 1. Vercel
 
-- Settings → Environments → Production → **Branch Tracking**: cambiar `main` por `vercel`.
+- Settings → Environments → Production → **Branch Tracking**: `main`.
 - Variables: las de siempre, pero con **PayPal Sandbox** (`PAYPAL_ENV=sandbox`).
   `NEXT_PUBLIC_SITE_URL` puede quedar vacía o con la URL `*.vercel.app`.
 
@@ -96,7 +90,7 @@ No hace falta ningún token personal de GitHub: el workflow usa el
 ### 5. El día del cambio a producción
 
 1. DNS: registros A de `tudominio.com`, `www` y `admin` (si se usa) → IP del VPS.
-2. `git push origin vercel:vps` y mirar la pestaña Actions.
+2. Actions › Deploy VPS › **Run workflow** sobre `main`, y mirar el run.
 3. `BETTER_AUTH_URL` del `.env` del VPS con el dominio del panel (`https://admin.tudominio.com`, o el principal si no hay `ADMIN_HOST`): es la base de los enlaces de recuperación de contraseña.
 4. PayPal Live: crear el webhook a `https://tudominio.com/api/payments/paypal/webhook`
    y poner su id en `PAYPAL_WEBHOOK_ID` del `.env` del VPS (luego `docker compose up -d`).

@@ -8,7 +8,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
 **Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `/kit-update`) ·
-**Despliegue:** hoy solo Vercel (rama `vercel`, el sitio en vivo) contra la base `maranatha` del Postgres del VPS; el hosting en Docker del VPS (rama `vps`) está previsto, sin uso aún
+**Despliegue:** Vercel publica `main` (el sitio en vivo) contra la base `maranatha` del Postgres del VPS; el hosting en Docker del VPS está previsto, sin uso aún (D091)
 
 ---
 
@@ -49,7 +49,7 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
   (Tailwind está instalado pero no se usa para estilos nuevos)
 - **bun** para todo — nunca npm, yarn ni pnpm
 - Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
-- Deploy: Vercel = el sitio en vivo (rama `vercel`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker (rama `vps`) previsto, sin uso aún
+- Deploy: Vercel = el sitio en vivo (publica `main`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker previsto, sin uso aún (D091)
 
 ```bash
 bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
@@ -89,8 +89,8 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
   anula la regla de arriba (cada unidad termina mergeada: PR + CI verde).
 - **Versión:** nadie toca `version` ni `CHANGELOG.md`. Cambio visible → `.changeset/<desc>.md`
   (`git-flow` §2.1.3). El PR `chore(release): versión` lo abre la Action y lo mergea César.
-- **Ramas de deploy** `vercel` y `vps`: nadie commitea en ellas; César las avanza
-  (`main → vercel → vps`, ver `deploy/README.md`).
+- **Deploy:** no hay ramas de deploy. Cada merge a `main` lo publica Vercel solo (D091,
+  ver `deploy/README.md`).
 - Nada destructivo: ni `reset --hard`, ni `push --force`, ni reescribir historia, ni borrar ramas.
 
 ### Qué va al repo y qué es local
