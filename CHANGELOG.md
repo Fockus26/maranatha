@@ -1,5 +1,15 @@
 # maranatha
 
+## 0.6.0
+
+### Minor Changes
+
+- 753b60d: El panel administrativo permite recuperar la contraseña por correo ("¿Olvidaste tu contraseña?"). La base de datos, las sesiones y los comprobantes pasan de Supabase al servidor propio.
+
+### Patch Changes
+
+- fdbde95: Sin red, abrir otra página del sitio muestra la pantalla "Sin conexión" en vez del error del navegador.
+
 ## 0.5.2
 
 ### Patch Changes
