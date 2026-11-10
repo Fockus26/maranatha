@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/ProjectContributionForm";
 import { ProjectDetailContent } from "@/components/ui/ProjectDetailContent";
 import { ProjectSidebar } from "@/components/ui/ProjectSidebar";
+import { StepTransition } from "@/components/ui/StepTransition";
 import { breadcrumbJsonLd } from "@/lib/jsonLd";
 import type { ProjectRecord } from "@/lib/projectsData";
 import { gray, semantic } from "@/theme/tokens";
@@ -152,27 +153,30 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
             justifyContent: "center",
           }}
         >
-          {/* Oculto (no desmontado) durante el paso 2: "Volver" conserva lo escrito. */}
-          <Box
-            ref={stepOneRef}
-            sx={{ display: contribution ? "none" : "block" }}
-          >
-            <ProjectContributionForm
-              projectTitle={project.title}
-              projectImageUrl={project.imageUrl}
-              currentAmount={project.currentAmount}
-              goalAmount={project.goalAmount}
-              onSubmit={handleContribute}
-            />
-          </Box>
-          {contribution && (
-            <PaymentStep
-              contribution={contribution}
-              summary={`Aporte a "${project.title}"`}
-              onBack={handleBack}
-              onReported={handleReported}
-            />
-          )}
+          {/* Paso 1 montado durante el paso 2: "Volver" conserva lo escrito (D087). */}
+          <StepTransition
+            showSecond={!!contribution}
+            firstRef={stepOneRef}
+            first={
+              <ProjectContributionForm
+                projectTitle={project.title}
+                projectImageUrl={project.imageUrl}
+                currentAmount={project.currentAmount}
+                goalAmount={project.goalAmount}
+                onSubmit={handleContribute}
+              />
+            }
+            second={
+              contribution && (
+                <PaymentStep
+                  contribution={contribution}
+                  summary={`Aporte a "${project.title}"`}
+                  onBack={handleBack}
+                  onReported={handleReported}
+                />
+              )
+            }
+          />
         </DialogContent>
       </Dialog>
 
