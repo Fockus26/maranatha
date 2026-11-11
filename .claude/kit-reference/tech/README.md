@@ -29,6 +29,7 @@ The project's `CLAUDE.md` has one line:
 | [`vps-postgres`](./vps-postgres.md) | Postgres on César's VPS, from the start or migrated | `drizzle.config.*` and a `vps:env` script |
 | [`wordpress`](./wordpress.md) | The site is a WordPress. Adopting or starting one: [`wordpress-adopt`](./wordpress-adopt.md), once; templates in [`wordpress/`](./wordpress/) | `wp-content/`, `wp-config.php`, `.wp-env.json` or a `docker-compose.yml` with a `wordpress` image |
 | [`vercel`](./vercel.md) | It deploys on Vercel | `.vercel/project.json` or `vercel.json` |
+| [`vps-hosting`](./vps-hosting.md) | It deploys on César's VPS through kit-deploy (only once kit-deploy is live) | a `deploy-vps.yml` workflow |
 | [`other-hosting`](./other-hosting.md) | It deploys on anything else. The first project on a host adds `tech/<host>.md` | `PROJECT_CONTEXT.md` › Repo and deployment |
 | [`migrate-supabase-vps`](./migrate-supabase-vps.md) | Only while moving from Supabase to the VPS, when César asks | César asked; `feat/migrate-vps` open |
 | [`migrate-firebase-vps`](./migrate-firebase-vps.md) | Only while moving from Firebase to the VPS, when César asks | César asked; `feat/migrate-vps` open |

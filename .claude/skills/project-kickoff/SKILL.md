@@ -171,9 +171,10 @@ Me faltan estas para armar el plan:
 
     If there is already code with one of the three, that one wins: migrating mid-project
     does not pay off.
-14. **Where it deploys** (Vercel, or another host: `reference/tech/other-hosting.md`, asked now
-    because a plan without Node changes the stack) and whether there is a domain. It goes in
-    `Tech refs` too.
+14. **Where it deploys** (Vercel; César's VPS through kit-deploy, only if `ssh kit-vps
+    kit-deploy version` answers: `reference/tech/vps-hosting.md`; or another host:
+    `reference/tech/other-hosting.md`, asked now because a plan without Node changes the stack)
+    and whether there is a domain. It goes in `Tech refs` too.
 15. **External services** already decided: payment gateway, auth provider, database, CMS,
     email sending, analytics.
 

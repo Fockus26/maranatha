@@ -26,16 +26,10 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 | abre o cierra una unidad | skill `git-flow` + `context/GIT_STATE.md` |
 | llega con un prompt de orquestador | **solo** lo que el prompt cite: ya trae rutas, líneas y decisiones |
 
-**Buscar, no leer:** `decisions/` (un archivo por decisión), `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`.
-Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
-
-```bash
-grep -rhi "^# D.*modal" context/decisions/            # ¿ya se decidió algo sobre esto? No lo re-litigues
-grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
-```
-
-Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
-Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
+**Buscar, no leer:** `decisions/`, `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/` —
+`grep` por la palabra o el ID (`grep -rhi "^# D.*modal" context/decisions/`: ¿ya se
+decidió? no lo re-litigues) y se abre solo lo que sale. El código cita decisiones por ID;
+las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"`).
 
 **El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
 **Tech refs:** vps-postgres, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
@@ -52,14 +46,14 @@ Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D0
 - Deploy: Vercel = el sitio en vivo (publica `main`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker previsto, sin uso aún (D091)
 
 ```bash
-bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
+bun run build · typecheck · lint    # lint: Biome
 bun run test:related         # mientras trabajas; `bun run test` (toda la suite) antes del PR
 bun run shots                # capturas del PR; luego `shots:publish` → .pr-shots/README.md
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
-**Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
-`functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
+**Servidor de desarrollo:** lo levanta César, salvo los agentes de QA y los workers que
+autorice (cada uno en su puerto). Build, typecheck, lint y tests se corren sin preguntar.
 
 **QA:** `bun run qa:local -- --port <p>` — Postgres + Mailpit en Docker con las cuentas de
 `.env.test.local` (las escribes tú; nunca le pidas a César iniciar sesión para QA;

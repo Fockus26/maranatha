@@ -61,7 +61,9 @@ Each host has its own file, and the project names it in `Tech refs`:
 
 - **Vercel** (the default): [`tech/vercel.md`](./tech/vercel.md). Sections §2, §2b, §2c and §2d
   moved there with their numbers, so a citation of `DEPLOY.md` §2c means that file.
-- **Anything else** (the client's hosting, César's VPS): [`tech/other-hosting.md`](./tech/other-hosting.md).
+- **César's VPS**, through kit-deploy: [`tech/vps-hosting.md`](./tech/vps-hosting.md), only once
+  kit-deploy is live (until then, Vercel).
+- **Anything else** (the client's hosting): [`tech/other-hosting.md`](./tech/other-hosting.md).
 - **WordPress:** its deploy is in [`tech/wordpress.md`](./tech/wordpress.md).
 
 ## 3. After the first deployment

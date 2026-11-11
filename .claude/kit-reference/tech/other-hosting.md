@@ -29,9 +29,11 @@ Write the answers in `PROJECT_CONTEXT.md` › Repo and deployment, and the choic
 ## César's VPS
 
 It is **only the database server** today: `bootstrap.sh` opens SSH, 6432 and, with a domain, 80 for
-the certificate. It has no web server and 443 stays closed. Serving a site from it is a new piece to
-design with César, and the place to decide what happens to memory and security when it shares the
-machine with every project's database. Do not improvise it inside a project.
+the certificate. It has no web server and 443 stays closed. Hosting sites there is **kit-deploy**,
+a project of its own (`prompts/VPS-PLATFORM-BRIEF.md`, César, 2026-11-09), and what a project needs
+to deploy on it is [`vps-hosting.md`](./vps-hosting.md). Until kit-deploy is live, do not improvise
+it inside a project: installing a web server by hand breaks the renewal of the database's
+certificate (both want port 80) and Docker opens ports past ufw.
 
 ## Before calling it deployed
 
