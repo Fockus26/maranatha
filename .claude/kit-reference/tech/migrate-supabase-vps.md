@@ -86,8 +86,9 @@ temporary database.
 ## 5. Cutover, in this order, with César
 
 1. A low-traffic window. Writes frozen (maintenance banner, or the app in read-only).
-2. Production variables in Vercel: `ssh kit-vps kit-db url <project> | vercel env add DATABASE_URL
-   production`, and the SMTP and `BETTER_AUTH_*` ones.
+2. Production variables in Vercel: `DATABASE_URL` with the command in `VPS-POSTGRES.md` ›
+   Credentials (a pipe into `vercel env add` fails in an agent's shell), and the SMTP and
+   `BETTER_AUTH_*` ones.
 3. `db:migrate` through the tunnel (`vps-postgres.md` › Migrations).
 4. Final data copy: `pg_dump --data-only --schema=public` from the direct connection,
    `pg_restore`/`psql` into the new database through the tunnel, then the auth import.

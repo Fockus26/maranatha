@@ -20,8 +20,8 @@ of these, say so at kickoff.
 | Your machine, while no real user exists | `<project>` | `bun run vps:env <project>` → `.env.development.local` |
 | Your machine, once there are real users | `<project>_dev` | The same with the new name. From here on nobody develops over real data |
 | QA (`qa:local`, `wave-qa`, tests) | Postgres in Docker | Automatic. It aborts if a variable it does not override points at the VPS |
-| Vercel Preview | `<project>_preview` | `ssh kit-vps kit-db url <project>_preview \| vercel env add DATABASE_URL preview` |
-| Vercel Production | `<project>` | `ssh kit-vps kit-db url <project> \| vercel env add DATABASE_URL production` |
+| Vercel Preview | `<project>_preview` | `DATABASE_URL` from `kit-db url <project>_preview`, with the command in `VPS-POSTGRES.md` › Credentials |
+| Vercel Production | `<project>` | `DATABASE_URL` from `kit-db url <project>`, with the command in `VPS-POSTGRES.md` › Credentials |
 
 Why previews have their own database: with one URL for both, a PR's preview writes real data
 and may run with a schema that is not merged yet (world-flags). Why `.env.development.local`:

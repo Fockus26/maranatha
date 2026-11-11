@@ -51,12 +51,22 @@ secret goes into the kit, a project, or a chat:
 | Each project's DB password | On the VPS, `/etc/kit-vps/dbs/<project>.env` (root only) | `kit-db url <project>` prints it into a pipe, never on screen |
 | Root password of the VPS | César's password manager. With `--harden-ssh`, SSH no longer accepts it (only the provider's VNC console) | César, only for the console |
 
-**The agent never reads or types a password.** It pipes the URL to where it goes:
+**The agent never reads or types a password.** It hands the URL straight to where it goes:
 
 ```bash
-ssh kit-vps kit-db url melao | vercel env add DATABASE_URL production
-ssh kit-vps kit-db url melao_preview | vercel env add DATABASE_URL preview
+vercel env add DATABASE_URL production --force --sensitive --yes \
+  --value "$(ssh -n kit-vps kit-db url melao | tr -d '\r\n')" </dev/null
+vercel env add DATABASE_URL preview --force --sensitive --yes \
+  --value "$(ssh -n kit-vps kit-db url melao_preview | tr -d '\r\n')" </dev/null
 ```
+
+Why this shape (2026-11-10, five projects moved to `db.fockus.dev`): Vercel CLI 64 in an agent's
+shell runs non-interactive and **does not read a pipe** ("Provide all required inputs: --value or
+stdin"), so `kit-db url … | vercel env add …` fails. `--force` replaces the value in place, with
+no gap between a `rm` and an `add`. `ssh -n` and `</dev/null` keep both from eating the stdin of
+a loop over several projects: without them the loop stopped after the first one, and that first
+value was saved broken (the site gave 500, `getaddrinfo ENOTFOUND`). After the change, a redeploy:
+`vercel redeploy <latest production URL> --target production`.
 
 and for the machine, `bun run vps:env melao` (`reference/scripts/vps-env.ts`, copied to the
 project) writes `DATABASE_URL` and `DIRECT_URL` into `.env.development.local` without printing
@@ -89,10 +99,15 @@ them. Previews have their own database: with the same URL, a PR's preview writes
    encrypted, but a man in the middle could impersonate the server.
 5. **Bootstrap** (from the kit's folder):
    ```powershell
-   scp -r reference/vps kit-vps:/root/kit-vps
+   ssh kit-vps "mkdir -p /root/kit-vps"
+   scp reference/vps/bootstrap.sh reference/vps/kit-db kit-vps:/root/kit-vps/
    ssh kit-vps "bash /root/kit-vps/bootstrap.sh --domain db.<your-domain> --harden-ssh"
    ```
-   Re-running it is safe (it is how you apply a newer version of the script).
+   Re-running it is safe (it is how you apply a newer version of the script). Copy the two
+   files, not the folder: `scp -r reference/vps kit-vps:/root/kit-vps`, which this guide said
+   until 3.22.0, nests the copy in `/root/kit-vps/vps/` once the folder exists, and the re-run
+   uses the old script without saying so (César's VPS ran the 2026-10-30 version until
+   2026-11-10). `kit-db status` answering, not printing the usage, means the new one is in.
 6. **Off-VPS backups** (strongly recommended: the plan has no auto-backup, and a dump on the
    same disk dies with the disk). On the VPS, `rclone config` with a free remote (Cloudflare
    R2 10 GB, Backblaze B2 10 GB, or Google Drive), then put its name in
