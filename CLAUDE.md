@@ -46,7 +46,7 @@ las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"
 - Deploy: Vercel = el sitio en vivo (publica `main`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker previsto, sin uso aún (D091)
 
 ```bash
-bun run build · typecheck · lint    # lint: Biome (hoy falla por formato heredado)
+bun run build · typecheck · lint    # lint: Biome
 bun run test:related         # mientras trabajas; `bun run test` (toda la suite) antes del PR
 bun run shots                # capturas del PR; luego `shots:publish` → .pr-shots/README.md
 bun run a11y                 # axe-core sobre el sitio corriendo
