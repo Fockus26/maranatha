@@ -26,16 +26,10 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 | abre o cierra una unidad | skill `git-flow` + `context/GIT_STATE.md` |
 | llega con un prompt de orquestador | **solo** lo que el prompt cite: ya trae rutas, líneas y decisiones |
 
-**Buscar, no leer:** `decisions/` (un archivo por decisión), `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/`.
-Se hace `grep` por la palabra o el ID y se abre solo lo que sale:
-
-```bash
-grep -rhi "^# D.*modal" context/decisions/            # ¿ya se decidió algo sobre esto? No lo re-litigues
-grep -n "ProjectCard" context/COMPONENTS_INVENTORY.md # ¿existe ya?
-```
-
-Los comentarios del código citan decisiones por ID (`D023`, `D067`…): `ls context/decisions/D023-*`.
-Las agrupadas (D037/D038/D039) viven en el archivo del último ID: `grep -rl "D038" context/decisions/`.
+**Buscar, no leer:** `decisions/`, `CONTENT_CHECKLIST.md`, inventarios, `PHASE_LOG/` —
+`grep` por la palabra o el ID (`grep -rhi "^# D.*modal" context/decisions/`: ¿ya se
+decidió? no lo re-litigues) y se abre solo lo que sale. El código cita decisiones por ID;
+las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"`).
 
 **El `reference/…` del kit** = `~/.claude/kit-reference/…` (o `.claude/kit-reference/…`).
 **Tech refs:** vps-postgres, vercel, other-hosting → su `tech/<nombre>.md` cuando la tarea lo toque; solo esas.
