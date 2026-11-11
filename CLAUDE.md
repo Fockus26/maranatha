@@ -52,8 +52,8 @@ bun run shots                # capturas del PR; luego `shots:publish` → .pr-sh
 bun run a11y                 # axe-core sobre el sitio corriendo
 ```
 
-**Servidor de desarrollo:** lo levanta César. Excepciones: los agentes de QA (`wave-qa`,
-`functional-qa`), y los workers si César lo autoriza (cada uno en su puerto, en segundo plano). Build, typecheck, lint y tests sí se corren sin preguntar.
+**Servidor de desarrollo:** lo levanta César, salvo los agentes de QA y los workers que
+autorice (cada uno en su puerto). Build, typecheck, lint y tests se corren sin preguntar.
 
 **QA:** `bun run qa:local -- --port <p>` — Postgres + Mailpit en Docker con las cuentas de
 `.env.test.local` (las escribes tú; nunca le pidas a César iniciar sesión para QA;
