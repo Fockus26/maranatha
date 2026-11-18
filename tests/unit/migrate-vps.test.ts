@@ -66,6 +66,18 @@ describe("D082 · acceso al panel", () => {
     ]);
     expect(trustedOrigins({} as unknown as NodeJS.ProcessEnv)).toEqual([]);
   });
+
+  test("acepta el login desde el preview de kit-deploy", () => {
+    expect(
+      trustedOrigins({
+        BETTER_AUTH_URL: "https://maranatha.fockus.dev",
+        KIT_DEPLOY_PREVIEW_URL: "https://maranatha-pr-12.preview.fockus.dev",
+      } as unknown as NodeJS.ProcessEnv),
+    ).toEqual([
+      "https://maranatha.fockus.dev",
+      "https://maranatha-pr-12.preview.fockus.dev",
+    ]);
+  });
 });
 
 describe("D082 · comprobantes en la base", () => {

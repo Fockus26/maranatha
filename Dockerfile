@@ -1,51 +1,63 @@
-# syntax=docker/dockerfile:1
-#
-# Imagen para el VPS (previsto, sin uso aún). Vercel no usa este archivo.
-# La construye `.github/workflows/deploy-vps.yml` (manual); ver `deploy/README.md`.
+# kit-deploy · Dockerfile for a Next.js project (bun + `output: 'standalone'`).
+# Copied into the project's root by the kit; built by templates/deploy-vps.yml with
+#   docker build --build-arg GIT_SHA=<commit> -t ghcr.io/<owner>/<repo>:<commit> .
+# The project's next.config must have `output: "standalone"`; deploymentId comes from GIT_SHA.
+# maranatha: next.config turns standalone on only with NEXT_OUTPUT=standalone (D072), so Vercel's
+# build stays as it was. That ENV is the only change from kit-deploy's template.
 
-# ─── Base: Node (runtime oficial de Next) + bun para instalar y correr scripts
-FROM node:22-slim AS base
-COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
+ARG BUN_VERSION=1.4.4
+ARG NODE_VERSION=22-alpine
+
+# ── dependencies ─────────────────────────────────────────────────────────────
+FROM oven/bun:${BUN_VERSION} AS deps
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# ─── Dependencias (capa cacheada mientras no cambie el lockfile)
-FROM base AS deps
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-# ─── Build
-FROM base AS builder
+# ── build ────────────────────────────────────────────────────────────────────
+FROM oven/bun:${BUN_VERSION} AS build
+WORKDIR /app
+ARG GIT_SHA
+# deploymentId (version skew protection) = the commit; Next reads NEXT_DEPLOYMENT_ID at build.
+ENV NEXT_DEPLOYMENT_ID=${GIT_SHA} \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_OUTPUT=standalone
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN if [ -z "$GIT_SHA" ]; then echo "GIT_SHA build arg is required" >&2; exit 1; fi
+# The environment's NEXT_PUBLIC_* and Server Actions key (deploy-vps.yml › Build variables), for
+# this command only: the mounted file is in no layer (the key itself goes into .next, as Next
+# needs it at runtime). Without it (a build by hand) Next builds with
+# none of them. BUILD_ENV_HASH (sha256 of that file) makes new values miss the cache, which
+# ignores a secret's content.
+ARG BUILD_ENV_HASH
+RUN --mount=type=secret,id=build_env,target=/app/.env.production.local,required=false \
+    bun run build
+RUN if [ ! -f .next/standalone/server.js ]; then \
+      echo "no .next/standalone/server.js: set output: \"standalone\" in next.config" >&2; exit 1; \
+    fi
+RUN mkdir -p public
 
-# Las NEXT_PUBLIC_* se copian dentro del JS del navegador durante el build:
-# si no llegan aquí, quedan vacías aunque el contenedor las tenga después.
-ARG NEXT_PUBLIC_SITE_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
-    NODE_ENV=production \
-    NEXT_OUTPUT=standalone
-
-# Las variables secretas (DATABASE_URL, BETTER_AUTH_*, SMTP_*, PayPal, PAY_*) no entran al build: las
-# páginas que las usan son dinámicas y las leen del `.env` del VPS al correr.
-RUN bun run build
-
-# ─── Runtime: solo el servidor standalone, sin node_modules completo
-FROM node:22-slim AS runner
+# ── runtime ──────────────────────────────────────────────────────────────────
+FROM node:${NODE_VERSION} AS run
 WORKDIR /app
+ARG GIT_SHA
+# kit-agent passes NODE_OPTIONS with ~75 % of the container's memory limit; this default fits
+# 512 MB (D017) for a `docker run` by hand.
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
-
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
-
-USER node
+    HOSTNAME=0.0.0.0 \
+    NODE_OPTIONS=--max-old-space-size=384 \
+    GIT_SHA=${GIT_SHA}
+# uid/gid 1001 = kit-agent's `--user=1001:1001`. The app's files stay root-owned (read-only for
+# the process); only Next's cache directory is writable.
+RUN addgroup -S -g 1001 nextjs && adduser -S -u 1001 -G nextjs -H -D nextjs
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+RUN mkdir -p .next/cache && chown 1001:1001 .next/cache
+USER 1001:1001
 EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/robots.txt').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-
+# Next handles SIGTERM itself and finishes in-flight requests; kit-agent stops with a 10 s drain.
 CMD ["node", "server.js"]

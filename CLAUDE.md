@@ -8,7 +8,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 **Tipo:** sitio + app (dashboard) · **Cliente:** Iglesia Maranatha
 **Track de fases:** Producto · **Modo git:** pr (ver `context/GIT_STATE.md`)
 **Kit:** web-agent-kit, versión en `.kit-version` (se actualiza con `/kit-update`) ·
-**Despliegue:** Vercel publica `main` (el sitio en vivo) contra la base `maranatha` del Postgres del VPS; el hosting en Docker del VPS está previsto, sin uso aún (D091)
+**Despliegue:** kit-deploy (VPS de César) publica `main` en maranatha.fockus.dev y un preview por PR, encendido con `KIT_DEPLOY_ENABLED`; Vercel queda de respaldo una semana (D093)
 
 ---
 
@@ -22,7 +22,7 @@ en línea (pagos manuales + PayPal) con un panel privado para aprobarlos.
 |---|---|
 | toca UI (componente, sección, página, estilos) | `context/DESIGN_RULES.md`, y `COLORS.md` / `DESIGN_TOKENS.md` / `TYPOGRAPHY.md` solo si toca color, espaciado o tipo |
 | toca datos, auth, pagos o API | `context/PROJECT_CONTEXT.md` › Stack técnico, y `lib/payments/` |
-| toca el deploy (Vercel, VPS, Docker) | `deploy/README.md` y `context/decisions/D071-*.md` a `D073-*.md` |
+| toca el deploy (kit-deploy, Vercel, Docker) | `deploy/README.md` y `context/decisions/D093-*.md` |
 | abre o cierra una unidad | skill `git-flow` + `context/GIT_STATE.md` |
 | llega con un prompt de orquestador | **solo** lo que el prompt cite: ya trae rutas, líneas y decisiones |
 
@@ -43,7 +43,7 @@ las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"
   (Tailwind está instalado pero no se usa para estilos nuevos)
 - **bun** para todo — nunca npm, yarn ni pnpm
 - Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
-- Deploy: Vercel = el sitio en vivo (publica `main`; producción → base `maranatha`, previews y desarrollo → `maranatha_preview`) · VPS Hetzner con Docker previsto, sin uso aún (D091)
+- Deploy: kit-deploy en el VPS (`main` → producción, PR → preview; bases `maranatha` / `maranatha_preview`) · Vercel de respaldo (D093)
 
 ```bash
 bun run build · typecheck · lint    # lint: Biome
@@ -83,8 +83,8 @@ algo que se revisa en dos minutos. Una unidad = una rama = un PR.
   anula la regla de arriba (cada unidad termina mergeada: PR + CI verde).
 - **Versión:** nadie toca `version` ni `CHANGELOG.md`. Cambio visible → `.changeset/<desc>.md`
   (`git-flow` §2.1.3). El PR `chore(release): versión` lo abre la Action y lo mergea César.
-- **Deploy:** no hay ramas de deploy. Cada merge a `main` lo publica Vercel solo (D091,
-  ver `deploy/README.md`).
+- **Deploy:** no hay ramas de deploy. Cada merge a `main` lo publican kit-deploy y Vercel solos
+  (D091, D093, ver `deploy/README.md`).
 - Nada destructivo: ni `reset --hard`, ni `push --force`, ni reescribir historia, ni borrar ramas.
 
 ### Qué va al repo y qué es local
