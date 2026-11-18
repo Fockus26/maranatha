@@ -13,8 +13,8 @@
       "!.next",
       "!dist",
       "!build",
-      "!**/.claude/worktrees",
-      "!**/.claude/kit-reference"
+      "!**/.claude/kit-reference",
+      "!.claude/worktrees"
     ]
   },
   "formatter": {
