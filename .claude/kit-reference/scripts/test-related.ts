@@ -156,8 +156,18 @@ if (selected.length === 0) {
 console.log(`→ ${selected.length}/${tests.length} affected tests:\n  ${selected.join('\n  ')}`)
 if (listOnly) process.exit(0)
 
+// The project's runner, not always Bun's: under `bun test`, tests written for Vitest
+// (`vi.stubEnv`, `vi.stubGlobal`, `vi.advanceTimersByTimeAsync`) failed falsely (workout).
+const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) as {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+}
+const vitest = Boolean(pkg.devDependencies?.vitest ?? pkg.dependencies?.vitest)
 // `--dots`: one dot per passing test and the full detail only for the failing ones.
-const run = Bun.spawnSync(['bun', 'test', '--dots', ...selected.map((t) => `./${t}`)], {
+const command = vitest
+  ? ['bun', 'x', 'vitest', 'run', '--reporter=dot', ...selected]
+  : ['bun', 'test', '--dots', ...selected.map((t) => `./${t}`)]
+const run = Bun.spawnSync(command, {
   cwd: ROOT,
   stdout: 'inherit',
   stderr: 'inherit',

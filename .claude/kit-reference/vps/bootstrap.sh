@@ -7,6 +7,8 @@
 #   bash bootstrap.sh --domain db.example.com     # Let's Encrypt cert → sslmode=verify-full
 #   bash bootstrap.sh                             # self-signed cert  → sslmode=no-verify
 #   bash bootstrap.sh --harden-ssh                # also turns off SSH password login
+#   bash bootstrap.sh --webroot                   # the certificate renews through a web server
+#                                                 # already on port 80 (see "TLS certificate")
 #   bash bootstrap.sh --test                      # inside a Docker container (no systemd,
 #                                                 # no firewall): how the kit tests this file
 #
@@ -28,9 +30,11 @@ PG=17
 DOMAIN=""
 TEST=0
 HARDEN_SSH=0
+WEBROOT=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --domain) DOMAIN="$2"; shift 2 ;;
+    --webroot) WEBROOT=1; shift ;;
     --test) TEST=1; shift ;;
     --harden-ssh) HARDEN_SSH=1; shift ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
@@ -82,7 +86,7 @@ apt-get install -y -qq curl ca-certificates gnupg lsb-release openssl postgresql
 apt-get install -y -qq "postgresql-$PG" pgbouncer >/dev/null
 if [ "$TEST" = 0 ]; then
   apt-get install -y -qq ufw fail2ban unattended-upgrades rclone >/dev/null
-  [ -n "$DOMAIN" ] && apt-get install -y -qq certbot >/dev/null
+  [ -n "$DOMAIN" ] && apt-get install -y -qq certbot iproute2 >/dev/null
 fi
 
 echo "== PostgreSQL $PG (localhost only)"
@@ -137,8 +141,52 @@ TLS=/etc/pgbouncer/tls
 mkdir -p "$TLS"
 if [ -n "$DOMAIN" ] && [ "$TEST" = 0 ]; then
   ufw allow 80/tcp >/dev/null
-  [ -d "/etc/letsencrypt/live/$DOMAIN" ] ||
+  # Standalone needs port 80 for itself at every renewal. On a VPS that only serves databases
+  # that is fine; once a web server (Caddy, nginx) listens there, the renewal fails without
+  # anyone noticing, and when the certificate expires every project with sslmode=verify-full
+  # loses its database at once (kit-deploy). --webroot moves the renewal to that web server:
+  # it must serve http://<domain>/.well-known/acme-challenge/ from $ACME.
+  #   Caddy:  http://<domain> { root * /var/www/acme
+  #                             file_server }
+  ACME=/var/www/acme
+  RENEWAL="/etc/letsencrypt/renewal/$DOMAIN.conf"
+  port80_taken() { ss -ltnH 'sport = :80' 2>/dev/null | grep -q .; }
+  if [ "$WEBROOT" = 1 ]; then
+    mkdir -p "$ACME/.well-known/acme-challenge"
+    probe="kit-$(openssl rand -hex 8)"
+    echo ok > "$ACME/.well-known/acme-challenge/$probe"
+    served=$(curl -fsS --max-time 10 "http://$DOMAIN/.well-known/acme-challenge/$probe" 2>/dev/null || true)
+    rm -f "$ACME/.well-known/acme-challenge/$probe"
+    if [ "$served" != ok ]; then
+      echo "--webroot: http://$DOMAIN/.well-known/acme-challenge/ is not served from $ACME." >&2
+      echo "Point the web server there first (comment above), then run this again. Nothing changed." >&2
+      exit 1
+    fi
+    if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+      certbot certonly --webroot -w "$ACME" -n --agree-tos --register-unsafely-without-email -d "$DOMAIN"
+    elif ! grep -q '^authenticator = webroot' "$RENEWAL" 2>/dev/null; then
+      # An existing certificate keeps its renewal options unless they are saved again
+      # (Certbot docs, "Modifying the Renewal Configuration of Existing Certificates").
+      if certbot help reconfigure >/dev/null 2>&1; then   # Certbot >= 2.3: tests, then saves
+        certbot reconfigure --cert-name "$DOMAIN" -a webroot --webroot-path "$ACME" -n
+      else                                                # older: dry run, then one forced renewal
+        certbot renew --cert-name "$DOMAIN" -a webroot --webroot-path "$ACME" --dry-run -n
+        certbot renew --cert-name "$DOMAIN" -a webroot --webroot-path "$ACME" --force-renewal -n
+      fi
+    fi
+    certbot renew --cert-name "$DOMAIN" --dry-run -n
+    echo "Certificate of $DOMAIN: renews through webroot ($ACME)."
+  elif [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+    if port80_taken; then
+      echo "Port 80 is in use: certbot standalone cannot answer there." >&2
+      echo "Serve http://$DOMAIN/.well-known/acme-challenge/ from $ACME and run this with --webroot." >&2
+      exit 1
+    fi
     certbot certonly --standalone -n --agree-tos --register-unsafely-without-email -d "$DOMAIN"
+  fi
+  if grep -q '^authenticator = standalone' "$RENEWAL" 2>/dev/null && port80_taken; then
+    CERT_WARNING="The certificate of $DOMAIN renews in standalone mode and port 80 is in use: its renewal will fail. Run: bash bootstrap.sh --webroot"
+  fi
   # Every renewal copies the cert where PgBouncer (user postgres) can read it, and reloads.
   mkdir -p /etc/letsencrypt/renewal-hooks/deploy
   cat > /etc/letsencrypt/renewal-hooks/deploy/kit-pgbouncer.sh <<EOF
@@ -244,3 +292,4 @@ fi
 echo
 echo "Ready. Public door: $HOST:6432 (sslmode=$SSLMODE)."
 echo "Next: kit-db create <project>   (from your PC: ssh kit-vps kit-db create <project>)"
+[ -z "${CERT_WARNING:-}" ] || { echo; echo "WARNING: $CERT_WARNING" >&2; }

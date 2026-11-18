@@ -67,6 +67,13 @@ and do not launch the wave.
 
 ## 0. Split a phase into waves
 
+**A phase with UI needs its design first.** Before mapping anything, check that
+`design/HANDOFF.md` exists and covers this phase's screens. If it does not, stop and offer
+César the three ways on: Claude Design with the kickoff's brief, a design canvas in this
+session, or building from the brief with the visual decisions taken per unit. A phase of
+dashboard pages was mapped and launched with no handoff, and César had to stop the wave to
+decide the design (kit-deploy).
+
 With the project's `phases/0N-*.md`, the relevant inventory and that phase's part of the
 handoff (in pieces, not whole): list the units, group them into waves with the rules of §3
 and write `context/plans/phase-0N-<name>.md` (template: `phase-plan-template.md` in this
@@ -167,6 +174,10 @@ the PR with its alternative.
 - **Waves:** units that step on each other (same files) go in different waves; cross-cutting
   work (global styles, shared modal headers) goes last, on an updated `main`.
 - A unit with no repo code (external template) runs without a pool slot and without a PR.
+- **Shared primitives of the wave:** list the base components the wave's units will need
+  and do not have yet (`components/ui/*`: a select, a dialog, a table) and give each to one
+  unit only — or to the components wave, before. Two page units each added
+  `components/ui/native-select.tsx` and the PRs collided (kit-deploy).
 
 ## 4. Reserve numbers
 
@@ -181,6 +192,7 @@ So that parallel units do not collide, assign each one:
 | Range of custom error codes, if the project uses them (SQLSTATE of `raise … using errcode`): closed and disjoint per unit, never "F5+" (two units overlapped: melao) | MS010–MS014 |
 | Model · effort (`reference/TOKEN-ECONOMY.md` §12) | `sonnet` · medium |
 | Docker for this unit (local database, containers) | yes / no |
+| Local build for this unit (`next build`, `qa:local -- --preview`) | yes / no |
 | Test services on fixed ports for this unit (emulators, a test database the suite starts) | yes / no |
 
 **Two units sharing a shape** (the same table, column, type or event): fix its name and type
@@ -213,7 +225,10 @@ git fetch origin --quiet
 git ls-tree --name-only origin/main context/decisions/ | sort | tail -3
 ```
 
-And above that, the ranges reserved in still-open PRs of another batch, if any.
+And above that, the ranges reserved in still-open PRs of another batch, if any. Another
+session working in the main folder can still take them meanwhile (D047–D048 went that way:
+kit-deploy): a worker that finds its ID used on `main` takes the next free one after merging
+`origin/main`, renames its file and says so in its report — it does not stop.
 
 **`CONTENT_CHECKLIST` rows, the same way: against the file's real last row** (it is local:
 in the main folder) plus the ranges of still-open units, never against the plan. A row
@@ -226,6 +241,14 @@ per wave runs them. Firebase's emulators with several slots did not start in 60 
 on the fixed ports and contaminated each other's runs (KREA ×8). The others verify through
 CI (`gh pr checks`) when it runs those tests; the technology's reference says how (e.g.
 `tech/firebase.md` § Emulators in parallel).
+
+**Local build yes/no is decided here too:** at most two units per wave get "yes" — the ones
+whose verification cannot be done without the build (Playwright guards of reflow or a11y
+measurements, a service worker, a change in `next.config` that CI cannot show). The rest run
+typecheck, lint and tests, measure on their dev server and read the build from CI. With four
+slots compiling at once, `next build` took 6–25 min, hung twice and crashed in PostCSS on
+Windows; Playwright over `next dev` hung on `load` (workout ×5, kit-deploy ×2). What a "no"
+unit could only measure on dev goes to the wave's QA list.
 
 The slot and its port are not reserved here: `wt take` assigns them at launch (wt2 → 4302, §6).
 
@@ -301,6 +324,18 @@ When each report arrives:
 
 When César asks for changes on a PR or `main` moved: continue the worker with `SendMessage`
 (it keeps its context) instead of launching a new one. The slot stays its own until merge.
+
+**`main` moved under an open PR:** the worker runs `git merge origin/main` on its branch and
+pushes normally. Never a rebase of a pushed branch: it needs a force-push, which the brief
+and the project's `CLAUDE.md` forbid and auto mode denies; a rebased PR was left in conflict
+and had to be republished on another branch (kit-deploy).
+
+**Resuming a worker that was cut** (API error, watchdog): look at its slot before writing the
+message — `git -C <slot> status --short` and `git -C <slot> log --oneline origin/main..HEAD`
+— and say what is there, not what you suppose. Do not cite `.qa/progress.md` or
+`.qa/pr-body.md` unless you saw them and they are newer than the unit's start: two resume
+messages named a `progress.md` no worker had written and guessed the step from its last
+line, and another took a `pr-body.md` of a previous PR as recent (kit-deploy ×2, workout).
 
 **One extra round per PR, at most.** The worker fixes everything of its class or zone in the
 first pass (its prompt says so). What it reports "in passing" after that, if Medium or Low,

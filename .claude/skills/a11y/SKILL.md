@@ -44,7 +44,9 @@ const browser = await chromium.launch()
 let failed = false
 
 for (const path of URLS) {
-  const page = await browser.newPage()
+  // A context of its own: `@axe-core/playwright` rejects a page from `browser.newPage()`.
+  const context = await browser.newContext()
+  const page = await context.newPage()
   await page.goto(BASE + path, { waitUntil: 'load' })
 
   const { violations } = await new AxeBuilder({ page })
@@ -57,7 +59,7 @@ for (const path of URLS) {
     console.log(`  ${v.helpUrl}`)
     for (const node of v.nodes) console.log(`  → ${node.target.join(' ')}`)
   }
-  await page.close()
+  await context.close()
 }
 
 await browser.close()

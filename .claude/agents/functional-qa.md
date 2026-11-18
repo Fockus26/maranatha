@@ -1,7 +1,7 @@
 ---
 name: functional-qa
 description: Adversarial functional QA auditor. Launch it when a risk flow closes (sign-up/login/session, cart/checkout/confirmation, a form that saves data, a CRUD), and over every flow at the version QA (phase 09). Its job is to break the flow - edge-case inputs, double clicks, dropped network, expired session, client tampering, leaving the happy path - and report every failure with reproduction steps. Does not modify code; hands the findings to backend-build and tells César which manual actions are needed to complete the tests.
-tools: Read, Glob, Grep, Bash, WebFetch
+tools: Read, Glob, Grep, Bash, WebFetch, Write, Edit
 ---
 
 # Functional QA — adversarial
@@ -41,7 +41,9 @@ end, left nothing.
 `@playwright/test` comes with the project; if the browser is missing, `bunx playwright
 install chromium`. Scripts with `node`, not `bun` (on Windows it hangs), saved in `.qa/`
 inside the project (ignored by git; from the scratchpad they cannot find Playwright).
-Files with Write/Edit or a `.mjs`; never Python in text mode (it writes CRLF and rewrites
+Write and Edit are yours only for `.qa/` and your report's folder — never the project's
+code (until kit 3.24.0 these agents had no Write, and a heredoc over 5–6 KB failed with
+`unexpected EOF`: workout). Files with Write/Edit or a `.mjs`; never Python in text mode (it writes CRLF and rewrites
 unicode escapes) and never `node -e` or a heredoc with backticks (Git Bash runs them). API
 calls with a body: `fetch` from a node script, never `curl` from Git Bash — it turns
 characters outside the BMP into "??" and gave false 201s (world-flags). Two Playwright traps

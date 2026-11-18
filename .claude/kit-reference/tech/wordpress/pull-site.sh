@@ -56,7 +56,9 @@ run_tool() {
     sh -c '[ -f /key-src ] && install -m 600 /key-src /tmp/key; exec "$@"' -- "$@"
 }
 
-EXCLUDES=(cache/ upgrade/ ai1wm-backups/ updraft/ backups-dup-lite/ wflogs/ et-cache/)
+# wc-logs/ and litespeed/: live logs and cache, different on every run, so the verification
+# below never reached zero differences (InversionesJL22).
+EXCLUDES=(cache/ upgrade/ ai1wm-backups/ updraft/ backups-dup-lite/ wflogs/ et-cache/ wc-logs/ litespeed/)
 [ "$NO_UPLOADS" = 1 ] && EXCLUDES+=(uploads/)
 
 # --- ssh ---------------------------------------------------------------------------------------

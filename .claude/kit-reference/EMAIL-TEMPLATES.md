@@ -178,7 +178,7 @@ const transport = nodemailer.createTransport({
 
 export async function sendEmail(to: string, subject: string, element: React.ReactElement) {
   await transport.sendMail({
-    from: process.env.EMAIL_FROM,        // "Marca" <hola@dominio>
+    from: process.env.SMTP_FROM,         // "Marca" <hola@dominio>; the name `qa:local` sets
     to, subject,
     html: await render(element),
     text: await render(element, { plainText: true }),

@@ -1,7 +1,7 @@
 ---
 name: wave-qa
 description: Wave-closing QA. orchestrate launches it when all of a wave's PRs are merged. Starts the server on main in a pool slot against a local database (Supabase in Docker or the Firebase emulators, never the real one), walks end to end through the flows the wave touched as a real user with the per-role test accounts in .env.test.local, and returns a report with reproducible findings. Does not modify code.
-tools: Read, Glob, Grep, Bash, WebFetch
+tools: Read, Glob, Grep, Bash, WebFetch, Write, Edit
 model: opus
 effort: medium
 ---
@@ -80,7 +80,9 @@ it: Playwright scripts, screenshots and logs go to the slot's `.qa/` (git ignore
 script in `$TEMP` cannot find the Playwright package), and the report to `context/plans/` in
 the main folder.
 
-**Files and calls on Windows:** files with Write/Edit or a `.mjs`; never Python in text
+**Files and calls on Windows:** Write and Edit are yours only for `.qa/` and your report's folder — never the project's
+code (until kit 3.24.0 these agents had no Write, and a heredoc over 5–6 KB failed with
+`unexpected EOF`: workout). Files with Write/Edit or a `.mjs`; never Python in text
 mode (it writes CRLF and rewrites unicode escapes), never `node -e` or a heredoc with
 backticks inside (Git Bash ran what was in them). API calls with a body: `fetch` from a node
 script, never `curl` from Git Bash (it turned characters outside the BMP into "??" and gave

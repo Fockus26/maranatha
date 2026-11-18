@@ -7,6 +7,7 @@
 #                                   (for migrations, through `ssh -N -L 5433:127.0.0.1:5432 kit-vps`)
 #   kit-db list                     databases with size
 #   kit-db status                   per database: last dump; and the last backup failures
+#   kit-db version                  the kit version this copy came with
 #   kit-db rotate <name>            new password (the old one stops working at once)
 #   kit-db backup <name>|--all      pg_dump -Fc to /var/backups/kit-pg (+ rclone if configured)
 #   kit-db restore <name> <file>    pg_restore a dump INTO the existing database (clean first)
@@ -78,8 +79,17 @@ case "$cmd" in
     pw=$(openssl rand -hex 24)   # hex: nothing to escape in a URL or in SQL
     # CREATE DATABASE cannot go in a transaction, so a failure used to leave the role behind
     # and every retry died on "role already exists" (Docker test, 2026-11-04). Now a retry
-    # reuses that role with a new password. template0: a session open on template1 cannot
-    # block it, and nobody edits template1 here.
+    # reuses that role with a new password — but only a role this command left behind: the
+    # .creating mark is written before the role. Reusing any existing role let `kit-db
+    # create <name>` reset the password of a role kit-db never made (a role without a
+    # database of its name: another service's, an admin's) — kit-deploy's security review.
+    # template0: a session open on template1 cannot block it, and nobody edits template1 here.
+    mark="$STATE/dbs/$name.creating"
+    if [ "$(psql_su "-d postgres -c \"SELECT 1 FROM pg_roles WHERE rolname = '$name'\"")" = 1 ] && [ ! -f "$mark" ]; then
+      echo "A role named $name already exists and kit-db did not create it: not touched. Choose another name." >&2
+      exit 1
+    fi
+    : > "$mark"
     psql_su "-d postgres" <<SQL
 DO \$\$ BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$name') THEN
@@ -94,6 +104,7 @@ SQL
     # Inside it: only the owner uses schema public (Postgres 15+ already denies CREATE to PUBLIC).
     psql_su "-d $name -c \"REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT ALL ON SCHEMA public TO $name;\""
     printf 'PASSWORD=%s\n' "$pw" > "$STATE/dbs/$name.env"; chmod 600 "$STATE/dbs/$name.env"
+    rm -f "$mark"
     echo "Created $name. Its URLs: kit-db url $name   ·   kit-db url $name --direct"
     ;;
   url)
@@ -103,6 +114,11 @@ SQL
   list)
     psql_su "-d postgres -F ' ' -c \"SELECT datname, pg_size_pretty(pg_database_size(datname)) FROM pg_database WHERE datname NOT IN ('postgres','template0','template1') ORDER BY 1\""
     ;;
+  version)
+    # So a project can tell an older copy on the VPS from the kit's: the guides named
+    # `kit-db status` when the installed one did not have it yet (workout).
+    echo "kit-db 3.25.0"
+    ;;
   status)
     # A failed backup only reaches a log nobody reads: this is the one place to look.
     for db in $(psql_su "-d postgres -c \"SELECT datname FROM pg_database WHERE datname NOT IN ('postgres','template0','template1') ORDER BY 1\""); do
@@ -110,6 +126,18 @@ SQL
       echo "$db: ${last:+$(basename "$last")}${last:-NO BACKUP}" | sed "s#$BACKUPS/.*##"
     done
     echo "Off-VPS: ${KIT_BACKUP_REMOTE:-NOT CONFIGURED}"
+    # The door's certificate: a renewal that fails (certbot standalone with a web server on
+    # port 80) is silent until it expires and every verify-full project loses its database.
+    crt=/etc/pgbouncer/tls/server.crt
+    if [ "$KIT_VPS_SSLMODE" = verify-full ] && [ -f "$crt" ]; then
+      end=$(openssl x509 -enddate -noout -in "$crt" | cut -d= -f2)
+      days=$(( ($(date -d "$end" +%s) - $(date +%s)) / 86400 ))
+      if [ "$days" -lt 14 ]; then
+        echo "Certificate: EXPIRES IN $days DAYS — its renewal is failing: certbot renew --dry-run (port 80 taken: bash bootstrap.sh --webroot)"
+      else
+        echo "Certificate: $days days left"
+      fi
+    fi
     echo "Last failures:"; grep '^FAIL' "$LOG" 2>/dev/null | tail -5 || true
     ;;
   rotate)
@@ -154,7 +182,7 @@ SQL
     echo "Dropped $1."
     ;;
   *)
-    sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
     ;;
 esac

@@ -24,6 +24,19 @@ Ask César for it first: everything else depends on it. Record it in
 | cPanel without SSH | `pull-site.sh ftps` (lftp, TLS) | phpMyAdmin → Export → the site's database only, SQL (an action for César) | `deploy-ftps.yml` | no: migrations run on `admin_init` |
 | Only wp-admin (no panel, no FTP) | a migration plugin's backup (All-in-One WP Migration, Duplicator, UpdraftPlus) → `pull-site.sh archive` | inside the backup | ask for FTPS or SSH before the first deploy: without them there is no automated deploy | no |
 
+- **César does not know which access the host gives?** Do not ask him to guess: say where to
+  look. Panels change, so these are where it usually is, to confirm in the host's help —
+  GoDaddy with cPanel: the hosting's Settings → SSH access; GoDaddy Managed WordPress: the
+  site's Settings → SSH/SFTP; Hostinger: hPanel → Advanced → SSH Access; SiteGround: Site
+  Tools → Devs → SSH Keys Manager. No such option on the plan → the FTPS row. César did not
+  know whether his GoDaddy had SSH or FTPS and the table did not help (InversionesJL22).
+- **A managed host may ask for the key and the password, and cut long sessions.** One rsync
+  of the whole `wp-content/` never finished listing the files there (InversionesJL22). Bring
+  it down by pieces — `uploads/` by year, then `plugins/`, `themes/`, the rest — each piece
+  its own `pull-site.sh ssh` run that can be repeated, with the password given through
+  `SSH_ASKPASS` from `.env.local`, never typed in a command. That project's
+  `scripts/pull-site.sh` does it (pieces, a `chunks-done.txt`, retries); the kit's does not
+  yet: it could not be tested without a host like that.
 - **Never plain FTP**, not even to bring the site down: the password travels in clear text.
   If the host offers only FTP, it is a finding for César (ask the host for FTPS or SFTP).
 - The credentials go in `.env.local` (gitignored, keys in `.env.example`), never in the repo
@@ -45,6 +58,13 @@ and the plugin skeleton as `wp-content/plugins/<client>-site/` (only if that fol
 exist). It overwrites nothing. Then copy the deploy workflow that matches the access
 (`<kit>/reference/tech/wordpress/deploy-ssh.yml` or `deploy-ftps.yml` to
 `.github/workflows/deploy.yml`) and fill its `env:` block.
+
+**A repo with `plugins/` and `themes/` at its root** (a copy of `wp-content/` without the
+folder): the compose, `php-lint.sh`, `pull-site.sh` and the deploy all expect `wp-content/`.
+Before running `new-project.ps1`, propose moving them — `git mv plugins wp-content/plugins`,
+`git mv themes wp-content/themes` — as the first commit of the adoption, and check whatever
+deployed from the old paths (a WP Pusher setup, a workflow). It was moved by hand, halfway
+through (InversionesJL22).
 
 A site whose code already lives in a plugin of its own: `-Client` with that plugin's slug
 prefix, and the skeleton is not copied (the folder exists). Take from the skeleton what the
@@ -96,6 +116,24 @@ the host (a finding, not something to delete).
 4. flushes caches and Elementor's CSS, and lists the active email/SMTP and cache plugins:
    deactivate the email ones in the copy (`wordpress.md` § 6).
 
+**What a managed host leaves in the copy** (InversionesJL22):
+
+- **`wp-content/object-cache.php`**, the drop-in that sends the object cache to the host's
+  Redis: in the copy it takes down every page and all of wp-cli. Rename it in
+  `.site-pull/files/wp-content/` (`object-cache.php.off`) before `import`; same for an
+  `advanced-cache.php` whose plugin is not active locally.
+- **The verification never reaches zero differences** while the site is live: logs
+  (`uploads/wc-logs/`), caches (`litespeed/`) and the host's own `mu-plugins/` change or
+  cannot be read. `pull-site.sh` leaves the first two out; a host mu-plugin that fails to
+  download is named in the report, not retried.
+- **A third-party plugin modified and versioned in the repo** is not mounted by the compose,
+  which only mounts the site plugin and the child theme: add its line (commented in
+  `docker-compose.yml`), or the copy runs the backup's unmodified version.
+- **On Windows the copy can take ~50 s per page**: `wp-content/` is a bind mount and opcache
+  caps at 4,000 files. That project moved the code to a named volume with a sync script
+  (`local:sync`) and raised `opcache.max_accelerated_files`; see its `docker-compose.yml`
+  before repeating the diagnosis. Not in the kit's compose yet: untested there.
+
 Then `bun run local:up` → `http://localhost:8080`. Log in with a production admin user (its
 password works locally) or create a local one: `bun run local:wp -- user create dev dev@example.test --role=administrator`.
 
@@ -140,6 +178,15 @@ The workflow from step 2 with the environments `staging` and `production` and th
   in CI, which would trust whatever answers).
 - FTPS: `DEPLOY_HOST` (the server name **on the certificate**: on shared hosts often the
   server's, not the domain's), `DEPLOY_USER`, `DEPLOY_PASSWORD`, `DEPLOY_PATH`.
+
+**Staging is rarely production's twin.** Before the first deploy to it, compare with
+production: core and plugin versions (`wp plugin list --format=csv` on both), the data's age,
+and every plugin the repo versions with changes. If they differ, refresh staging from
+production first (the host's clone tool, or `pull-site.sh` + import), and remember that the
+deploy only uploads the site plugin and the child theme: a modified third-party plugin goes
+up by hand or through its own line in the workflow. A staging cloned months before showed
+the report unstyled, without data and with the bulk action broken, and César took it for a
+bug in the code (InversionesJL22).
 
 A first `workflow_dispatch` against staging (or, without staging, to a folder
 `<client>-site-check` that is deleted afterwards) proves the credentials before the real

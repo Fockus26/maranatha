@@ -87,6 +87,20 @@ Project names on the VPS: lowercase, digits and `_` (`world_flags`, not `world-f
      is an `APIError`, add one to a counter for `ctx.body.email` in a table of yours (a success
      resets it); in `hooks.before`, with ≥ 5 failures in 15 min, `throw new APIError(
      'TOO_MANY_REQUESTS')` (both from `better-auth/api`, each hook one `createAuthMiddleware`).
+   - **Better Auth's rate limiter does not see `auth.api.*`.** Its docs: server-side calls
+     "aren't affected by rate limiting", only requests that reach the handler. A sign-in or a
+     password reset called from a server action has no limit per IP at all (workout found it
+     in QA). Either the client calls them (`authClient.signIn.email`, through the route
+     above), or the server action counts by itself: the per-account counter of the previous
+     point, plus one per IP and one per email for the endpoints that send mail.
+   - **`session.cookieCache` keeps a revoked session alive** until its `maxAge` (documented):
+     after a password reset, the old session went on writing through the data API for 5
+     minutes (workout). The cache is for painting; every route or action that writes reads
+     the session with `auth.api.getSession({ headers, query: { disableCookieCache: true } })`.
+   - **Without PostgREST and RLS, nothing validates what the API receives.** Every route
+     that writes validates the shape of each `jsonb` it stores and caps texts and numbers
+     against their columns (Zod, the same schema as the form): an incomplete record saved as
+     it came took a screen down (workout).
 5. `vercel.json` with `"regions": ["fra1"]`: the VPS is in the EU, and Vercel's default region
    puts an ocean between each query and the database (world-flags).
 6. `drizzle/seed.sql` with the minimum to walk through the flows, no personal data. It only runs
@@ -115,6 +129,11 @@ direct, not through the pool:
 DIRECT_URL="$(ssh kit-vps kit-db url <database> --direct)" bun run db:migrate
 ```
 
+**Renumbering a migration** (two PRs took the same number): regenerating it with
+`db:generate` writes only what Drizzle derives from the schema, and the SQL added by hand —
+a backfill `UPDATE`, a data fix — is gone without a warning (kit-deploy). Copy the hand-written
+statements aside first and put them back in the regenerated file, then read its diff.
+
 The URL does not reach the screen that way; do not print it. In a cloud session there is no SSH to
 the VPS: migrations and `vps:env` wait for César's machine, and QA uses `--offline`.
 
@@ -133,3 +152,15 @@ Automatic from the moment the database exists: `kit-db backup --all` runs nightl
 database and uploads to the bucket the VPS has configured. **A project never needs the bucket's
 keys**, and they never go in its `.env*`. If the project stores its own files, that is another
 bucket and another key.
+
+- **Look before asking.** Whether the off-VPS copy is configured is on the server, not in an
+  old decision: `ssh kit-vps kit-db status` (its "Off-VPS" line). A session repeated the
+  pending "bucket for the copies" from a decision when the bucket had existed for days
+  (workout).
+- **A database created after 03:30 has no copy until the next night.** After creating one
+  that receives real data the same day (a migration's cutover): `ssh kit-vps kit-db backup
+  <project>`.
+- **Is the VPS's `kit-db` the kit's?** `ssh kit-vps kit-db version` prints the kit version it
+  came with. If it prints the usage instead, the copy is older than 3.25.0 and may lack
+  commands the guides name (`status` was missing once: workout); what it has is in `kit-db`
+  with no arguments, and updating it is `VPS-POSTGRES.md` step 5, César's action.

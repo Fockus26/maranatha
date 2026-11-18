@@ -59,7 +59,11 @@ the site already under way):
 Rules:
 
 - **One source icon, the rest is derived.** The `.ico`, the PNGs and the maskable come from
-  the icon's SVG. If the brand changes, everything is regenerated from there.
+  the icon's SVG. If the brand changes, everything is regenerated from there: the kit's
+  `reference/scripts/brand-icons.ts`, copied to `scripts/` (`node scripts/brand-icons.ts
+  --bg "<background token>"`). It uses the Playwright the project already has, no new
+  dependency, and writes `favicon.ico`, `icon.png`, `apple-icon.png` and the manifest's
+  192, 512 and maskable.
 - The OG carries text legible as a thumbnail (title ≥ 60 px on the 1200 canvas), the logo,
   and respects a safety margin: WhatsApp and LinkedIn crop differently.
 - The OG generated with `ImageResponse` uses the site's fonts (load them as `ArrayBuffer`)

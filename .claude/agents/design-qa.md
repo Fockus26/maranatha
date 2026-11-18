@@ -1,7 +1,7 @@
 ---
 name: design-qa
 description: Design QA auditor. Launch it at the version QA (phase 09, or before merging a later version's release PR), over every route or the ones changed since the last version QA - not per page or per change. Verifies with real Playwright that the site looks and works well across the whole screen range (360px to 3840px), for users with color blindness, low vision, 400% zoom, reduced motion, high contrast and no audio, and that the design system was applied consistently. Returns a findings report with screenshots; does not modify code.
-tools: Read, Glob, Grep, Bash, WebFetch
+tools: Read, Glob, Grep, Bash, WebFetch, Write, Edit
 ---
 
 # Design QA
@@ -39,14 +39,20 @@ bun add -d @playwright/test @axe-core/playwright   # if missing
 bunx playwright install chromium
 ```
 
-**César starts the dev server, not you.** Before starting, ask him and wait for
-confirmation (in Spanish):
+**The server: the one your prompt gives you, or your own.** If the prompt names a URL, check
+that it responds with a single request and use it. Otherwise start it yourself, in the
+background, like `functional-qa` and `wave-qa`: `bun run qa:local -- --port <port> --preview`
+(in a pool slot, the slot's port; otherwise a free one that is not César's), wait for its
+`QA ready` line, and shut it down when done by killing its process tree (Windows: `taskkill
+/PID <pid> /T /F`). Without Docker, `--offline` and the logged-in routes go to "Not
+verified". You run in the background and cannot ask: the old "ask César to start `bun dev`
+and wait" left the audit waiting for an answer nobody could give (workout).
 
-> Para auditar necesito el sitio corriendo. Levanta `bun dev` y dime la URL (por defecto
-> http://localhost:3000). Avísame cuando esté y arranco.
-
-Check that it responds with a single request before launching the full sweep. If it does
-not respond, **do not start anything yourself**: say so and wait.
+**Two measurements that gave false findings** (workout): a touch target enlarged with
+`::before` is invisible to `getBoundingClientRect()` — measure the hit area with
+`document.elementFromPoint` at the edges of the 44 px box; and a claim that the build
+differs from the handoff cites the handoff's line, read at that moment (a favicon was
+reported as wrong against a handoff that said the opposite).
 
 Use the kit's `reference/scripts/design-qa.ts` as a base, copied into `.qa/` of the project
 (ignored by git; inside the project it resolves Playwright), and adjust the project's routes.
@@ -55,7 +61,9 @@ report** and fall back to code review, marking each finding as "not verified in 
 If the project already has a versioned measuring script (`tests/e2e/reflow-*`,
 `scripts/qa/`), run it first: it is the class a previous QA found, and it must stay green.
 
-Files with Write/Edit or a `.mjs`; never Python in text mode (CRLF) and never `node -e` or a
+Write and Edit are yours only for `.qa/` and your report's folder — never the project's
+code (until kit 3.24.0 these agents had no Write, and a heredoc over 5–6 KB failed with
+`unexpected EOF`: workout). Files with Write/Edit or a `.mjs`; never Python in text mode (CRLF) and never `node -e` or a
 heredoc with backticks (Git Bash runs them). Each finding leaves its reproduction script in
 `.qa/repro/<n>-<slug>.mjs` (base URL as its argument, prints `PASS` or `FAIL <measure>`), as
 `wave-qa` §4 says: the fix is closed by running it, not by another audit.

@@ -31,6 +31,7 @@ Each row: the defect, the rule that prevents it, and where it came from.
 | Numbers: negative, `0`, `1e10`, decimals where they make no sense | `z.coerce.number().int().positive().max(<real max>)` per field; `inputMode="numeric"` is UX, not validation | functional-qa §1 |
 | Unlimited length breaks the UI or the database | `.max()` on every string, the same as the column; the UI handles the max (§4) | functional-qa §1 |
 | Client-only validation | The same schema runs on the server (`backend-build` › Validation) | backend-build |
+| Placeholder text at 3.25:1, and axe passes | The base `Input` and `Textarea` set the placeholder color to a token that gives ≥ 4.5:1 (`placeholder:text-text-2`); the default is the text color at 50 % | workout |
 
 ## 2. Submit and state
 
@@ -42,6 +43,8 @@ Each row: the defect, the rule that prevents it, and where it came from.
 | A form sent before hydration goes as a native GET: the password ends up in the URL | `method="post"` on every form (or a Server Action as its `action`), and the submit disabled until the page is hydrated | KREA |
 | Session expired mid-form loses what was typed | The 401 is handled: the draft is kept (state or `sessionStorage`) and the user returns to it after login | functional-qa §4 |
 | A cached old client keeps re-uploading data the server deleted | Version the stored keys; the new client invalidates the old data (`backend-build` › General) | world-flags |
+| A limit that reads the counter and adds afterwards lets parallel attempts through (30 of 30 passed) | Reserve the attempt first with one atomic upsert (`insert … on conflict do update set n = n + 1 returning n`), then check; give it back if it did not count. A limit per IP besides the one per account | workout |
+| Saving a whole array with one upsert overwrites what another client added, under "Todo guardado" | Merge by item id or index on the server inside the transaction, or reject with the conflict and say so | workout |
 
 ## 3. Network and errors
 
@@ -54,6 +57,8 @@ Each row: the defect, the rule that prevents it, and where it came from.
 | A date the client accepts fails in the database (or the reverse) | The server parses dates with the same strictness as the column: a strict format in the schema (`z.iso.datetime()`, `z.iso.date()`), never `Date.parse`, which accepts what Postgres rejects | world-flags |
 | A form action right after login fails as a "network error" with the session open | The proxy/middleware that redirects by session only redirects `GET`/`HEAD`; a `POST` (a Server Action, a form, an API call) without the expected session gets a 401/403 the client handles, never a 307 it cannot follow | KREA |
 | A new service worker route is intercepted by the old one | A service worker never caches `/api/*` or other dynamic same-origin routes, and the change ships a new SW version (`tech/astro.md` › A static site that gains an API) | world-flags |
+| A form sent with the network cut lands on the error boundary and loses what was typed | Every action is tested with the form open and the network off: it comes back as a result, the fields keep their values. What the client destroys (the offline copy on sign-out) goes after the server answers, not before | workout |
+| A rejected write is retried forever, under a text that promises a retry | Every retry queue has an exit for a permanent rejection (4xx): drop the item and tell the user | workout |
 
 ## 4. Layout under real content (200 % text, 320 px)
 
@@ -65,6 +70,7 @@ Each row: the defect, the rule that prevents it, and where it came from.
 | A table or strip with horizontal scroll still scrolls the page at 320 px | The scroll container is `relative overflow-x-auto`: without `position`, it does not clip its `absolute` descendants (a `caption.sr-only`) and they stretch the page | melao |
 | A grid column overflows at 320 px | `grid-cols-1` as the base (not only `md:grid-cols-2`), and `min-w-0` on items holding buttons or a `fieldset` (their `min-content` widens the track) | melao |
 | 200 % text at 390 px scrolls every route sideways | Widths in `rem` (`w-*`, `min-w-*`) only on rows that wrap; fixed bars with `max-w-full`. Measured with the browser's font size (CDP `Page.setFontSizes`, as `design-qa.ts` does), not by injecting a `font-size` | KREA |
+| With the browser font at 150 % (`html { font-size: 150% }`) a screen leaves the viewport, and zoom does not show it | Test each screen that way too; grid tracks `minmax(0, 1fr)` instead of `1fr` | workout |
 
 (The detail is in `frontend-build` › Conventions; if the project has a versioned reflow
 script, it runs on the new piece.)
@@ -79,6 +85,9 @@ script, it runs on the new piece.)
 | In high contrast (`forced-colors`) the selected option of a segmented control or tab is not marked, and a logo drawn with a mask + `background-color` disappears | The selected state carries a `forced-colors:` variant (`outline` in `Highlight`); a masked drawing gets a `@media (forced-colors: active)` rule that paints it in `CanvasText`, or is an `<svg>` with `currentColor` | KREA |
 | A global notice about the last operation survives the next one and covers its controls | Cleared when the next operation starts, or rendered only inside its own view. Test: trigger it and start another without closing it | world-flags |
 | A count in a label ("Práctica diaria (3)") and the action it runs disagree | The label and the action call the same function on the same data (not one recomputed and one stored) | world-flags |
+| A button removes its own card and the second tap lands on the card below | After an action that removes or reorders the pressed item, ignore the next tap for an instant (≈ 300 ms) or move focus to a neutral element | workout |
+| A notice with an action fired from a modal cannot be pressed | The modal makes the rest of the page inert (`pointer-events`, `inert`): notices with an action are rendered inside the modal's layer, or the modal closes first | workout |
+| A notice opened from a sheet shows its veil under the sheet | One scrim level per layer (sheet, dialog, notice), never a shared `z-scrim`; "notice from a sheet" is in the test list | workout |
 
 ## 6. Clocks, dates and tabs
 

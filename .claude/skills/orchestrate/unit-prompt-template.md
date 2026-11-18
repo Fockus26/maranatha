@@ -3,7 +3,8 @@
 You are worker **{{W#}}**. Branch: `{{branch}}`. Slot and port: the ones in the message that
 launches you (`wt take`). Decisions: range **{{D0NN–D0NN}}**, one file
 `context/decisions/D0NN-<topic>.md` for each. CONTENT_CHECKLIST rows: **{{NN}}**.
-Model · effort: **{{sonnet · medium}}** (TOKEN-ECONOMY §12). Docker: **{{yes | no}}**. Test services (emulators…): **{{yes | no}}**.
+Model · effort: **{{sonnet · medium}}** (TOKEN-ECONOMY §12). Docker: **{{yes | no}}**. Local build: **{{yes | no}}**.
+Test services (emulators…): **{{yes | no}}**.
 
 First read the shared brief: `{{path}}/context/plans/orchestration-{{date}}.md`.
 Earlier decisions that constrain you: {{D0NN (what it says in 5 words), D0NN (…)}} —
