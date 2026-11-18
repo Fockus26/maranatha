@@ -13,10 +13,16 @@
 - **Ningún estado se comunica solo con color.** Error, éxito, seleccionado, activo: color
   **+** ícono, texto o forma.
 - Foco visible siempre, diseñado, no el outline por defecto ni su ausencia.
+- Placeholder ≥ **4.5:1**: el de por defecto (el color del texto al 50 %) da 3.25:1 en claro,
+  y axe no lo revisa.
+- Una acción dentro de un aviso (el "Reintentar" de un toast) usa el color de ese aviso, no primary.
 - Sin scroll horizontal a **320px** de ancho.
 - Al 400% de zoom el contenido reflota en una columna.
 - `prefers-reduced-motion` respetado (Reveal, PageTransition, parallax, patrón animado).
 - Todo control tiene nombre accesible.
+- Texto seleccionado (`::selection`) con los tokens `selection` (D077), ≥ 4.5:1 en claro y
+  oscuro. Dentro de un componente con fondo propio (un botón primary, un aviso de color), su
+  par invertido: el par global se pierde ahí.
 
 Casos que fallan una y otra vez en este proyecto, verifícalos explícitamente:
 - `secondary` `#F9750D` como texto o fondo en **modo claro** → se usa `secondary[700]` (D011/D051).
