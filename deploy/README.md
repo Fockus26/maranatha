@@ -1,113 +1,71 @@
 # Deploy
 
-Una sola rama: **`main`** (D091). Cada merge a `main` lo publica Vercel solo;
-los PRs tienen su preview de Vercel. No hay ramas de deploy que avanzar.
+Una sola rama: **`main`** (D091). Dos lugares la publican mientras dure la transición (D093):
 
-| Dónde                   | Qué publica | Cómo se dispara                                                     |
-|-------------------------|-------------|---------------------------------------------------------------------|
-| Vercel                  | `main`      | Merge a `main` → Vercel lo publica solo                             |
-| VPS de Hetzner (Docker) | `main`      | Manual: Actions › Deploy VPS › Run workflow (previsto, sin uso aún) |
+| Dónde | Qué publica | Cómo se dispara |
+|---|---|---|
+| **kit-deploy** (VPS de César) | `main` → `https://maranatha.fockus.dev`; cada PR → `https://maranatha-pr-<n>.preview.fockus.dev` | `.github/workflows/deploy-vps.yml`, solo con la variable del repo `KIT_DEPLOY_ENABLED=true` |
+| Vercel (respaldo, una semana) | `main` y sus previews | Merge a `main` → Vercel lo publica solo |
 
-El cambio de hosting (pasar el dominio al VPS) está por definir; mientras tanto el
-VPS no se despliega solo. Lo que cambia entre Vercel y el VPS son solo las
-variables de entorno.
+Archivos de cada lado:
 
-Cada archivo se usa solo en un lado:
-
-- `vercel.json`: solo Vercel.
-- `Dockerfile`, `.dockerignore`, `deploy/`, `.github/workflows/deploy-vps.yml`: solo el VPS.
-
-En Vercel el sitio no se indexa (`SITE_INDEXABLE` en `lib/siteConfig.ts`), así
-Google solo ve el dominio real.
+- kit-deploy: `Dockerfile`, `.dockerignore`, `.github/workflows/deploy-vps.yml`, `app/api/health/route.ts`
+  (plantillas de `kit-deploy/templates/`; el Dockerfile agrega `NEXT_OUTPUT=standalone`, D072).
+- Vercel: `vercel.json` y `@vercel/analytics` (solo se monta con `VERCEL=1`). Se van cuando César apague Vercel.
 
 ---
 
-## Configuración inicial (una sola vez)
+## Pasar el sitio a kit-deploy (una sola vez, César)
 
-### 1. Vercel
+Todo por `ssh kit-vps` desde la terminal de César. Ningún secreto pasa por el chat ni por un archivo.
 
-- Settings → Environments → Production → **Branch Tracking**: `main`.
-- Variables: las de siempre, pero con **PayPal Sandbox** (`PAYPAL_ENV=sandbox`).
-  `NEXT_PUBLIC_SITE_URL` puede quedar vacía o con la URL `*.vercel.app`.
-
-### 2. VPS (Ubuntu 24.04)
-
-```bash
-# Como root, recién creado el servidor
-adduser deploy && usermod -aG sudo deploy
-curl -fsSL https://get.docker.com | sh && usermod -aG docker deploy
-ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw enable
-mkdir -p /opt/maranatha && chown deploy:deploy /opt/maranatha
-```
-
-Después, en `/etc/ssh/sshd_config`: `PasswordAuthentication no` y
-`PermitRootLogin no`, y `systemctl restart ssh` (primero comprobar que entrás
-como `deploy` con tu llave).
-
-Crear `/opt/maranatha/.env` con las variables de producción (la lista está en
-`.env.example`) más estas dos para Caddy:
-
-```bash
-SITE_DOMAIN=tudominio.com
-ADMIN_HOST=admin.tudominio.com   # opcional; debe coincidir con la de la app
-NEXT_PUBLIC_SITE_URL=https://tudominio.com
-PAYPAL_ENV=live
-# ... resto de variables de .env.example
-```
-
-`chmod 600 /opt/maranatha/.env`. Este archivo nunca va al repo.
-
-### 3. Llave SSH para GitHub Actions
-
-En tu PC:
-
-```bash
-ssh-keygen -t ed25519 -f maranatha-deploy -N "" -C "github-actions"
-```
-
-- El contenido de `maranatha-deploy.pub` va en `/home/deploy/.ssh/authorized_keys` del VPS.
-- El contenido de `maranatha-deploy` (la privada) va en el secret `VPS_SSH_KEY` (paso 4).
-
-### 4. GitHub → repo → Settings → Secrets and variables → Actions
-
-**Secrets:**
-
-| Nombre                | Valor                                   |
-|-----------------------|-----------------------------------------|
-| `VPS_HOST`            | IP del VPS                              |
-| `VPS_USER`            | `deploy`                                |
-| `VPS_SSH_KEY`         | llave privada del paso 3                |
-
-**Variables** (pestaña *Variables*, no son secretas):
-
-| Nombre                                 | Valor                        |
-|----------------------------------------|------------------------------|
-| `NEXT_PUBLIC_SITE_URL`                 | `https://tudominio.com`      |
-
-No hace falta ningún token personal de GitHub: el workflow usa el
-`GITHUB_TOKEN` automático para subir la imagen y para bajarla en el VPS.
-
-### 5. El día del cambio a producción
-
-1. DNS: registros A de `tudominio.com`, `www` y `admin` (si se usa) → IP del VPS.
-2. Actions › Deploy VPS › **Run workflow** sobre `main`, y mirar el run.
-3. `BETTER_AUTH_URL` del `.env` del VPS con el dominio del panel (`https://admin.tudominio.com`, o el principal si no hay `ADMIN_HOST`): es la base de los enlaces de recuperación de contraseña.
-4. PayPal Live: crear el webhook a `https://tudominio.com/api/payments/paypal/webhook`
-   y poner su id en `PAYPAL_WEBHOOK_ID` del `.env` del VPS (luego `docker compose up -d`).
-
----
+1. **Registrar el proyecto** (como root también fija el repositorio de sus imágenes):
+   ```bash
+   ssh kit-vps kit-deploy project add maranatha Fockus26/maranatha --memory 512
+   ```
+2. **Adoptar las bases que ya existen** (`maranatha`, `maranatha_preview`, del corte de D082):
+   ```bash
+   ssh kit-vps kit-deploy db adopt maranatha          # muestra cuáles
+   ssh kit-vps kit-deploy db adopt maranatha --yes
+   ```
+   Desde ahí kit-deploy pone `DATABASE_URL` en producción y previews. No se copia a mano.
+3. **Token del workflow** (nunca en pantalla):
+   ```bash
+   ssh kit-vps kit-deploy token create maranatha | gh secret set KIT_DEPLOY_TOKEN -R Fockus26/maranatha
+   ```
+   Y sumar `Fockus26/maranatha` al token de estados de GitHub de kit-deploy (Repository access).
+4. **Variables**, entorno por entorno, copiando de Vercel (la lista está en `.env.example`). Cada valor se
+   escribe en la terminal (stdin); son secretas salvo `--plain`:
+   ```bash
+   ssh -t kit-vps kit-deploy env set maranatha production BETTER_AUTH_SECRET
+   ssh -t kit-vps kit-deploy env set maranatha production NEXT_PUBLIC_SITE_URL --plain
+   ```
+   - **production:** `NEXT_PUBLIC_SITE_URL` y `BETTER_AUTH_URL` = `https://maranatha.fockus.dev`,
+     `BETTER_AUTH_SECRET` (uno nuevo: `openssl rand -base64 32`), `ADMIN_EMAILS`, `SMTP_*`, `PAY_*`, `PAYPAL_*`,
+     `BEHOLD_FEED_*`, y `BINANCE_PAY_*` si ya hay. **Sin** `ADMIN_HOST` (el panel vive en `/dashboard`) y **sin**
+     `DATABASE_URL`/`DIRECT_URL`.
+   - **preview:** lo mismo con PayPal en sandbox; sin `BETTER_AUTH_URL` ni `NEXT_PUBLIC_SITE_URL` (el login acepta el
+     origen de cada preview por `KIT_DEPLOY_PREVIEW_URL`, que pone kit-deploy).
+   - Comparar nombres: `ssh kit-vps kit-deploy env ls maranatha production` (y `preview`).
+5. **DNS:** `maranatha.fockus.dev` ya lo cubre el comodín `*.fockus.dev` (DNS-only). Nada que hacer en Cloudflare.
+6. **Encender:**
+   ```bash
+   gh variable set KIT_DEPLOY_ENABLED --body true -R Fockus26/maranatha
+   gh workflow run deploy-vps.yml -R Fockus26/maranatha --ref main
+   ```
+7. **Comprobar** en `https://maranatha.fockus.dev`: el inicio con sus imágenes, `/api/health` →
+   `{"ok":true,"sha":…}`, el login del panel, y en el preview de un PR un reporte de pago con comprobante de
+   ~4 MB. PayPal Live: webhook a `https://maranatha.fockus.dev/api/payments/paypal/webhook` y su id en
+   `PAYPAL_WEBHOOK_ID` (production).
 
 ## Operación
 
 ```bash
-cd /opt/maranatha
-docker compose logs -f web           # logs de la app
-docker compose restart web           # reiniciar
+ssh kit-vps kit-deploy status maranatha          # qué está en vivo y su salud
+ssh kit-vps kit-deploy logs maranatha -f         # logs (--pr <n> para un preview)
+ssh kit-vps kit-deploy rollback maranatha        # a la imagen anterior, sin build
 ```
 
-Volver a una versión anterior: GitHub → Actions → el run de esa versión →
-**Re-run all jobs**. Reconstruye ese commit y lo vuelve a publicar.
-
-Tras cambiar el `.env` del VPS basta con `docker compose up -d`. Si cambia una
-`NEXT_PUBLIC_*`, hay que cambiarla también en las Variables de GitHub y volver a
-desplegar, porque esas quedan dentro de la imagen.
+- Cambiar una variable de servidor: `env set` y `kit-deploy redeploy maranatha` (misma imagen).
+- Cambiar una `NEXT_PUBLIC_*`: queda dentro de la imagen, hace falta `kit-deploy rebuild maranatha`.
+- Apagar kit-deploy sin tocar el código: `gh variable set KIT_DEPLOY_ENABLED --body false -R Fockus26/maranatha`.

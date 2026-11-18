@@ -50,8 +50,8 @@ export async function verifyAnyPassword({
 }
 
 /**
- * Orígenes desde los que se acepta un login: el del panel, el del sitio y,
- * en Vercel, el de cada despliegue de prueba (su URL cambia en cada uno).
+ * Orígenes desde los que se acepta un login: el del panel, el del sitio y
+ * el de cada despliegue de prueba en Vercel o kit-deploy (su URL cambia en cada uno).
  */
 export function trustedOrigins(env: NodeJS.ProcessEnv = process.env): string[] {
   const https = (host?: string) => (host ? `https://${host}` : undefined);
@@ -61,6 +61,8 @@ export function trustedOrigins(env: NodeJS.ProcessEnv = process.env): string[] {
     https(env.ADMIN_HOST),
     https(env.VERCEL_URL),
     https(env.VERCEL_BRANCH_URL),
+    // kit-deploy: el origen de este preview (https://maranatha-pr-<n>.preview.fockus.dev).
+    env.KIT_DEPLOY_PREVIEW_URL,
   ]
     .filter((o): o is string => Boolean(o))
     .map((o) => o.replace(/\/$/, ""));
