@@ -191,6 +191,38 @@ What KREA hit (Next 16), each one a broken build or a 500 found late:
   `.next/dev/types` or `.next/types` from another branch. Delete both and run it again;
   `wt take` already does it when it puts a new branch in a slot (KREA ×5).
 
+- `next build` dying on Windows with exit code `0xc0000142` while PostCSS runs (Turbopack,
+  several slots building): retry once; if it dies the same way, the PR's CI build is the one
+  that counts, and say so in the report (workout ×2).
+
+### Migrating an app from Vite
+
+What tripped workout's move from Vite + React to Next 16, with both living together for a
+while:
+
+- **`src/pages/` is the Pages Router for Next.** Vite's screens folder with that name breaks
+  `next build`. Rename it before the first build (`src/screens/`), or keep Next's code out of
+  `src/` with an empty `pages/` at the root.
+- **A root `postcss.config.*` is read by Vite too.** While both builds live, Vite's PostCSS
+  goes inline in `vite.config` (`css.postcss`) and Next keeps the file; each with its own
+  `tsconfig`.
+- **`public/` wins over `app/`.** Vite's `public/manifest.webmanifest` and `icon.svg` were
+  served instead of Next's `app/manifest.ts` and `app/icon.svg`, with no warning. Move
+  Vite's `public/` aside (`publicDir`) before the brand unit, and check with `curl` which one
+  answers.
+- **What moves from one app to the other, besides the screens:** the auth session
+  (`localStorage` in the SPA, cookies with a server: every user logs in again unless it is
+  migrated), the URLs users saved (hash routes `/#/x` need a redirect), the service worker
+  and whatever it cached, and the stored keys of local state.
+- **Removing Vite:** `vitest` asks for `vite` as a peer. Keep it in devDependencies while the
+  tests run on Vitest.
+- **A service worker over the App Router:** the cache key is the exact URL, `_rsc` query
+  included — in Next 16 it is a hash of the router tree, not noise to strip. And a cached
+  HTML served under another URL makes `useParams()` return the param of the cached tree
+  (seen on 16.4): read the URL from `window.location` in that case.
+- `qa:local` starts the `dev` / `build` scripts of `package.json`: while both apps live, make
+  sure those are Next's, or QA tests the old app.
+
 ### Biome
 
 - Two `// biome-ignore` in a row on one JSX node do not chain: only the first applies. For
@@ -227,6 +259,26 @@ What KREA hit (Next 16), each one a broken build or a 500 found late:
     },
   })
   ```
+- **Tailwind v4 scans everything git does not ignore**, not only the code: `context/`,
+  `.claude/` and the handoff are tracked, and a `mt-[13px]` quoted in a kit rule ended up in
+  the CSS (workout). The global stylesheet names its sources:
+
+  ```css
+  @import "tailwindcss" source(none);
+  @source "../app";
+  @source "../components";
+  @source "../lib";
+  ```
+  (paths relative to the stylesheet; add each folder that holds class names.)
+- **`cn` reads a font-size token as a color.** `text-small` next to `text-text-2`: with the
+  default `tailwind-merge`, the second removed the first with no error (workout). Every
+  `--text-*` size of the theme goes in `extendTailwindMerge` (the block above), with a test
+  that walks the `--text-*` variables of the CSS and checks each survives a `cn()` with a
+  color.
+- **A theme variable that depends on a per-element variable goes in `@theme inline`.** In
+  plain `@theme` it resolves where it is defined (`:root`), so overriding the inner variable
+  on an element does nothing: an `--animate-*` built on `var(--duration)` ignored the
+  override (workout; Tailwind docs, "Referencing other variables").
 - Mobile first: base classes are mobile, the `md:`/`lg:` prefixes widen.
 - **Zero arbitrary values** (`w-[347px]`, `text-[#3a7bd5]`). If one is needed, either a token
   is missing or it is a decision to record.

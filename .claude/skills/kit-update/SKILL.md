@@ -185,7 +185,8 @@ happened: a project on 3.5.0 without `test:related` or `shots`, because it start
 | devDependencies: `@types/bun`, `@playwright/test`, `@axe-core/playwright` (and `@changesets/cli` if versioned) | `package.json` |
 | `.gitignore` with `.pr-shots/` **and** `.pr-shots.json`, `.env*.local` (or `.env*`) and `.claude/worktrees/` | `git check-ignore -q <path>` (each one: before 3.20.0, `.pr-shots.json` alone hid the missing folder) |
 | **`.gitignore` does NOT ignore** `supabase/` (except `.temp/`, `.branches/`) or the fixed documents of `context/` (`PROJECT_CONTEXT`, `DESIGN_RULES`, `COLORS`, `DESIGN_TOKENS`, `TYPOGRAPHY`, `decisions/`) | `git check-ignore -v supabase/migrations context/PROJECT_CONTEXT.md context/decisions` |
-| `biome.json` (if any) excludes `.claude/worktrees` and `.claude/kit-reference`; `tsconfig.json` (if any) has both in `exclude` | `files.includes` / `files.ignore`; `exclude` |
+| `biome.json` (if any) excludes `.claude/worktrees` (Biome 2: as `!.claude/worktrees`, never `!**/.claude/worktrees`, which empties the lint inside a worktree) and `.claude/kit-reference`, and its `formatter.lineEnding` is not `auto`; `tsconfig.json` (if any) has both folders in `exclude` | `files.includes` / `files.ignore`; `exclude` |
+| `vitest.config.*` (if any) excludes `.claude/**` (`-OnlyPieces` only warns: add `exclude: [...configDefaults.exclude, '.claude/**']` to `test`) | `grep -n "\.claude" vitest.config.*` |
 | `.gitattributes` with a global rule that forces LF (`* text=auto eol=lf`), and no file in CRLF in the working copy | `grep -E '^\*\s.*eol=lf' .gitattributes`; `git ls-files --eol \| grep -c "w/crlf"` = 0 |
 | `CLAUDE.md` ≤ 8 KB (the template is ≤ 7 KB; the rest is the project's) | `wc -c CLAUDE.md` |
 | The kit's `reference/` next to the skills: `.claude/kit-reference/` in the project copy (and `~/.claude/kit-reference/` on the machine) | `ls .claude/kit-reference/TOKEN-ECONOMY.md` |
@@ -227,6 +228,11 @@ the merge, as a manual action in the PR.
 Per `context/GIT_STATE.md`: `pr` mode → `chore/kit-<published>` from an updated
 `origin/main`; `local` mode → from the base.
 
+Before switching branches, `bun run context:backup` if the project has it. A version that
+moves a `context/` file from git to local (3.8.0) leaves it at the mercy of the next
+checkout: one to a commit where it was tracked overwrote `plans/pendientes.md` and the pull
+after it deleted the file (workout, recovered from `context-state`).
+
 ## 8. Apply each version, in order
 
 Follow its "Steps" in `<kit>/UPDATES.md` (and the prompts they cite, only the steps
@@ -239,6 +245,10 @@ version is done:
 
 If a version fails halfway, stop there: what was done stays in commits and `.kit-version`
 says how far it got.
+
+**A file several versions of the path replace whole** (`scripts/qa-local.ts` in 3.11.0 to
+3.15.0 and later): the kit only publishes its current copy, so replace it once, in the last
+version of the path that names it, and say so in the earlier ones' commits.
 
 With every version applied, **refresh the project's copy of the skills and agents** (cloud
 sessions load only that one): `powershell -ExecutionPolicy Bypass -File "<kit>\install-kit.ps1" -Project .`

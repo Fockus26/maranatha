@@ -288,10 +288,25 @@ merged a PR while its QA commit was being pushed, and the commit was left out
 
 The body follows `.github/pull_request_template.md`: what changes, why, how to test it,
 **screenshots**, how it was verified and what was not, decisions taken with their
-alternative, and **manual actions** (SQL, dashboards, deploy order).
+alternative, and **manual actions** (SQL, dashboards, deploy order). A command César will
+run is written for PowerShell, his terminal: `bash scripts/x.sh` there runs WSL's bash, not
+Git's (`execvpe(/bin/bash) failed`: kit-deploy) — give `& "C:\Program Files\Git\bin\bash.exe"
+scripts/x.sh`, or say "in Git Bash".
 
 Afterwards:
 
+- **Do not stop at the open PR when the plan has more.** Take the next pending unit that
+  does not depend on a PR still open — its branch from an updated `main` — and keep the
+  questions for César in one list at the end. If everything left depends on an unmerged PR,
+  stop and say which PR unblocks what. The agent stopped to ask after every PR and César
+  had to say "no te quedes quieto" (InversionesJL22).
+- **A PR whose base is another PR's branch** (a chain) is the exception, never the way to
+  keep going: only when César asks for it. Then its body says, at the top, the merge order
+  — from the first to the last, each one after `gh pr edit <n> --base main` once the one
+  below is merged — and before reporting the work as done you check it reached `main`:
+  `git fetch origin && git branch -r --merged origin/main | grep <branch>`. Ten chained PRs
+  were merged each into its own base: only the first reached `main` and units 2–11 needed
+  an integration PR (InversionesJL22).
 - **Never** `gh pr merge`, never auto-merge, never push to `main`. The merge (squash) is César's.
 - Changes requested on the PR? New commits on the same branch + push. No amend or force-push
   over what was pushed.

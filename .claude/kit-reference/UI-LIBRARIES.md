@@ -41,6 +41,16 @@ the tokens and fonts, keep the project's `cn` (with its `extendTailwindMerge`,
 `STACK-NEXTJS.md`) and point `components.json › aliases.utils` at it. After that, `add`
 only touches `components/ui/`.
 
+**Two components that pass axe and are still wrong** (workout):
+
+- **Toggle group.** Check the `role` the rendered group carries, not the one you expect: a
+  multiple-selection group came out as `role="toolbar"`. Filters are a `role="group"` with
+  its label; a choice of one is a `radiogroup` (Radix's `RadioGroup`, or `type="single"` with
+  the radio semantics).
+- **Sonner with `unstyled`.** It drops its width too: on desktop the toast stayed 184 px
+  wide, and its durations are its own, not the motion tokens. The project's toast brings the
+  minimum CSS back (a width, the stack's gap) and a test that measures it at 1280 px.
+
 ### Hero UI (formerly NextUI)
 
 A real library, installed as a dependency. Built on React Aria (Adobe) for accessibility,

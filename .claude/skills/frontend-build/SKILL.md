@@ -214,7 +214,16 @@ Stop and check, instead of deciding on your own, when:
 
 - **The handoff does not cover something.** A state, a measurement, a responsive behavior.
 - **A new visual decision has to be made.** Present exactly 3 options, each with its real
-  advantage and disadvantage. Do not implement any until César chooses.
+  advantage and disadvantage. Do not implement any until César chooses. Before proposing,
+  look at what is already approved (the handoff, the design canvas or artifact,
+  `context/decisions/`): three color options were drawn from the theme's settings when the
+  canvas already had the system (InversionesJL22).
+- **César corrects a shared component** (a button's text color, a field, the focus ring, an
+  alert's action). It is a project decision, not a fix of that screen: in the same PR, the
+  rule goes in `context/DESIGN_RULES.md` and a `context/decisions/D0NN-<topic>.md` records
+  it, and the component itself changes, not its use. Left only in one screen's CSS, the
+  next screen repeated it: the primary button went back to dark text (InversionesJL22), and
+  focus ring, `::selection` and a toast's action were each corrected once per screen (workout).
 - **Something in the handoff breaks a `DESIGN_RULES.md` rule** — typically contrast. The
   accessibility rules win; the handoff gets corrected, not the other way round.
 - **The unit depends on another that is not closed.** Say so; do not improvise the other

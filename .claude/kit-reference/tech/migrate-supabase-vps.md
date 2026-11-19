@@ -21,7 +21,10 @@ minutes.
 3. The OAuth client again for the new callback URL (`/api/auth/callback/<provider>`), if there is
    social login. Google needs a privacy URL to publish.
 4. Read access to the old database, and permission for secrets and deploys in Vercel. Automatic
-   permission modes block these without an explicit yes.
+   permission modes block these without an explicit yes. Confirm the connected Supabase
+   account sees the project (`list_projects` of the MCP shows it): workout's was in another
+   organization and the inventory stayed blocked. If it does not, a read-only connection
+   string from César does.
 
 ## 1. Inventory: what the project really uses
 
@@ -71,7 +74,8 @@ that gains an API.
 - Roles: whatever lived in `app_metadata` or a `profiles` table becomes a column or Better Auth's
   admin plugin, decided in the plan.
 - The kit's auth rules still apply (`backend-build` §2): httpOnly cookies, rate limiting (Better Auth
-  has it: turn it on), messages that do not reveal whether the email exists.
+  has it: turn it on — it does not cover `auth.api.*` from the server: `vps-postgres.md` step 4),
+  messages that do not reveal whether the email exists.
 
 ## 4. The rest of the code
 
@@ -80,8 +84,20 @@ with its authorization check from §1. Grep must end at zero: `@supabase/` impor
 are the migration not finished. `functional-qa` runs over every flow before the cutover, on the real
 build and not only in dev (it is the version QA of a new backend).
 
+**A client that wrote straight to PostgREST** (a local-first queue, an offline sync) has no
+`supabase.from` to swap one for one. What worked (workout): one `POST` route that receives the
+list of operations, with a closed list of methods per entity; the owner is always the
+session's, never a field of the body; another account's row answers 404, not 403; no database
+answers 503 so the queue retries, and a rejection the queue must not retry answers 4xx
+(`QA-PREVENTION.md` §3); the merge with what the server has runs in one transaction with
+`select … for update`. One test per old policy, in PGlite.
+
 An import script, all or nothing, that compares content and not only counts: rehearse it on a
 temporary database.
+
+Removing `supabase/`: delete `supabase/.temp/` first (or keep it ignored in the root
+`.gitignore`). The folder's own `.gitignore` went with it and the CLI's cache
+(`supabase/.temp/cli-latest`) entered the next commit (workout).
 
 ## 5. Cutover, in this order, with César
 
@@ -93,7 +109,8 @@ temporary database.
 4. Final data copy: `pg_dump --data-only --schema=public` from the direct connection,
    `pg_restore`/`psql` into the new database through the tunnel, then the auth import.
 5. Row counts per table equal at both ends.
-6. Mark the PR ready and merge: it deploys. Check the API and errors in Vercel; log in with a test
+6. `ssh kit-vps kit-db backup <project>`: the nightly copy already ran, and without this the
+   migrated data has none until tomorrow. Then mark the PR ready and merge: it deploys. Check the API and errors in Vercel; log in with a test
    account of each role; one flow of each kind (create, edit, pay if there are payments). César
    tests login, social login and email. Unfreeze.
 7. **The old project stays alive, without writes, 30 days, not deleted**: it is the rollback, and

@@ -235,7 +235,14 @@ switch ($Command) {
     } else {
       $free = Slots | Where-Object { IsFree $_.FullName } | Select-Object -First 1
       if (-not $free) {
-        throw "No free slots in $pool. Wait for one to be freed (wt free <wtN>) or grow the pool (wt init -Count <bigger N>)."
+        # A detached slot with changes is nobody's unit: usually an untracked file that came
+        # with the base (a `bun.lock` outside git left every slot like this, and "No free
+        # slots" did not say why: workout).
+        $stuck = Slots | Where-Object { -not (Branch $_.FullName) } | ForEach-Object {
+          "  $($_.Name): detached with changes -> $((Dirty $_.FullName | Select-Object -First 3) -join '; ')"
+        }
+        $why = if ($stuck) { "`nNot in use, but not clean (commit, ignore or delete those files in the slot):`n$($stuck -join "`n")" } else { '' }
+        throw "No free slots in $pool. Wait for one to be freed (wt free <wtN>) or grow the pool (wt init -Count <bigger N>).$why"
       }
       $Slot = $free.Name
       $path = $free.FullName

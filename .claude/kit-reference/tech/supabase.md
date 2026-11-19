@@ -31,6 +31,16 @@ Test accounts' role: `app_metadata.role`. Policies are tested with SQL/RLS tests
 Without custom SMTP, Supabase only sends to the project team: it goes in before the first real
 user. Templates and `config.toml`: `EMAIL-TEMPLATES.md`.
 
+## RLS does not check whose the parent is
+
+`with check (user_id = auth.uid())` validates the row's own column, not its foreign keys: a
+user can insert a child row pointing at another account's parent, and the policy passes
+(workout's QA: an entry created inside someone else's session). For every child table, one of:
+a composite foreign key that carries the owner (`(parent_id, user_id) references parent (id,
+user_id)`), a `with check` that also reads the parent (`exists (select 1 from parent p where
+p.id = parent_id and p.user_id = auth.uid())`), or a trigger. And a test per table that tries
+it with two accounts.
+
 ## Leaving it
 
 To move a project to César's VPS, when he asks: `migrate-supabase-vps.md`.

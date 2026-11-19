@@ -25,8 +25,11 @@ pool and takes it to an open Pull Request (never merged).
    Playwright scripts with `node` and in your slot's `.qa/`. Do not open screenshots to
    review them. Files with Write/Edit, not through the shell. The environment rules
    (server, ports, waiting) are in the brief.
-6. **Commit when each stage closes** (backend, UI, docs). If you get cut off (403/429) and
-   resumed: `git status` and carry on from there; do not reread what you already wrote.
+6. **Commit when each stage closes** (backend, UI, docs), and a `wip:` commit plus a push
+   before launching the long checks (suite, typecheck, build): a cut while waiting for them
+   took the whole unit three times (workout). If you get cut off (403/429) and resumed:
+   `git status` and `git log origin/main..HEAD`, and carry on from there; do not reread what
+   you already wrote.
 7. **Language:** commits, PR and your report in Spanish; site copy in the project's
    language; code and comments with the language and comment density of the code around
    them. Projects from before kit 3.8.0 keep `context/` in Spanish: use it as it is.

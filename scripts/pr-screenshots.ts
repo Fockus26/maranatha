@@ -33,6 +33,26 @@
  *                  (`url` is a Playwright glob; `body` an object → JSON, a string → as is).
  *                  Why: without it a state that called Auth meant patching `fetch` by hand,
  *                  with the risk of a call reaching the real project (melao).
+ *   guest          true → this shot ignores the session of `login` / `storageState` below
+ *
+ * Screens behind a session (top level, next to `base`) — only against the local backend
+ * (`bun run qa:local`), never the real one. Without it the PRs of logged-in screens went out
+ * with no images, or with a second script written for the unit (kit-deploy ×2, workout):
+ *   "login": { "path": "/login",
+ *              "steps": [ { "fill": "role=textbox[name='Correo']", "value": "${EMAIL_TEST}" },
+ *                         { "fill": "role=textbox[name='Contraseña']", "value": "${PASSWORD_TEST}" },
+ *                         { "click": "role=button[name='Entrar']" },
+ *                         { "waitFor": "role=navigation" } ] }
+ *     Runs once before the shots and every shot starts with that session. `${NAME}` in a
+ *     `value` is read from `.env.test.local` (or the environment): the password is never
+ *     written here. The last step waits for something only a logged-in page has.
+ *   "storageState": ".qa/state.json"   a Playwright storage state saved by another script,
+ *     instead of `login`.
+ *
+ * Browser: Playwright's Chromium. If this Playwright's build is not installed ("Executable
+ * doesn't exist", after a dependency update), it falls back to the machine's Edge or Chrome
+ * and says so. `PW_CHANNEL=msedge` (or `chrome`) or `PW_CHROMIUM_PATH=<exe>` choose one
+ * (InversionesJL22 and workout wrote their own script for this).
  *
  * Decisions that avoid bad or hanging screenshots:
  *   - Service workers blocked: an old cached bundle is never captured.
@@ -55,8 +75,14 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdir, readFile, stat } from "node:fs/promises";
-import { chromium, type Page } from "@playwright/test";
+import {
+  type Browser,
+  type BrowserContextOptions,
+  chromium,
+  type Page,
+} from "@playwright/test";
 
 type Step =
   | { click: string }
@@ -77,6 +103,14 @@ type Shot = {
   element?: string;
   fullPage?: boolean;
   route?: { url: string; status?: number; body?: unknown }[];
+  guest?: boolean;
+};
+
+type Config = {
+  base: string;
+  shots: Shot[];
+  login?: { path?: string; steps: Step[] };
+  storageState?: string;
 };
 
 const configPath = process.argv[2] ?? ".pr-shots.json";
@@ -84,10 +118,7 @@ const OUT = ".pr-shots";
 const STEP_TIMEOUT = 10_000;
 const ATTEMPTS = 3;
 
-const config = JSON.parse(await readFile(configPath, "utf8")) as {
-  base: string;
-  shots: Shot[];
-};
+const config = JSON.parse(await readFile(configPath, "utf8")) as Config;
 await mkdir(OUT, { recursive: true });
 
 const lastCommit =
@@ -110,6 +141,58 @@ for (const path of new Set(config.shots.map((s) => s.path ?? "/"))) {
   }).catch(() => {});
 }
 
+// `${NAME}` in a step's value: from .env.test.local, then the environment.
+const testEnv: Record<string, string> = {};
+if (existsSync(".env.test.local")) {
+  for (const line of readFileSync(".env.test.local", "utf8").split(/\r?\n/)) {
+    const m = line.match(
+      /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/,
+    );
+    if (m) testEnv[m[1]] = m[2].replace(/^(['"])(.*)\1$/, "$2");
+  }
+}
+function fromEnv(value: string): string {
+  return value.replace(
+    /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g,
+    (whole, name: string) => {
+      const found = testEnv[name] ?? process.env[name];
+      if (found === undefined)
+        console.warn(
+          `! \${${name}} is not in .env.test.local or the environment`,
+        );
+      return found ?? whole;
+    },
+  );
+}
+
+async function launchBrowser(): Promise<Browser> {
+  const args = ["--disable-gpu"];
+  const executablePath = process.env.PW_CHROMIUM_PATH;
+  const channel = process.env.PW_CHANNEL;
+  if (executablePath || channel)
+    return chromium.launch({ args, executablePath, channel });
+  try {
+    return await chromium.launch({ args });
+  } catch (error) {
+    if (!/Executable doesn't exist/.test((error as Error).message)) throw error;
+    for (const installed of ["msedge", "chrome"]) {
+      try {
+        const browser = await chromium.launch({ args, channel: installed });
+        console.warn(
+          `! This Playwright's Chromium is not installed: using ${installed}.`,
+        );
+        return browser;
+      } catch {
+        // not installed either: try the next one
+      }
+    }
+    throw new Error(
+      "This Playwright's Chromium is not installed, and neither Edge nor Chrome was found.\n" +
+        "Install it: node node_modules/@playwright/test/cli.js install chromium (or set PW_CHROMIUM_PATH).",
+    );
+  }
+}
+
 async function runSteps(page: Page, steps: Step[]) {
   for (const step of steps) {
     if ("click" in step)
@@ -118,7 +201,7 @@ async function runSteps(page: Page, steps: Step[]) {
       await page
         .locator(step.fill)
         .first()
-        .fill(step.value, { timeout: STEP_TIMEOUT });
+        .fill(fromEnv(step.value), { timeout: STEP_TIMEOUT });
     else if ("press" in step) await page.keyboard.press(step.press);
     else if ("waitFor" in step)
       await page
@@ -130,9 +213,34 @@ async function runSteps(page: Page, steps: Step[]) {
   }
 }
 
-const browser = await chromium.launch({ args: ["--disable-gpu"] });
+const browser = await launchBrowser();
 const written: string[] = [];
 const failed: string[] = [];
+
+// The session every shot starts with (unless `guest`): a saved state, or a login done once.
+let session: BrowserContextOptions["storageState"] = config.storageState;
+// Up to 3 attempts, like the shots: the first one failed on a cold browser start (kit test).
+for (let attempt = 1; config.login && attempt <= ATTEMPTS; attempt++) {
+  const context = await browser.newContext({ serviceWorkers: "block" });
+  const page = await context.newPage();
+  try {
+    await page.goto(config.base + (config.login.path ?? "/login"), {
+      waitUntil: "load",
+      timeout: 60_000,
+    });
+    await runSteps(page, config.login.steps);
+    session = await context.storageState();
+    await context.close();
+    break;
+  } catch (error) {
+    await context.close();
+    if (attempt === ATTEMPTS) {
+      console.warn(
+        `! login failed (${(error as Error).message.split("\n")[0]}): the shots go out without a session.`,
+      );
+    }
+  }
+}
 
 for (const shot of config.shots) {
   const schemes =
@@ -150,6 +258,7 @@ for (const shot of config.shots) {
         reducedMotion: "reduce",
         serviceWorkers: "block",
         deviceScaleFactor: 1,
+        storageState: shot.guest ? undefined : session,
       });
       if (shot.storage) {
         await context.addInitScript((entries: Record<string, string>) => {

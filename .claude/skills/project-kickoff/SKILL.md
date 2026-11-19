@@ -47,6 +47,14 @@ Before the first question:
 **Never ask something he already told you.** It is the fastest way to make a flow like this
 feel bureaucratic.
 
+**The project already exists** (an app in production, or a change of framework or backend):
+the kickoff starts from the code, not from the idea. Inventory first — routes and screens,
+components, data and auth, what is deployed and where — and ask only what the code does not
+answer. In the plan, the phases the app already covers are listed as done, with what was
+checked, not repeated; a migration is its own phases, each one leaving the app working (the
+session of auth and the URLs users have saved are on the list of what moves). The skill
+assumed a new project and all of this was improvised (workout).
+
 ---
 
 ## Step 2 — Adaptive interview
@@ -138,7 +146,10 @@ Me faltan estas para armar el plan:
     > accesibilidad. *Riesgo:* puede leerse como poco serio en B2B.
 
     Ask him to pick one, or to mix. If he has no opinion, **pick the one that fits the
-    business best yourself and say why.**
+    business best yourself and say why.** If he would rather see them than read them, show
+    them: the same screen (the hero or the main view) in the three directions, side by side
+    on one page, before he chooses — César asked to see them, then for a mix and variations
+    (kit-deploy).
 
 ### Block D — Technical
 
@@ -218,6 +229,7 @@ Present the plan with `ExitPlanMode` and wait for approval.
 | **Landing** | 01 · 02 · 03 · 04 · 06 · 08 · 09 | A single page. Skips 05 (the page is assembled in 04) and 07 unless there is a form that really submits. |
 | **Site** | 01 – 06 · 08 · 09 | Corporate or multi-page without a heavy backend. |
 | **Product** | 01 – 09 | E-commerce, SaaS, dashboard: anything with auth, payments or user data. |
+| **Infra** | The project's own phases first (server, agent, CLI, API), then 01 – 09 nested in one phase "Dashboard" | It starts with infrastructure and the interface comes after. No track fitted kit-deploy and one was improvised. |
 
 See `phases-templates/`. Choosing too much is as bad as choosing too little: empty phases
 create ceremony without real work.
@@ -322,6 +334,10 @@ Follow `reference/DEPLOY.md`:
 1. **GitHub**: first commit, `gh repo create`, and the settings that used to be manual
    (delete branches on merge, permission for the Action to open the version PR, protection
    of `main`). Each setting is read back to confirm it. `GIT_STATE.md` → `pr` mode.
+   On an existing repo, read its default branch first (`gh repo view --json
+   defaultBranchRef --jq .defaultBranchRef.name`): if it is not `main`, tell César and use
+   his answer everywhere the kit says `main`. A 403 on the protection (a private repo on a
+   free plan) is not an error to retry: say so and go on, `pr` mode works without it.
 2. **Vercel**: `vercel link`, `vercel git connect` (preview per PR, production on merge to
    `main`), non-secret environment variables (`NEXT_PUBLIC_SITE_URL`), domain if there is one,
    and `.env.local` pulled from Vercel (`vercel env pull .env.local --yes`; if it was

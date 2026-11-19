@@ -30,6 +30,9 @@ x-wp-volumes: &wp-volumes
   - ./wp-content/plugins/${SITE_PLUGIN:?set SITE_PLUGIN in .env.local}:/var/www/html/wp-content/plugins/${SITE_PLUGIN}
   # Child theme, if the project has one:
   # - ./wp-content/themes/${CHILD_THEME}:/var/www/html/wp-content/themes/${CHILD_THEME}
+  # A third-party plugin the repo versions with changes (one line each, here and in wpcli):
+  # without it the copy runs the backup's unmodified version (InversionesJL22).
+  # - ./wp-content/plugins/<other-plugin>:/var/www/html/wp-content/plugins/<other-plugin>
   - ./local/mu-plugins/kit-mailpit.php:/var/www/html/wp-content/mu-plugins/kit-mailpit.php:ro
 
 services:
@@ -73,6 +76,7 @@ services:
       - ./.site-pull/files/wp-content:/var/www/html/wp-content
       - ./wp-content/plugins/${SITE_PLUGIN}:/var/www/html/wp-content/plugins/${SITE_PLUGIN}
       # - ./wp-content/themes/${CHILD_THEME}:/var/www/html/wp-content/themes/${CHILD_THEME}
+      # - ./wp-content/plugins/<other-plugin>:/var/www/html/wp-content/plugins/<other-plugin>
       - ./local/mu-plugins/kit-mailpit.php:/var/www/html/wp-content/mu-plugins/kit-mailpit.php:ro
       - ./local/mysql-client.cnf:/etc/my.cnf.d/kit-local.cnf:ro
 

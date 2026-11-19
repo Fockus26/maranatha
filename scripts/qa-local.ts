@@ -41,6 +41,13 @@
  *      `supabase stop` between them, and the database container's log if the last one fails:
  *      the first start on a machine failed with `StatusDbNotRunningError` (world-flags ×3) and
  *      storage's "Starting database from backup" twice in a row (melao).
+ *      Nothing here waits without a limit: Docker is asked first (`docker version`, 30 s),
+ *      every `supabase` command has a cap (20 min; `QA_SUPABASE_TIMEOUT_MIN`), each failed
+ *      attempt prints its error, a database still recovering is waited for instead of
+ *      stopped, and an `unhealthy` one ends with the recovery command. Why: with Docker
+ *      Desktop not answering, a run sat for hours on the restart with nothing printed while
+ *      the other workers waited for Docker; the reason of a failed start only showed on the
+ *      third attempt, and the `stop` between attempts cut Postgres' recovery (workout ×7).
  *   2. `supabase db reset`: an empty database with the current tree's migrations and seed
  *      (in a pool slot, `main`'s), with its output live (it takes minutes). If it fails
  *      (`DbSetupError`, melao ×2), stop + start + reset once more. The local database is
@@ -370,22 +377,54 @@ const SUPABASE_ENV = {
   ...process.env, // whatever César set wins
 };
 
+// Docker Desktop can stop answering without exiting. `docker version` and not `docker info`:
+// info hung while version and ps answered (workout).
+function dockerAnswers(): boolean {
+  const r = spawnSync(
+    "docker",
+    ["version", "--format", "{{.Server.Version}}"],
+    { encoding: "utf8", timeout: 30_000 },
+  );
+  return r.status === 0;
+}
+
+function requireDocker(): void {
+  if (dockerAnswers()) return;
+  abort(
+    "Docker does not answer (docker version, 30 s). Open Docker Desktop — or restart it if it is open and stuck — and run this again.",
+  );
+}
+
+const SUPABASE_CAP_MIN = Number(process.env.QA_SUPABASE_TIMEOUT_MIN) || 20;
+
 type Run = ReturnType<typeof spawnSync>;
 // `live`: output straight to the terminal (long steps). Returns the result; never aborts.
+// Capped: a command that outlives the cap comes back as a failure instead of hanging.
 function supabaseRun(a: string[], live = false): Run {
   return spawnSync("supabase", a, {
     encoding: "utf8",
     stdio: live ? "inherit" : "pipe",
     shell: process.platform === "win32",
     env: SUPABASE_ENV,
+    timeout: SUPABASE_CAP_MIN * 60_000,
   });
 }
 
+function failure(r: Run): string {
+  if (r.error && (r.error as NodeJS.ErrnoException).code === "ETIMEDOUT") {
+    return `no answer in ${SUPABASE_CAP_MIN} min (cap: QA_SUPABASE_TIMEOUT_MIN)`;
+  }
+  return String(r.stderr || r.stdout || r.error?.message || "").trim();
+}
+
 function supabaseFail(a: string[], r: Run, extra = ""): never {
-  const detail = String(r.stderr || r.stdout || "").trim();
-  const docker = /docker|daemon|pipe/i.test(detail)
-    ? "\n→ Is Docker Desktop running?"
-    : "";
+  const detail = failure(r);
+  // Only when it really does not answer: every Supabase error names Docker, and the hint
+  // sent people to restart a Docker that was fine (kit test, 2026-11-18).
+  const docker =
+    /docker|daemon|pipe/i.test(detail) && !dockerAnswers()
+      ? "\n→ Is Docker Desktop running?"
+      : "";
   abort(`supabase ${a.join(" ")} failed:\n${detail}${docker}${extra}`);
 }
 
@@ -430,23 +469,72 @@ function runningSiteUrl(): string | null {
   return r.stdout.match(/^GOTRUE_SITE_URL=(.*)$/m)?.[1]?.trim() ?? null;
 }
 
+// '' when the container does not exist or has no health check.
+function dbHealth(): string {
+  if (!projectId) return "";
+  const r = spawnSync(
+    "docker",
+    [
+      "inspect",
+      "-f",
+      "{{if .State.Health}}{{.State.Health.Status}}{{end}}",
+      `supabase_db_${projectId}`,
+    ],
+    {
+      encoding: "utf8",
+      timeout: 30_000,
+    },
+  );
+  return r.status === 0 ? r.stdout.trim() : "";
+}
+
+const sleepSync = (ms: number) =>
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+// After Docker hangs, Postgres can stay in its recovery fsync and fail every start.
+const UNHEALTHY_HINT =
+  "\n→ The local database is unhealthy. Recovery: `supabase stop --no-backup` (it deletes the local" +
+  "\n  database's data; the next run recreates it from the migrations and the seed) and run this again.";
+
 function supabaseStart(): void {
+  requireDocker();
   const current = runningSiteUrl();
   if (current && current !== SITE) {
     console.log(
       `… the local stack sends links to ${current}: restarting it for ${SITE} (data kept)`,
     );
-    supabaseRun(["stop"]);
+    const stop = supabaseRun(["stop"]);
+    if (stop.status !== 0) supabaseFail(["stop"], stop);
   }
   const attempts = 3;
   for (let i = 1; i <= attempts; i++) {
     const r = supabaseRun(["start"]);
     if (r.status === 0) return;
-    if (i === attempts)
-      supabaseFail(["start"], r, dockerLogs(`supabase_db_${projectId}`));
+    let health = dbHealth();
+    if (i === attempts) {
+      supabaseFail(
+        ["start"],
+        r,
+        dockerLogs(`supabase_db_${projectId}`) +
+          (health === "unhealthy" ? UNHEALTHY_HINT : ""),
+      );
+    }
     console.log(
-      `… supabase start failed (attempt ${i}/${attempts}); supabase stop and again`,
+      `… supabase start failed (attempt ${i}/${attempts}):\n${failure(r).split("\n").slice(-8).join("\n")}`,
     );
+    requireDocker();
+    if (health === "starting") {
+      // Stopping it now cuts the recovery and the next start begins it again (~20 min: workout).
+      console.log(
+        "… the database is still starting (recovery?): waiting for it, up to 10 min, instead of stopping it",
+      );
+      for (let s = 0; s < 120 && health === "starting"; s++) {
+        sleepSync(5000);
+        health = dbHealth();
+      }
+      if (health === "healthy") continue;
+    }
+    console.log("… supabase stop and again");
     supabaseRun(["stop"]);
   }
 }
@@ -468,8 +556,14 @@ function supabaseReset(): void {
 
 // Local sign-up without the confirmations the hosted project asks for: a repro passes here
 // and not there, and it hid the double confirmation of an email change (melao).
+// Only inside [auth.email]: `[auth.sms] enable_confirmations = false` (its default) raised
+// this warning in a project whose email confirmations were on (workout).
+const authEmail =
+  configToml.match(
+    /^\[auth\.email\][^\n]*\n([\s\S]*?)(?=^\[|$(?![\s\S]))/m,
+  )?.[1] ?? "";
 for (const key of ["enable_confirmations", "double_confirm_changes"]) {
-  if (new RegExp(`^\\s*${key}\\s*=\\s*false`, "m").test(configToml)) {
+  if (new RegExp(`^\\s*${key}\\s*=\\s*false`, "m").test(authEmail)) {
     console.warn(
       `! supabase/config.toml: ${key} = false. If the hosted project has it on, local QA skips that step.`,
     );
@@ -549,8 +643,9 @@ async function startServer(
       abort(
         '--preview: the project has no "qa:serve", "preview" or "start" script.',
       );
-    // NODE_ENV is read-only in Next.js's types (@types/node + next): assigned through a cast.
-    (env as Record<string, string | undefined>).NODE_ENV = "production";
+    // Not `env.NODE_ENV = …`: Next 16's types declare it read-only and a new project's
+    // typecheck failed on this file (kit-deploy).
+    Object.assign(env, { NODE_ENV: "production" });
     console.log("… bun run build (with the local backend's variables)");
     const build = launch("bun", ["run", "build"], env);
     const code = await new Promise<number | null>((done) =>
@@ -667,11 +762,7 @@ if (
   const docker = (a: string[], input?: string) =>
     spawnSync("docker", a, { encoding: "utf8", input });
 
-  const version = docker(["version", "--format", "{{.Server.Version}}"]);
-  if (version.status !== 0)
-    abort(
-      `Docker does not answer. Is Docker Desktop running?\n${version.stderr}`,
-    );
+  requireDocker();
 
   async function freePort(from: number): Promise<number> {
     for (let p = from; p < from + 200; p++) {
@@ -730,7 +821,8 @@ if (
 
   // TCP, not the socket: during the image's init Postgres only listens on the socket.
   let ready = false;
-  for (let i = 0; i < 120 && !ready; i++) {
+  // 5 minutes: the container's first initdb on a hard disk passed the 2 it had (kit-deploy).
+  for (let i = 0; i < 300 && !ready; i++) {
     ready =
       docker([
         "exec",
@@ -745,7 +837,7 @@ if (
       ]).status === 0;
     if (!ready) await new Promise((r) => setTimeout(r, 1000));
   }
-  if (!ready) abort(`Postgres did not answer in 2 minutes.${dockerLogs(PG)}`);
+  if (!ready) abort(`Postgres did not answer in 5 minutes.${dockerLogs(PG)}`);
 
   const sqlIn = (db: string, statement: string): string => {
     const r = docker(
@@ -785,6 +877,12 @@ if (
 
   const databaseUrl = `postgresql://${ROLE}:${ROLE}@127.0.0.1:${pgPort}/${DB}`;
 
+  if (!pkgScripts["db:migrate"]) {
+    abort(
+      'package.json has no "db:migrate" script, which applies the migrations to the QA database.\n' +
+        'Add it — Drizzle: "db:migrate": "drizzle-kit migrate" (the kit\'s reference/tech/vps-postgres.md).',
+    );
+  }
   console.log("… bun run db:migrate");
   const migrate = spawnSync("bun", ["run", "db:migrate"], {
     stdio: "inherit",
@@ -830,9 +928,10 @@ if (
     SMTP_USER: "",
     SMTP_PASS: "",
     SMTP_FROM: "QA <qa@example.test>",
+    EMAIL_FROM: "QA <qa@example.test>", // projects that copied the guide before 3.24.0 read this name
   });
   // Roles por lista de correos (ROLE_BY_ENV), igual que en la rama Supabase.
-  // Maranatha: faltaba aquí y ADMIN_EMAILS quedaba con los correos reales.
+  // Maranatha: el kit no lo hace aquí y ADMIN_EMAILS quedaba con los correos reales.
   for (const [role, variable] of Object.entries(ROLE_BY_ENV)) {
     env[variable] = accounts
       .filter((a) => a.role === role && a.email)
