@@ -59,7 +59,7 @@ PENDIENTE (no quedó registrado).
 - Animación: framer-motion (`Reveal`, `PageTransition`), respetando reduced-motion
 - Gestor de paquetes: **bun**
 - Documentación: **Context7** antes de usar la API de cualquier librería
-- Base de datos: Postgres del VPS (`kit-db`: `maranatha`, `maranatha_preview`, `maranatha_dev`) con Drizzle (`lib/db/`, migraciones en `drizzle/`), solo desde el servidor (D082). Comprobantes en la tabla `payment_receipts`
+- Base de datos: Postgres del VPS (`kit-db`: `maranatha`, `maranatha_preview`, `maranatha_dev`) con Drizzle (`lib/db/`, migraciones en `drizzle/`), solo desde el servidor (D082). Comprobantes en un bucket privado de Cloudflare R2 por entorno (D094); sin `R2_*`, en la tabla `payment_receipts`
 - Autenticación: Better Auth, solo para el dashboard, sin registro; acceso por lista `ADMIN_EMAILS`; recuperación de contraseña por correo
 - Pagos: métodos manuales reportados con comprobante (Pago Móvil, Zelle, Bancolombia, Binance,
   Zinli, Wally) + PayPal (orden única y suscripción mensual, con webhook)
@@ -118,8 +118,8 @@ Detalle de tamaños y archivos: `reference/BRAND-ASSETS.md` del kit.
 ## Correos
 
 Un solo correo: la recuperación de contraseña del dashboard (D082), con React Email
-(`lib/email/`) por Brevo SMTP (`SMTP_*`; remitente hoy `alejandrorey2654@gmail.com`, sin
-dominio propio). Las cuentas se crean con `bun scripts/create-admin.ts`; sin registro.
+(`lib/email/`) por Brevo SMTP (`SMTP_*`; remitente `"Iglesia Maranatha" <maranatha@fockus.dev>`, dominio
+`fockus.dev` autenticado en Brevo con DKIM/SPF/DMARC en Cloudflare). Las cuentas se crean con `bun scripts/create-admin.ts`; sin registro.
 En QA los correos caen en Mailpit.
 
 ## Track de fases
