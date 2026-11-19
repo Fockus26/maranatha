@@ -7,6 +7,7 @@ import type {
 
 /** Textos y formato de pagos compartidos por el checkout y el dashboard. */
 
+/** Incluye Zinli y Wally (retirados, D100): los pagos viejos se siguen mostrando. */
 export const METHOD_LABEL: Record<PaymentMethodId, string> = {
   paypal: "PayPal / Tarjeta",
   pagomovil: "Pago Móvil",
