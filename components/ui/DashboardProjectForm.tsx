@@ -5,12 +5,12 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import { useTheme } from "@mui/material/styles";
+import { type Theme, useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import { AnimatePresence, motion } from "framer-motion";
 import { type FormEvent, useEffect, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { radius } from "@/theme/tokens";
+import { primary, radius } from "@/theme/tokens";
 import { DrawerSection } from "./DashboardFormDrawer";
 import { DateField } from "./DateField";
 import { ImageUploadField } from "./ImageUploadField";
@@ -95,6 +95,11 @@ function numberFieldSx() {
     },
   };
 }
+
+// Botón de texto "Agregar…": el primary de MUI en oscuro (3.1:1) no llega a AA.
+const addActionSx = (theme: Theme) => ({
+  color: theme.palette.mode === "light" ? primary[700] : primary[200],
+});
 
 export function DashboardProjectForm({
   initialValues,
@@ -311,6 +316,7 @@ export function DashboardProjectForm({
             type="button"
             size="small"
             startIcon={<AddIcon />}
+            sx={addActionSx}
             onClick={addBudgetLine}
           >
             Agregar línea
@@ -394,6 +400,7 @@ export function DashboardProjectForm({
             type="button"
             size="small"
             startIcon={<AddIcon />}
+            sx={addActionSx}
             onClick={addEncargado}
           >
             Agregar encargado

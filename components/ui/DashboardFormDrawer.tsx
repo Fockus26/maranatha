@@ -10,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { fontScale, formDrawer, typography } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { outlinedActionSx } from "./outlinedActionSx";
 
 export interface DashboardFormDrawerProps {
   open: boolean;
@@ -157,6 +158,7 @@ export function DashboardFormDrawer({
             color="primary"
             onClick={requestClose}
             disabled={saving}
+            sx={outlinedActionSx}
           >
             Cancelar
           </Button>
