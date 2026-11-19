@@ -1,5 +1,15 @@
 # maranatha
 
+## 0.8.0
+
+### Minor Changes
+
+- 6027664: El sitio puede publicarse en kit-deploy (VPS de César): producción desde `main` y un preview por cada PR, con `/api/health` para el cambio sin corte. Se enciende con la variable `KIT_DEPLOY_ENABLED` del repo; hasta entonces solo publica Vercel.
+
+### Patch Changes
+
+- 024b1ba: El panel tiene la misma transición suave entre pantallas que el sitio público.
+
 ## 0.7.1
 
 ### Patch Changes
