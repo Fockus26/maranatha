@@ -10,7 +10,7 @@ import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import { useRef, useState } from "react";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { fontScale, radius } from "@/theme/tokens";
+import { fontScale, primary, radius } from "@/theme/tokens";
 import { outlinedActionSx } from "./outlinedActionSx";
 
 export interface ImageUploadFieldProps {
@@ -82,7 +82,14 @@ export function ImageUploadField({
         value={tab}
         onChange={(_, v) => setTab(v)}
         aria-label="Origen de la imagen"
-        sx={{ minHeight: 32, mb: 1.5 }}
+        sx={(t) => ({
+          minHeight: 32,
+          mb: 1.5,
+          // Pestaña activa legible en oscuro (primary.main da 3.1:1, como D084).
+          "& .MuiTab-root.Mui-selected": {
+            color: t.palette.mode === "light" ? primary[700] : primary[200],
+          },
+        })}
       >
         <Tab
           value="upload"

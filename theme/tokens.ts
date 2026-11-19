@@ -209,6 +209,11 @@ export const breakpoints = {
   xl: 1536,
 } as const;
 
+// Panel lateral de formularios del dashboard (D096): ancho desde `md`.
+export const formDrawer = {
+  width: 560,
+} as const;
+
 export const zIndex = {
   base: 0,
   navbar: 100,
