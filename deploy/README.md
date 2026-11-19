@@ -46,6 +46,8 @@ Todo por `ssh kit-vps` desde la terminal de César. Ningún secreto pasa por el 
      `DATABASE_URL`/`DIRECT_URL`.
    - **preview:** lo mismo con PayPal en sandbox; sin `BETTER_AUTH_URL` ni `NEXT_PUBLIC_SITE_URL` (el login acepta el
      origen de cada preview por `KIT_DEPLOY_PREVIEW_URL`, que pone kit-deploy).
+   - **R2 (D094), en los dos:** `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` y `R2_BUCKET`, con el
+     bucket y el token de cada entorno (`maranatha-receipts` / `maranatha-receipts-preview`).
    - Comparar nombres: `ssh kit-vps kit-deploy env ls maranatha production` (y `preview`).
 5. **DNS:** `maranatha.fockus.dev` ya lo cubre el comodín `*.fockus.dev` (DNS-only). Nada que hacer en Cloudflare.
 6. **Encender:**
