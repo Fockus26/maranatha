@@ -1,0 +1,6 @@
+# D096 · Dashboard · Formularios de crear/editar en un panel lateral compartido (`DashboardFormDrawer`) · Implementado
+
+**Decisión:** el formulario de proyecto (`DashboardProjectModal`) y el de evento de agenda (`AgendaEventDialog`) dejan de ser `Dialog` y se abren en `components/ui/DashboardFormDrawer.tsx`: Drawer derecho de 560 px desde `md` (token nuevo `formDrawer.width`) y pantalla completa debajo. Cabecera fija (título + cerrar), cuerpo con scroll propio y pie fijo con Cancelar (outlined) y Guardar (contained, con progreso). El `<form>` vive en el cuerpo y el pie lo envía con `form={formId}`. Cerrar (X, Cancelar, Esc, clic fuera) con cambios sin guardar abre un `ConfirmDialog` ("¿Descartar los cambios?"). `ConfirmDialog` de borrar se queda como Dialog.
+**Por qué:** pedido de César ("los formularios para crear y editar... no me gusta cómo se ven"); el pie fijo mantiene Guardar visible aunque el formulario sea largo (proyecto con presupuesto y encargados). Solo presentación: guardado y validación sin cambios.
+**Reemplaza:** el modal fullScreen/Dialog de proyecto de D065 (el panel ocupa toda la pantalla bajo `md`). Respeta D057 (`elevation: 0`) y D092 (botones outlined).
+**Alternativa descartada:** Dialog más ancho con pie pegajoso: no resuelve el aspecto de "formulario largo en una ventana".
