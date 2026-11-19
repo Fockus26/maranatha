@@ -7,7 +7,7 @@ import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { fontScale, formDrawer, typography } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -46,6 +46,21 @@ export function DashboardFormDrawer({
   const theme = useTheme();
   const titleId = useId();
   const [confirmingClose, setConfirmingClose] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  // El `autoFocus` de los campos corre con el panel aún oculto (en transición)
+  // y no engancha: al terminar de entrar, el foco va al primer campo.
+  useEffect(() => {
+    if (!open) return;
+    const timer = window.setTimeout(() => {
+      const paper = bodyRef.current?.closest<HTMLElement>(".MuiDrawer-paper");
+      if (paper && document.activeElement !== paper) return;
+      bodyRef.current
+        ?.querySelector<HTMLElement>("input:not([type=hidden]),textarea")
+        ?.focus();
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   function requestClose() {
     if (saving) return;
@@ -111,6 +126,7 @@ export function DashboardFormDrawer({
         </Box>
 
         <Box
+          ref={bodyRef}
           sx={{
             flex: 1,
             minHeight: 0,

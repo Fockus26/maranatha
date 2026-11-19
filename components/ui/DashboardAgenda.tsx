@@ -213,6 +213,7 @@ function AgendaEventDialog({
             size="small"
             label="Nombre"
             required
+            autoFocus
             fullWidth
             value={form.title}
             onChange={(e) => set("title", e.target.value)}

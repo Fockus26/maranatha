@@ -221,6 +221,7 @@ export function DashboardProjectForm({
         <TextField
           size="small"
           label="Título del proyecto"
+          autoFocus
           fullWidth
           value={title}
           onChange={(e) => setTitle(e.target.value)}
