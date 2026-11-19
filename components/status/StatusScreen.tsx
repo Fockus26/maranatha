@@ -295,7 +295,7 @@ export function StatusScreen({
                   size="large"
                   variant={action.primary ? "contained" : "outlined"}
                   // CTA principal naranja, igual que /pago/resultado y
-                  // "Diezmo" (design-qa fase 09).
+                  // "Ofrendar" (design-qa fase 09).
                   color={action.primary ? "secondary" : "primary"}
                   sx={action.primary ? undefined : outlinedSx}
                 >

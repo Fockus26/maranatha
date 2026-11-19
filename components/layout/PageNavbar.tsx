@@ -27,11 +27,10 @@ import { type MobileNavLink, PAGE_NAV_ITEMS } from "./navItems";
 /**
  * Variante simplificada de `Navbar` para toda página pública que no sea Home
  * (Historia, Proyectos, detalle de proyecto) — D023. Mismo shell (sticky,
- * sombra al hacer scroll, ThemeToggle, CTA Diezmo, menú mobile), pero sin
+ * sombra al hacer scroll, ThemeToggle, CTA Ofrendar, menú mobile), pero sin
  * anclas: solo los enlaces de página, con estado activo resuelto por ruta.
  *
- * El CTA "Diezmo" apunta a `/#diezmo` (navega a Home y hace scroll) porque
- * esa sección solo existe ahí.
+ * El CTA "Ofrendar" abre el modal de ofrenda (`TitheModal`), igual que en Home.
  */
 export default function PageNavbar() {
   const theme = useTheme();
@@ -188,7 +187,7 @@ export default function PageNavbar() {
                   size="small"
                   sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
                 >
-                  Diezmo
+                  Ofrendar
                 </Button>
               </Box>
               <IconButton
