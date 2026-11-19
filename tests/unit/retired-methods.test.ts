@@ -32,7 +32,7 @@ describe("D100: Zinli y Wally retirados", () => {
       expect(manualReportSchema.safeParse({ ...report, method }).success).toBe(
         true,
       );
-    expect([...MANUAL_METHOD_IDS].sort()).toEqual(
+    expect([...MANUAL_METHOD_IDS].sort() as string[]).toEqual(
       ["bancolombia", "binance", "pagomovil", "zelle"].sort(),
     );
   });
