@@ -1,52 +1,43 @@
 "use client";
 
 import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import { keyframes } from "@mui/material/styles";
+import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
 import { useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import {
+  PaymentStep,
+  type PaymentStepContribution,
+} from "@/components/ui/PaymentStep";
 import { Reveal } from "@/components/ui/Reveal";
-import { TitheForm, type TitheFormValues } from "@/components/ui/TitheForm";
-import { fontScale, gray, primary, radius } from "@/theme/tokens";
+import { StepTransition } from "@/components/ui/StepTransition";
+import {
+  type ContributionType,
+  FREQUENCY_LABEL,
+  TitheForm,
+  type TitheFormValues,
+  TYPE_LABEL,
+} from "@/components/ui/TitheForm";
+import { patternLayerSx } from "@/theme/patterns";
+import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
 
 /**
- * Sección "CTA Diezmo/Aportes" (fase 06) — componente + datos en un solo archivo (D030).
+ * Sección "Ofrendar" de Home (D098) — vuelve a la home, ahora con el formulario
+ * completo dentro (formulario + paso de método de pago, igual que el modal).
+ * El botón "Ofrendar" del menú sigue abriendo `TitheModal` (D049); esta sección
+ * es el segundo punto de entrada, para incentivar la donación sin tener que
+ * abrir nada.
  *
- * Última sección pendiente de Fase 06 (SECTION_INVENTORY). Es el CTA de más alta
- * prioridad del sitio (D011) — a diferencia de las demás secciones de Home (fondo
- * `background.default`/`paper`), esta usa **fondo navy sólido fijo**, sin importar el
- * modo claro/oscuro activo (mismo criterio que el sidebar del dashboard, D025, y el
- * overlay del menú mobile, D026) para que se sienta como el "cierre" del recorrido de
- * Home, no una sección más.
- *
- * Reutiliza `TitheForm` (`components/ui/TitheForm.tsx`, D018/D019) **sin modificarlo**
- * — trae su propio `DonationFormCard` (fondo `background.paper`, así que sobre el navy
- * de la sección queda como una card clara flotando, con buen contraste). `onSubmit` es
- * un placeholder (`console.log` + no-op) — el formulario no captura tarjeta ni procesa
- * pago (D018), solo recolecta los datos; la integración con un proveedor de pago real
- * queda fuera de alcance de esta fase.
- *
- * `id="diezmo"` — coincide con `TITHE_ANCHOR_ID` (`components/layout/navItems.ts`),
- * el ancla que ya usan el botón "Diezmo" del Navbar, el PageNavbar y el
- * MobileMenuOverlay (a diferencia de Historia/Proyectos, que son páginas propias, D007,
- * este sí es un scroll-target real dentro de Home).
- *
- * Efecto "wow" del fondo (fase 07, D048 — el cliente eligió combinar las opciones B
- * y C del comparativo de `/design`): (1) un patrón geométrico diagonal muy sutil,
- * en pan continuo vía CSS `@keyframes` (`patternPan`), sin foto — mantiene el fondo
- * navy plano pero le suma movimiento de fondo; (2) un contador animado ("+X
- * familias aportando este año") que cuenta hacia arriba una sola vez, la primera
- * vez que la sección entra en el viewport (`useInView` de framer-motion, `once:
- * true` — mismo criterio de "una sola vez" que `Reveal`). El monto es contenido
- * placeholder, mismo criterio que el resto del sitio.
+ * Fondo navy sólido fijo (`primary[700]`) en claro y oscuro, con el patrón
+ * geométrico de D048 y el contador animado de familias (una sola vez, al
+ * entrar en el viewport). `TitheForm` solo recolecta datos (D018); el paso de
+ * pago lo resuelve `PaymentStep`. Los ids de campos salen de `useId` (MUI), así
+ * que conviven con la instancia del modal; PayPal/Binance son redirecciones,
+ * no hay SDK que cargar dos veces.
  */
-
-const patternPan = keyframes`
-  0% { background-position: 0 0; }
-  100% { background-position: 160px 160px; }
-`;
 
 const FAMILIES_SUPPORTING = 132;
 
@@ -107,130 +98,190 @@ function AnimatedFamiliesCounter() {
 }
 
 export function Tithe() {
+  const [confirmed, setConfirmed] = useState(false);
+  // Paso 2 (método de pago). `null` = el donante sigue en el formulario.
+  const [contribution, setContribution] =
+    useState<PaymentStepContribution | null>(null);
+  const stepOneRef = useRef<HTMLDivElement>(null);
+
   function handleSubmit(values: TitheFormValues) {
-    // Placeholder: no hay proveedor de pago integrado todavía (fuera de alcance de
-    // esta fase). El formulario ya valida y entrega los datos vía onSubmit (D018);
-    // acá solo se registran en consola hasta que exista un backend/proveedor real.
-    console.log("Tithe form submitted (placeholder):", values);
+    setContribution({
+      purpose: values.type,
+      frequency: values.frequency,
+      amountUsd: values.amount,
+      name: values.name,
+      email: values.email,
+    });
+  }
+
+  // Al volver, el foco regresa al submit del paso 1 en vez de caer al <body>.
+  function handleBack() {
+    setContribution(null);
+    requestAnimationFrame(() => {
+      stepOneRef.current
+        ?.querySelector<HTMLElement>('button[type="submit"]')
+        ?.focus();
+    });
+  }
+
+  function handleReported() {
+    setContribution(null);
+    setConfirmed(true);
   }
 
   return (
-    <Box
-      component="section"
-      id="diezmo"
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        py: { xs: 8, md: 12 },
-        backgroundColor: primary[700],
-      }}
-    >
-      {/* Patrón geométrico en pan continuo — ver nota de "efecto wow" arriba */}
+    <>
       <Box
+        component="section"
+        id="ofrendar"
+        aria-labelledby="ofrendar-title"
         sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "repeating-linear-gradient(135deg, rgba(245,246,250,0.05) 0px, rgba(245,246,250,0.05) 1px, transparent 1px, transparent 40px)",
-          animation: `${patternPan} 24s linear infinite`,
+          position: "relative",
+          overflow: "hidden",
+          py: { xs: 8, md: 12 },
+          backgroundColor: primary[700],
         }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 82% 15%, rgba(249,117,13,0.10) 0%, transparent 45%)",
-        }}
-      />
+      >
+        {/* Patrón geométrico en pan continuo (D048) */}
+        <Box aria-hidden="true" sx={patternLayerSx()} />
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(circle at 82% 15%, rgba(249,117,13,0.10) 0%, transparent 45%)",
+          }}
+        />
 
-      <Container maxWidth="lg" sx={{ position: "relative" }}>
-        <Reveal>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              alignItems: { xs: "center", md: "flex-start" },
-              justifyContent: "space-between",
-              gap: { xs: 6, md: 8 },
-            }}
-          >
+        <Container maxWidth="lg" sx={{ position: "relative" }}>
+          <Reveal>
             <Box
               sx={{
-                maxWidth: 480,
-                textAlign: { xs: "center", md: "left" },
-                pt: { md: 2 },
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "center", md: "flex-start" },
+                justifyContent: "space-between",
+                gap: { xs: 6, md: 8 },
               }}
             >
               <Box
                 sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 44,
-                  height: 44,
-                  borderRadius: `${radius.lg}px`,
-                  backgroundColor: "rgba(245,246,250,0.1)",
-                  color: "secondary.light",
-                  mb: 3,
+                  maxWidth: 480,
+                  textAlign: { xs: "center", md: "left" },
+                  pt: { md: 2 },
                 }}
               >
-                <VolunteerActivismRoundedIcon fontSize="small" />
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 44,
+                    height: 44,
+                    borderRadius: `${radius.lg}px`,
+                    backgroundColor: "rgba(245,246,250,0.1)",
+                    color: "secondary.light",
+                    mb: 3,
+                  }}
+                >
+                  <VolunteerActivismRoundedIcon fontSize="small" />
+                </Box>
+
+                <Typography
+                  component="span"
+                  sx={{
+                    display: "block",
+                    fontFamily: "var(--font-body)",
+                    fontWeight: 500,
+                    fontSize: fontScale[11],
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: "secondary.light",
+                    mb: 1.5,
+                  }}
+                >
+                  Da con propósito
+                </Typography>
+
+                <Typography
+                  component="h2"
+                  id="ofrendar-title"
+                  sx={{
+                    fontFamily: "var(--font-heading)",
+                    fontWeight: 800,
+                    fontSize: { xs: "28px", md: "38px" },
+                    lineHeight: 1.2,
+                    letterSpacing: "-0.01em",
+                    color: gray[50],
+                    mb: 2,
+                  }}
+                >
+                  Tu ofrenda sostiene esta obra
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: fontScale[16],
+                    lineHeight: 1.6,
+                    color: "rgba(245,246,250,0.72)",
+                  }}
+                >
+                  Cada aporte se destina directamente a nuestras áreas de
+                  servicio y proyectos activos. Elige un monto, única vez o
+                  mensual, y completa tus datos — sin compromisos, cancela
+                  cuando quieras.
+                </Typography>
+
+                <AnimatedFamiliesCounter />
               </Box>
 
-              <Typography
-                component="span"
-                sx={{
-                  display: "block",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 500,
-                  fontSize: fontScale[11],
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  color: "secondary.light",
-                  mb: 1.5,
-                }}
-              >
-                Da con propósito
-              </Typography>
-
-              <Typography
-                component="h2"
-                sx={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 800,
-                  fontSize: { xs: "28px", md: "38px" },
-                  lineHeight: 1.2,
-                  letterSpacing: "-0.01em",
-                  color: gray[50],
-                  mb: 2,
-                }}
-              >
-                Tu diezmo y tus aportes sostienen esta obra
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: fontScale[16],
-                  lineHeight: 1.6,
-                  color: "rgba(245,246,250,0.72)",
-                }}
-              >
-                Cada aporte se destina directamente a nuestras áreas de servicio
-                y proyectos activos. Elige un monto, única vez o mensual, y
-                completa tus datos — sin compromisos, cancela cuando quieras.
-              </Typography>
-
-              <AnimatedFamiliesCounter />
+              <Box sx={{ flexShrink: 0, width: "100%", maxWidth: 440 }}>
+                {/* El formulario queda montado durante el paso 2 para que
+              "Volver" conserve lo ya ingresado (D087). */}
+                <StepTransition
+                  showSecond={!!contribution}
+                  firstRef={stepOneRef}
+                  first={<TitheForm width={440} onSubmit={handleSubmit} />}
+                  second={
+                    contribution && (
+                      <PaymentStep
+                        width={440}
+                        contribution={contribution}
+                        summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                        onBack={handleBack}
+                        onReported={handleReported}
+                      />
+                    )
+                  }
+                />
+              </Box>
             </Box>
-
-            <Box sx={{ flexShrink: 0 }}>
-              <TitheForm width={440} onSubmit={handleSubmit} />
-            </Box>
-          </Box>
-        </Reveal>
-      </Container>
-    </Box>
+          </Reveal>
+        </Container>
+      </Box>
+      <Snackbar
+        open={confirmed}
+        autoHideDuration={6000}
+        onClose={() => setConfirmed(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setConfirmed(false)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: "100%",
+            bgcolor: semantic.successFilled,
+            color: gray[50],
+            "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
+          }}
+        >
+          ¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las
+          próximas horas.
+        </Alert>
+      </Snackbar>
+    </>
   );
 }

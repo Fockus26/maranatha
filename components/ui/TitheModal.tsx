@@ -24,10 +24,9 @@ import {
 } from "./TitheForm";
 
 /**
- * Modal "Diezmo/Aportes" (fase 07 — reemplaza a la sección `Tithe.tsx` de
- * Home, ahora removida): a pedido del cliente, el diezmo deja de vivir al
- * final de Home y en su lugar se abre como modal al hacer click en el botón
- * "Diezmo" desde cualquier página (Navbar/PageNavbar/MobileMenuOverlay). Se
+ * Modal "Ofrendar" (fase 07). Desde D098 la sección `Tithe.tsx` volvió a
+ * Home (con el formulario completo) y este modal sigue abriéndose al hacer
+ * click en el botón "Ofrendar" desde cualquier página (Navbar/PageNavbar/MobileMenuOverlay). Se
  * controla desde `TitheModalProvider`/`useTitheModal()`
  * (`lib/titheModalStore.tsx`), montado una sola vez en `app/layout.tsx`.
  *
@@ -313,7 +312,7 @@ export function TitheModal() {
                     mb: 2,
                   }}
                 >
-                  Tu diezmo y tus aportes sostienen esta obra
+                  Tu ofrenda sostiene esta obra
                 </Typography>
 
                 {/* Feedback de cliente: en mobile este párrafo empujaba el

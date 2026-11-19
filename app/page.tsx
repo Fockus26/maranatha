@@ -8,6 +8,7 @@ import { Leaders } from "@/components/sections/Leaders";
 import { Sermons } from "@/components/sections/Sermons";
 import { ServiceAreas } from "@/components/sections/ServiceAreas";
 import { SocialLinks } from "@/components/sections/SocialLinks";
+import { Tithe } from "@/components/sections/Tithe";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { PhotoAnchorBand } from "@/components/ui/PhotoAnchorBand";
 import { getPublicAgendaEvents } from "@/lib/agenda/repository";
@@ -58,6 +59,7 @@ export default async function Home() {
         <Sermons videos={sermons} />
         <SocialLinks feedsByAccount={instagramFeeds} />
         <Agenda events={agendaEvents} />
+        <Tithe />
         <PhotoAnchorBand
           eyebrow="Nuestra historia"
           value="11 años"

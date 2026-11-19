@@ -48,7 +48,7 @@ export default function MobileMenuOverlay({
   onClose,
   links,
   onCtaClick,
-  ctaLabel = "Diezmo",
+  ctaLabel = "Ofrendar",
 }: MobileMenuOverlayProps) {
   const theme = useTheme();
   const isLight = theme.palette.mode === "light";
@@ -147,7 +147,7 @@ export default function MobileMenuOverlay({
             display: { xs: "flex", md: "none" },
             flexDirection: "column",
             // Fase QA (design-qa, crítico): en viewports bajos (teléfono en
-            // horizontal) el CTA "Diezmo" y el toggle quedaban fuera de
+            // horizontal) el CTA "Ofrendar" y el toggle quedaban fuera de
             // pantalla sin forma de llegar. Ahora el overlay scrollea.
             overflowY: "auto",
           }}

@@ -33,7 +33,7 @@ const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 /**
  * Navbar de Home (D023): anclas a las secciones de Home con scroll-spy real
- * (`useActiveAnchor`) + enlaces de página a Historia/Proyectos + CTA Diezmo.
+ * (`useActiveAnchor`) + enlaces de página a Historia/Proyectos + CTA Ofrendar.
  * Por debajo de `md` los links se reemplazan por el ícono de hamburguesa que
  * abre `MobileMenuOverlay` (D025).
  *
@@ -250,7 +250,7 @@ export default function Navbar() {
                   size="small"
                   sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
                 >
-                  Diezmo
+                  Ofrendar
                 </Button>
               </Box>
               <IconButton
