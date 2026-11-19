@@ -217,6 +217,14 @@ export const zIndex = {
   modalBackdrop: 400,
   modal: 410,
   toast: 500,
+  progress: 600, // barra de carga al navegar (D095): por encima de todo
+} as const;
+
+// Barra de progreso de navegación (D095).
+export const navProgress = {
+  height: 3,
+  timeoutMs: 10000, // si no llegó nada, se oculta sola
+  fadeMs: 250,
 } as const;
 
 // Imagen Open Graph (1200×630, D078). Es una imagen, no la web: sus tamaños

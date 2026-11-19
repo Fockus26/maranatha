@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { TitheModal } from "@/components/ui/TitheModal";
 import {
@@ -88,6 +89,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             {children}
             <TitheModal />
           </TitheModalProvider>
+          <NavigationProgress />
         </ThemeRegistry>
         <ServiceWorkerRegister />
         {/* Solo en Vercel: fuera de ahí el script `/_vercel/insights` da 404. */}
