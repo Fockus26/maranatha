@@ -94,6 +94,8 @@ export const payments = pgTable(
       "payments_currency_check",
       sql`${t.currency} in ('USD', 'VES', 'COP', 'USDT')`,
     ),
+    // Zinli y Wally ya no se aceptan (D100), pero quedan en el CHECK: hay
+    // pagos viejos con esos métodos. Igual a `PAYMENT_METHOD_IDS`.
     check(
       "payments_method_check",
       sql`${t.method} in ('paypal', 'pagomovil', 'zelle', 'bancolombia', 'binance', 'zinli', 'wally')`,

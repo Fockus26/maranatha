@@ -1,6 +1,6 @@
 import "server-only";
 import { METHOD_LABEL } from "./labels";
-import type { PaymentCurrency, PaymentMethodId } from "./schema";
+import type { AcceptedMethodId, PaymentCurrency } from "./schema";
 
 /**
  * Catálogo de métodos de pago. Los datos de cada cuenta receptora salen de
@@ -18,7 +18,8 @@ export interface PaymentMethodDetail {
 }
 
 export interface PaymentMethodInfo {
-  id: PaymentMethodId;
+  /** Solo métodos aceptados: Zinli y Wally ya no se ofrecen (D100). */
+  id: AcceptedMethodId;
   label: string;
   kind: "gateway" | "manual";
   currency: PaymentCurrency;
@@ -140,36 +141,6 @@ const DEFS: MethodDef[] = [
       ],
     },
   },
-  {
-    id: "zinli",
-    label: METHOD_LABEL.zinli,
-    kind: "manual",
-    currency: "USD",
-    supportsMonthly: false,
-    hint: "Envía el monto desde tu app Zinli al correo indicado.",
-    referenceHint: "Número de transacción de Zinli",
-    fields: [
-      { env: "PAY_ZINLI_EMAIL", label: "Correo Zinli", copyable: true },
-      { env: "PAY_ZINLI_NAME", label: "Titular", optional: true },
-    ],
-  },
-  {
-    id: "wally",
-    label: METHOD_LABEL.wally,
-    kind: "manual",
-    currency: "USD",
-    supportsMonthly: false,
-    hint: "Envía el monto desde tu app Wally al usuario indicado.",
-    referenceHint: "Número de transacción de Wally",
-    fields: [
-      {
-        env: "PAY_WALLY_ACCOUNT",
-        label: "Teléfono o correo Wally",
-        copyable: true,
-      },
-      { env: "PAY_WALLY_NAME", label: "Titular", optional: true },
-    ],
-  },
 ];
 
 function hasAll(fields: Field[]): boolean {
@@ -208,7 +179,7 @@ export function getEnabledMethods(): PaymentMethodInfo[] {
 }
 
 export function getEnabledMethod(
-  id: PaymentMethodId,
+  id: AcceptedMethodId,
 ): PaymentMethodInfo | null {
   const def = DEFS.find((d) => d.id === id);
   return def ? resolve(def) : null;

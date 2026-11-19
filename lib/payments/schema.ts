@@ -7,25 +7,36 @@ import { EMAIL_RE } from "@/lib/validation";
  * el formulario.
  */
 
+/**
+ * Métodos que ya no se ofrecen ni se aceptan (D100), pero que pueden existir
+ * en pagos viejos guardados: el dashboard los sigue leyendo y etiquetando.
+ */
+export const RETIRED_METHOD_IDS = ["zinli", "wally"] as const;
+
+/** Métodos que puede traer una fila de `payments` (igual al CHECK de la base). */
 export const PAYMENT_METHOD_IDS = [
   "paypal",
   "pagomovil",
   "zelle",
   "bancolombia",
   "binance",
-  "zinli",
-  "wally",
+  ...RETIRED_METHOD_IDS,
 ] as const;
 export type PaymentMethodId = (typeof PAYMENT_METHOD_IDS)[number];
 
+/** Métodos que se ofrecen y que el servidor acepta en un pago nuevo. */
+export type AcceptedMethodId = Exclude<
+  PaymentMethodId,
+  (typeof RETIRED_METHOD_IDS)[number]
+>;
+
+/** Métodos manuales aceptados: los únicos que pasan `manualReportSchema`. */
 export const MANUAL_METHOD_IDS = [
   "pagomovil",
   "zelle",
   "bancolombia",
   "binance",
-  "zinli",
-  "wally",
-] as const;
+] as const satisfies readonly AcceptedMethodId[];
 export type ManualMethodId = (typeof MANUAL_METHOD_IDS)[number];
 
 export const PAYMENT_PURPOSES = ["diezmo", "ofrenda", "proyecto"] as const;

@@ -45,7 +45,7 @@ const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
 /**
  * Paso 2 del aporte: el donante elige método de pago.
  *
- * - Métodos manuales (Pago Móvil, Zelle, Bancolombia, Binance, Zinli, Wally):
+ * - Métodos manuales (Pago Móvil, Zelle, Bancolombia, Binance):
  *   se muestran los datos de la cuenta receptora y el monto en la moneda del
  *   método; el donante paga desde su app y reporta la referencia. Queda
  *   `pending` hasta que un admin lo verifica en `/dashboard/pagos`.
