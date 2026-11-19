@@ -17,6 +17,8 @@ type Call = {
   method: string;
   headers: Headers;
   body?: Uint8Array;
+  /** El cuerpo tal como llegó a fetch: un stream sale sin Content-Length (R2 → 411). */
+  rawBody?: unknown;
 };
 let calls: Call[] = [];
 let reply: (call: Call) => Response;
@@ -40,6 +42,7 @@ beforeEach(() => {
       method: req.method,
       headers: req.headers,
       body,
+      rawBody: input instanceof Request ? input.body : init?.body,
     };
     calls.push(call);
     return reply(call);
@@ -69,6 +72,8 @@ describe("D094 · comprobantes en R2", () => {
     expect(put.headers.get("content-type")).toBe("image/png");
     expect(put.headers.get("authorization")).toContain("AWS4-HMAC-SHA256");
     expect(put.body).toEqual(PNG);
+    // Bytes de largo fijo, no un stream: así fetch manda Content-Length.
+    expect(put.rawBody).toBeInstanceOf(Uint8Array);
   });
 
   test("un fallo de R2 es upload_failed, sin caer en la tabla", async () => {

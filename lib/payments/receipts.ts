@@ -75,6 +75,29 @@ function inBucket(path: string): { bucket: Bucket; url: string } | null {
   return { bucket, url: `${bucket.base}/${path}` };
 }
 
+/**
+ * PUT firmado con los bytes tal cual. `client.fetch` pasa por un `Request`, que en
+ * Node convierte el cuerpo en un stream y lo manda sin `Content-Length`: R2 responde
+ * 411. Se firma aparte y se envía el `Uint8Array`, del que fetch saca el largo.
+ */
+async function putObject(
+  bucket: Bucket,
+  url: string,
+  bytes: Uint8Array<ArrayBuffer>,
+  mime: string,
+): Promise<Response> {
+  const signed = await bucket.client.sign(url, {
+    method: "PUT",
+    headers: { "Content-Type": mime },
+    body: bytes,
+  });
+  return fetch(signed.url, {
+    method: "PUT",
+    headers: signed.headers,
+    body: bytes,
+  });
+}
+
 // ─── API ────────────────────────────────────────────────────────────────
 
 export type ReceiptUploadError = "invalid_receipt" | "upload_failed";
@@ -97,11 +120,7 @@ export async function uploadReceipt(
   const target = inBucket(path);
   if (target) {
     try {
-      const res = await target.bucket.client.fetch(target.url, {
-        method: "PUT",
-        headers: { "Content-Type": kind.mime },
-        body: bytes,
-      });
+      const res = await putObject(target.bucket, target.url, bytes, kind.mime);
       if (!res.ok) {
         console.error("[payments] uploadReceipt R2:", res.status);
         return { ok: false, error: "upload_failed" };
