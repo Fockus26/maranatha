@@ -7,10 +7,6 @@ import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
@@ -46,6 +42,7 @@ import {
   typography,
 } from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { DashboardFormDrawer, DrawerSection } from "./DashboardFormDrawer";
 import { DateField } from "./DateField";
 import { EmptyState } from "./EmptyState";
 import { TimeField } from "./TimeField";
@@ -154,11 +151,13 @@ function AgendaEventDialog({
   const [form, setForm] = useState(initial);
   const [touched, setTouched] = useState(false);
   const kindLabelId = useId();
+  const formId = useId();
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
   const titleValid = form.title.trim().length > 0;
   const locationValid = form.location.trim().length > 0;
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
   const timeValid = /^([01]\d|2[0-3]):[0-5]\d$/.test(form.startTime);
   const dateValid =
     form.kind === "recurring" ||
@@ -172,27 +171,18 @@ function AgendaEventDialog({
   }
 
   return (
-    <Dialog
+    <DashboardFormDrawer
       open={open}
-      onClose={pending ? undefined : onClose}
-      maxWidth="xs"
-      fullWidth
-      slotProps={{ paper: { elevation: 0 } }}
+      title={editing ? "Editar evento" : "Nuevo evento"}
+      formId={formId}
+      dirty={dirty}
+      saving={pending}
+      submitLabel={editing ? "Guardar cambios" : "Crear evento"}
+      onClose={onClose}
     >
-      <Box component="form" noValidate onSubmit={handleSubmit}>
-        <DialogTitle sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}>
-          {editing ? "Editar evento" : "Nuevo evento"}
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            px: 3.5,
-            pb: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-          }}
-        >
-          <Box component="fieldset" sx={{ border: 0, p: 0, m: 0, mt: 1 }}>
+      <Box component="form" id={formId} noValidate onSubmit={handleSubmit}>
+        <DrawerSection title="Evento" first>
+          <Box component="fieldset" sx={{ border: 0, p: 0, m: 0 }}>
             <FormLabel
               component="legend"
               id={kindLabelId}
@@ -233,7 +223,9 @@ function AgendaEventDialog({
             slotProps={{ htmlInput: { maxLength: 120 } }}
             sx={SMALL_FIELD_SX}
           />
+        </DrawerSection>
 
+        <DrawerSection title="Cuándo">
           {form.kind === "recurring" ? (
             <TextField
               select
@@ -272,7 +264,9 @@ function AgendaEventDialog({
             error={touched && !timeValid}
             helperText={touched && !timeValid ? "Elige la hora." : undefined}
           />
+        </DrawerSection>
 
+        <DrawerSection title="Dónde">
           <TextField
             size="small"
             label="Lugar"
@@ -287,27 +281,9 @@ function AgendaEventDialog({
             slotProps={{ htmlInput: { maxLength: 120 } }}
             sx={SMALL_FIELD_SX}
           />
-        </DialogContent>
-        <DialogActions sx={{ px: 3.5, pb: 3.5, pt: 2 }}>
-          <Button
-            onClick={onClose}
-            color="primary"
-            variant="outlined"
-            disabled={pending}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            color="primary"
-            variant="contained"
-            loading={pending}
-          >
-            {editing ? "Guardar cambios" : "Crear evento"}
-          </Button>
-        </DialogActions>
+        </DrawerSection>
       </Box>
-    </Dialog>
+    </DashboardFormDrawer>
   );
 }
 
