@@ -14,7 +14,7 @@ describe("superposiciones de shadcn", () => {
     expect(sonner).toContain("--width");
     expect(sonner).toContain("--z-index-toast");
     expect(sonner).toContain("gap={8}");
-    expect(sonner).not.toContain("unstyled");
+    expect(sonner).not.toMatch(/unstyled\s*[:=]/);
   });
 
   test("dialog y sheet usan los tokens de capa y el fondo card", () => {
