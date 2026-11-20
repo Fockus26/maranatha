@@ -10,6 +10,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+/**
+ * Si se abre desde un Drawer/Dialog de MUI (aún vivos hasta la ola 4), su
+ * focus trap le quita el foco a cualquier cosa montada fuera de él (probado en
+ * el panel). Se monta el portal dentro del papel del modal MUI abierto: queda
+ * dentro de su trap y el foco inicial de Radix se conserva (D117).
+ */
+function findMuiModalPaper(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  const papers = document.querySelectorAll<HTMLElement>(
+    ".MuiModal-root:not([aria-hidden=true]) .MuiDrawer-paper, .MuiModal-root:not([aria-hidden=true]) .MuiDialog-paper",
+  );
+  return papers.item(papers.length - 1);
+}
+
 export interface ConfirmDialogProps {
   open: boolean;
   title: string;
@@ -59,6 +73,7 @@ export function ConfirmDialog({
         showCloseButton={false}
         // El foco inicial va al botón de cancelar (el primero), no al de
         // confirmar: una acción destructiva no debe quedar a un Enter.
+        container={open ? findMuiModalPaper() : null}
         onEscapeKeyDown={(e) => {
           if (pending) e.preventDefault();
         }}
