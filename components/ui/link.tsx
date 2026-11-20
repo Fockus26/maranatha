@@ -20,7 +20,8 @@ const linkVariants = cva(
   {
     variants: {
       tone: {
-        primary: "text-primary",
+        // `primary` en oscuro (`primary-400`) da 3,8:1: aquí sube a `primary-300` (AA).
+        primary: "text-primary dark:text-primary-300",
         muted: "text-muted-foreground",
       },
       underline: {
