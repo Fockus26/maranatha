@@ -1,5 +1,6 @@
 import { DashboardProjectModal } from "@/components/ui/DashboardProjectModal";
 import { requireAdmin } from "@/lib/auth/admin";
+import { DashboardAdminProvider } from "@/lib/dashboardAdminStore";
 import { DashboardProjectModalProvider } from "@/lib/dashboardProjectModalStore";
 import { DashboardProjectsProvider } from "@/lib/dashboardProjectsStore";
 import { getRaisedRecord } from "@/lib/projectsRaised";
@@ -18,19 +19,22 @@ import { getRaisedRecord } from "@/lib/projectsRaised";
  * (`DashboardProjectsProvider`, sembrado con lo recaudado real) y el del
  * modal de crear/editar proyecto (`DashboardProjectModalProvider`, D059),
  * montado una sola vez para que "Nuevo proyecto" de Resumen lo abra sin
- * navegar a Proyectos.
+ * navegar a Proyectos. Y el nombre y correo del admin
+ * (`DashboardAdminProvider`) para las iniciales de la barra (D107).
  */
 export default async function DashboardPanelLayout({
   children,
 }: LayoutProps<"/dashboard">) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const raisedBySlug = await getRaisedRecord();
   return (
-    <DashboardProjectsProvider raisedBySlug={raisedBySlug}>
-      <DashboardProjectModalProvider>
-        {children}
-        <DashboardProjectModal />
-      </DashboardProjectModalProvider>
-    </DashboardProjectsProvider>
+    <DashboardAdminProvider admin={{ name: admin.name, email: admin.email }}>
+      <DashboardProjectsProvider raisedBySlug={raisedBySlug}>
+        <DashboardProjectModalProvider>
+          {children}
+          <DashboardProjectModal />
+        </DashboardProjectModalProvider>
+      </DashboardProjectsProvider>
+    </DashboardAdminProvider>
   );
 }

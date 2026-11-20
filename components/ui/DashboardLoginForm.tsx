@@ -12,6 +12,7 @@ import { FORGOT_PATH } from "@/lib/auth/constants";
 import { isValidEmail } from "@/lib/validation";
 import { fontScale } from "@/theme/tokens";
 import { authFormSx, DashboardAuthShell } from "./DashboardAuthShell";
+import { PasswordField } from "./PasswordField";
 
 const ERROR_TEXT: Record<SignInError, string> = {
   invalid_input: "Ingresa un correo válido y tu contraseña.",
@@ -98,9 +99,8 @@ export function DashboardLoginForm({
             },
           }}
         />
-        <TextField
+        <PasswordField
           name="password"
-          type="password"
           label="Contraseña"
           autoComplete="current-password"
           value={password}
