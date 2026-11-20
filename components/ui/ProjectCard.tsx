@@ -6,6 +6,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { alpha, useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   common,
@@ -30,6 +31,8 @@ export interface ProjectCardProps {
   goalAmount: number;
   ctaLabel?: string;
   onCtaClick?: () => void;
+  /** Si navega, enlace real (D101): semántica de `<a>` y la barra de carga lo detecta. */
+  ctaHref?: string;
 }
 
 function formatCurrency(value: number) {
@@ -50,6 +53,7 @@ export function ProjectCard({
   goalAmount,
   ctaLabel,
   onCtaClick,
+  ctaHref,
 }: ProjectCardProps) {
   const theme = useTheme();
   const isCompleted = status === "completed";
@@ -187,6 +191,7 @@ export function ProjectCard({
   // contained/secondary reservado por D011.
   const CtaButton = ({ sx = {} }: { sx?: object }) => (
     <Button
+      {...(ctaHref ? { component: Link, href: ctaHref } : {})}
       onClick={onCtaClick}
       variant={isCompleted ? "outlined" : "contained"}
       color={isCompleted ? "primary" : "secondary"}

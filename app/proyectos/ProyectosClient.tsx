@@ -11,7 +11,6 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import PageNavbar from "@/components/layout/PageNavbar";
@@ -46,7 +45,6 @@ const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
   const theme = useTheme();
-  const router = useRouter();
   const [tab, setTab] = useState<FilterTab>("all");
   // Toggle lista / cuadrícula (D016 — `ProjectCard` ya tiene ambos layouts).
   // Solo se muestra desde `sm` en adelante; en mobile no aparece y siempre
@@ -284,9 +282,7 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
                       status={project.status}
                       currentAmount={project.currentAmount}
                       goalAmount={project.goalAmount}
-                      onCtaClick={() =>
-                        router.push(`/proyectos/${project.slug}`)
-                      }
+                      ctaHref={`/proyectos/${project.slug}`}
                     />
                   </Box>
                 ))}
