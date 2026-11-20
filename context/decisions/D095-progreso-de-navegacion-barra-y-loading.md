@@ -5,3 +5,5 @@
 **Alternativas:** `useLinkStatus` (solo por enlace, no global), `onNavigate` de `Link` (obligaría a tocar cada enlace), nprogress (dependencia nueva).
 **Accesibilidad:** `role="progressbar"` con `aria-label="Cargando página"`; con `prefers-reduced-motion` la barra aparece llena y sin animación.
 **Nota de estado:** Implementado.
+
+**Actualización (D102):** el esqueleto del panel ya no es uno genérico: cada página trae el suyo.
