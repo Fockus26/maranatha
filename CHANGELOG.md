@@ -1,5 +1,20 @@
 # maranatha
 
+## 0.9.0
+
+### Minor Changes
+
+- 21526ac: Los formularios de crear y editar proyectos y eventos del panel se abren en un panel lateral más ordenado.
+- 23e522d: Nueva sección para ofrendar en el inicio, con el formulario completo; el botón del menú ahora dice «Ofrendar».
+- 79d3844: Zinli y Wally ya no aparecen como métodos de pago.
+- f901c96: El ingreso al panel y el cambio de contraseña tienen un botón con un ojo para ver lo que escribes, y la barra del panel muestra las iniciales de quien inició sesión.
+- 3b53363: Al hacer clic en un enlace aparece una barra de carga arriba y un esqueleto mientras llega la página.
+
+### Patch Changes
+
+- b8bf62c: La barra de carga ya no se queda pegada al ir a un ancla o con atrás/adelante, y también aparece al abrir un proyecto desde su tarjeta.
+- 2c6b626: La sección Ofrendar del inicio acerca el texto y el formulario, con la misma separación que el modal.
+
 ## 0.8.0
 
 ### Minor Changes
