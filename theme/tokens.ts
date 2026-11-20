@@ -209,6 +209,12 @@ export const breakpoints = {
   xl: 1536,
 } as const;
 
+// Anchos máximos de contenido (D108). `contentNarrow`: la fila texto +
+// formulario de Ofrendar (`TitheLayout`, D105). En Tailwind: `max-w-narrow`.
+export const layout = {
+  contentNarrow: 960,
+} as const;
+
 // Panel lateral de formularios del dashboard (D096): ancho desde `md`.
 export const formDrawer = {
   width: 560,

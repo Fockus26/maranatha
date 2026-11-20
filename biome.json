@@ -13,6 +13,7 @@
       "!.next",
       "!dist",
       "!build",
+      "!app/tokens.css",
       "!**/.claude/kit-reference",
       "!.claude/worktrees"
     ]

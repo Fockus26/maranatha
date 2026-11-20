@@ -1,8 +1,9 @@
 import Box from "@mui/material/Box";
 import type { ReactNode } from "react";
+import { layout } from "@/theme/tokens";
 
-// Mismo ancho que tenía el modal; sin token propio (D105).
-const LAYOUT_MAX_WIDTH = 960;
+// Mismo ancho que tenía el modal (D105); token desde D108.
+const LAYOUT_MAX_WIDTH = layout.contentNarrow;
 
 interface TitheLayoutProps {
   /** Columna de texto (icono, eyebrow, título, párrafo, contador). */
