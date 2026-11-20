@@ -6,6 +6,8 @@
  */
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
+/* Variantes `data-open:`, `data-disabled:`… y keyframes de las primitivas. */
+@import "shadcn/tailwind.css";
 @import "./tokens.css";
 
 @source "../app";

@@ -139,6 +139,9 @@ export const typography = {
     h4: 1.25,
     body: 1.6,
     small: 1.5,
+    // Botones: el interlineado por defecto de MUI, que hoy pintan todos los
+    // botones (D109: `components/ui/button.tsx`).
+    button: 1.75,
   },
 } as const;
 
