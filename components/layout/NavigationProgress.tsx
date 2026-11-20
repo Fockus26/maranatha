@@ -20,7 +20,8 @@ type Phase = "idle" | "loading" | "done";
  * Barra de progreso al navegar (D095). `PageTransition` solo anima cuando la
  * página nueva ya montó; entre el clic y ese momento no pasaba nada. Next no
  * expone un evento global de navegación, así que se detecta en captura el clic
- * en un `<a>` interno que cambia de ruta (o `popstate`) y se completa cuando
+ * en un `<a>` interno que cambia de ruta (o `popstate` hacia una ruta distinta de
+ * la renderizada) y se completa cuando
  * cambia `usePathname()`/`useSearchParams()`. Si en `navProgress.timeoutMs` no
  * llegó nada (ancla, descarga, navegación cancelada) se oculta sola.
  */
@@ -29,8 +30,13 @@ function NavigationProgressInner() {
   const search = useSearchParams().toString();
   const [phase, setPhase] = React.useState<Phase>("idle");
   const [reduceMotion, setReduceMotion] = React.useState(false);
-  const phaseRef = React.useRef<Phase>("idle");
-  phaseRef.current = phase;
+  // Navegación en curso. Es un ref y no `phase`: en atrás/adelante la ruta nueva
+  // puede comprometerse antes de que el `setPhase("loading")` se pinte, y el
+  // efecto de llegada vería "idle" y dejaría la barra colgada.
+  const pendingRef = React.useRef(false);
+  // Ruta ya renderizada (comprometida): `popstate` solo abre la barra si la URL
+  // del navegador difiere de ella.
+  const committedRef = React.useRef(`${pathname}?${search}`);
 
   React.useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -41,6 +47,10 @@ function NavigationProgressInner() {
   }, []);
 
   React.useEffect(() => {
+    const start = () => {
+      pendingRef.current = true;
+      setPhase("loading");
+    };
     const onClick = (event: MouseEvent) => {
       if (
         event.button !== 0 ||
@@ -62,9 +72,21 @@ function NavigationProgressInner() {
       ) {
         return; // misma página o solo ancla: no es navegación
       }
-      setPhase("loading");
+      start();
     };
-    const onPop = () => setPhase("loading");
+    // `popstate` también salta en navegación a `#ancla` y, en atrás/adelante,
+    // Next puede haber renderizado ya la ruta nueva: en ambos casos la URL
+    // coincide con lo renderizado y no hay nada que esperar.
+    const onPop = (event: PopStateEvent) => {
+      // Entrada sin estado (ancla nativa, p. ej. "Saltar al contenido"): el
+      // router de Next la ignora, así que nunca llegará una ruta que cierre la barra.
+      if (!event.state) return;
+      const current = window.location.search.replace(/^\?/, "");
+      if (`${window.location.pathname}?${current}` === committedRef.current) {
+        return;
+      }
+      start();
+    };
     document.addEventListener("click", onClick, true);
     window.addEventListener("popstate", onPop);
     return () => {
@@ -74,17 +96,20 @@ function NavigationProgressInner() {
   }, []);
 
   // Llegó la página nueva.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: se reacciona solo al cambio de ruta
   React.useEffect(() => {
-    if (phaseRef.current === "loading") setPhase("done");
+    committedRef.current = `${pathname}?${search}`;
+    if (pendingRef.current) {
+      pendingRef.current = false;
+      setPhase("done");
+    }
   }, [pathname, search]);
 
   React.useEffect(() => {
     if (phase === "loading") {
-      const t = window.setTimeout(
-        () => setPhase("idle"),
-        navProgress.timeoutMs,
-      );
+      const t = window.setTimeout(() => {
+        pendingRef.current = false;
+        setPhase("idle");
+      }, navProgress.timeoutMs);
       return () => window.clearTimeout(t);
     }
     if (phase === "done") {

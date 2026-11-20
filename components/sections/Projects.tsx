@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { useRouter } from "next/navigation";
 import { ProjectCard, type ProjectStatus } from "@/components/ui/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { fontScale, radius } from "@/theme/tokens";
@@ -80,8 +79,6 @@ const FEATURED_PROJECTS: FeaturedProject[] = [
 ];
 
 export function Projects() {
-  const router = useRouter();
-
   return (
     <Box component="section" id="proyectos" sx={{ py: { xs: 8, md: 12 } }}>
       <Container maxWidth="lg">
@@ -162,7 +159,7 @@ export function Projects() {
                 status={project.status}
                 currentAmount={project.currentAmount}
                 goalAmount={project.goalAmount}
-                onCtaClick={() => router.push(`/proyectos/${project.slug}`)}
+                ctaHref={`/proyectos/${project.slug}`}
               />
             ))}
           </Box>
