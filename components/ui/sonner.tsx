@@ -62,7 +62,7 @@ const Toaster = (props: ToasterProps) => (
         "--error-text": "var(--destructive-foreground)",
         "--error-border": "var(--destructive)",
         "--info-bg": "var(--info)",
-        "--info-text": "var(--info-foreground)",
+        "--info-text": "var(--color-gray-900)",
         "--info-border": "var(--info)",
         "--warning-bg": "var(--warning)",
         "--warning-text": "var(--warning-foreground)",

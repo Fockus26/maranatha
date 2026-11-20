@@ -57,7 +57,7 @@ const alertVariants = cva(
       {
         severity: "info",
         appearance: "filled",
-        className: "bg-info text-info-foreground",
+        className: "bg-info text-gray-900",
       },
       {
         severity: "warning",
