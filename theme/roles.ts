@@ -43,6 +43,9 @@ export function modeRoles(mode: ColorMode) {
       secondary: isLight ? gray[600] : gray[300],
     },
     divider: isLight ? gray[200] : gray[700],
+    // Fondo de skeleton y pistas de progreso: el `Skeleton` de MUI (D119),
+    // `text.primary` al 11 % en claro y 13 % en oscuro.
+    muted: withAlpha(isLight ? gray[900] : gray[50], isLight ? 0.11 : 0.13),
   } as const;
 }
 
@@ -81,5 +84,6 @@ export const navyRoles = {
   text: onNavy.text,
   textSecondary: onNavy.muted,
   divider: onNavy.divider,
+  muted: withAlpha(onNavy.text, 0.13),
   accent: onNavy.hover,
 } as const;

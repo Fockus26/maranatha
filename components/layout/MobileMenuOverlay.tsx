@@ -63,9 +63,6 @@ export default function MobileMenuOverlay({
   const mutedColor = isLight
     ? theme.palette.text.secondary
     : "rgba(255,255,255,0.75)";
-  const hoverBg = isLight
-    ? theme.palette.action.hover
-    : "rgba(255,255,255,0.12)";
   const dividerColor = isLight
     ? theme.palette.divider
     : "rgba(255,255,255,0.24)";
@@ -276,10 +273,7 @@ export default function MobileMenuOverlay({
           >
             <ThemeToggle
               size="medium"
-              sx={{
-                color: mutedColor,
-                "&:hover": { backgroundColor: hoverBg, color: textColor },
-              }}
+              className="hover:bg-accent hover:text-foreground dark:text-on-navy-muted dark:hover:text-on-navy"
             />
             <Button
               onClick={() => {

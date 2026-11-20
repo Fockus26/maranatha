@@ -8,6 +8,8 @@ import { modeRoles } from "./roles";
 import {
   breakpoints,
   gray,
+  largeScreen,
+  layout,
   primary,
   radius,
   secondary,
@@ -156,7 +158,7 @@ export function getTheme(mode: PaletteMode) {
   // cualquier `Typography` sin `sx.fontSize` propio, y sirve de piso para
   // futuras secciones); una pasada para subir también los tamaños fijos de
   // cada sección a partir de 1920px queda pendiente como una ronda aparte.
-  const LARGE_SCREEN_QUERY = "@media (min-width:1920px)";
+  const LARGE_SCREEN_QUERY = `@media (min-width:${largeScreen}px)`;
 
   return createTheme(baseTheme, {
     typography: {
@@ -164,28 +166,30 @@ export function getTheme(mode: PaletteMode) {
         [baseTheme.breakpoints.down("sm")]: {
           fontSize: typography.size.h1.mobile,
         },
-        [LARGE_SCREEN_QUERY]: { fontSize: "72px" },
+        [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.h1 },
       },
       h2: {
         [baseTheme.breakpoints.down("sm")]: {
           fontSize: typography.size.h2.mobile,
         },
-        [LARGE_SCREEN_QUERY]: { fontSize: "52px" },
+        [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.h2 },
       },
       h3: {
         [baseTheme.breakpoints.down("sm")]: {
           fontSize: typography.size.h3.mobile,
         },
-        [LARGE_SCREEN_QUERY]: { fontSize: "36px" },
+        [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.h3 },
       },
       h4: {
         [baseTheme.breakpoints.down("sm")]: {
           fontSize: typography.size.h4.mobile,
         },
-        [LARGE_SCREEN_QUERY]: { fontSize: "26px" },
+        [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.h4 },
       },
-      body1: { [LARGE_SCREEN_QUERY]: { fontSize: "20px" } },
-      body2: { [LARGE_SCREEN_QUERY]: { fontSize: "18px" } },
+      body1: {
+        [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.bodyLarge },
+      },
+      body2: { [LARGE_SCREEN_QUERY]: { fontSize: typography.sizeLarge.body } },
     },
     components: {
       MuiCssBaseline: {
@@ -296,8 +300,10 @@ export function getTheme(mode: PaletteMode) {
           // viewport vacío en monitores 2K/4K. Se aprovecha el breakpoint
           // `xl` (1536, hasta ahora sin usar) y un escalón extra ≥1920.
           maxWidthLg: {
-            [baseTheme.breakpoints.up("xl")]: { maxWidth: 1440 },
-            "@media (min-width:1920px)": { maxWidth: 1600 },
+            [baseTheme.breakpoints.up("xl")]: { maxWidth: layout.page.xl },
+            [`@media (min-width:${largeScreen}px)`]: {
+              maxWidth: layout.page.wide,
+            },
           },
         },
       },
