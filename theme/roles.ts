@@ -3,7 +3,7 @@ import { gray, onNavy, primary, secondary, semantic } from "./tokens";
 export type ColorMode = "light" | "dark";
 
 /**
- * Roles de color por modo (D108): la única fuente de los colores semánticos.
+ * Roles de color por modo (D109): la única fuente de los colores semánticos.
  * La leen la paleta de MUI (`theme/theme.ts`) y el generador de CSS
  * (`scripts/tokens-css.ts` → `app/tokens.css`), así los componentes MUI y los
  * de shadcn pintan lo mismo mientras conviven.

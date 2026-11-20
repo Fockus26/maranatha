@@ -4,7 +4,7 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Botón del proyecto (D109): `bunx shadcn add button` ajustado para replicar
+ * Botón del proyecto (D110): `bunx shadcn add button` ajustado para replicar
  * el `MuiButton` de `theme/theme.ts` — mismos colores AA por modo, tamaños,
  * disabled y foco de D085 (outline 2px, offset 2px, `--focus-ring`, sigue el
  * radio). Variantes con los nombres de MUI para traducir sin pensar:

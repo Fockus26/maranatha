@@ -140,7 +140,7 @@ export const typography = {
     body: 1.6,
     small: 1.5,
     // Botones: el interlineado por defecto de MUI, que hoy pintan todos los
-    // botones (D109: `components/ui/button.tsx`).
+    // botones (D110:`components/ui/button.tsx`).
     button: 1.75,
   },
 } as const;
@@ -212,7 +212,7 @@ export const breakpoints = {
   xl: 1536,
 } as const;
 
-// Anchos máximos de contenido (D108). `contentNarrow`: la fila texto +
+// Anchos máximos de contenido (D109). `contentNarrow`: la fila texto +
 // formulario de Ofrendar (`TitheLayout`, D105). En Tailwind: `max-w-narrow`.
 export const layout = {
   contentNarrow: 960,

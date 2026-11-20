@@ -5,7 +5,7 @@ import { twNames } from "@/theme/tailwindNames";
 /**
  * `tailwind-merge` solo resuelve los conflictos que conoce: sin registrar los
  * tokens propios, `text-h2` se lee como color y `cn("text-h2",
- * "text-foreground")` borra el tamaño sin avisar (D109). Los nombres salen de
+ * "text-foreground")` borra el tamaño sin avisar (D110). Los nombres salen de
  * `theme/tailwindNames.ts`, los mismos que genera `app/tokens.css`.
  */
 const twMerge = extendTailwindMerge({

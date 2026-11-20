@@ -1,5 +1,5 @@
 /**
- * Genera `app/tokens.css` desde `theme/tokens.ts` y `theme/roles.ts` (D108).
+ * Genera `app/tokens.css` desde `theme/tokens.ts` y `theme/roles.ts` (D109).
  *
  *   bun scripts/tokens-css.ts
  *
@@ -111,7 +111,7 @@ function themeBlock() {
   }
 
   // Anchos máximos (`max-w-*`). Sin los de Tailwind: `max-w-md` sería
-  // `--spacing-md`, ver D108.
+  // `--spacing-md`, ver D109.
   v.push(["--container-*", "initial"]);
   for (const [k, n] of Object.entries(CONTAINERS)) {
     v.push([`--container-${k}`, px(n)]);
@@ -211,7 +211,7 @@ function rolesTheme() {
 
 export function buildTokensCss() {
   return `${[
-    "/*\n * GENERADO por `bun scripts/tokens-css.ts` desde theme/tokens.ts y\n * theme/roles.ts (D108). No se edita a mano: tests/unit/tokens-css.test.ts\n * falla si no coincide.\n */",
+    "/*\n * GENERADO por `bun scripts/tokens-css.ts` desde theme/tokens.ts y\n * theme/roles.ts (D109). No se edita a mano: tests/unit/tokens-css.test.ts\n * falla si no coincide.\n */",
     themeBlock(),
     fontBlock(),
     responsiveText(),

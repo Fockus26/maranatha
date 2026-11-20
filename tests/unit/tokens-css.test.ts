@@ -78,7 +78,7 @@ function ratio(fg: string, bg: string) {
 
 describe("contraste de los roles", () => {
   // Pares de texto que llegan a AA en los dos modos. Los que no (heredados
-  // de la paleta MUI, D108): `primary` en oscuro, `secondary-foreground`
+  // de la paleta MUI, D109): `primary` en oscuro, `secondary-foreground`
   // sobre `secondary` en oscuro, `success`/`info` con su `-foreground`; el
   // botón usa sus colores fijos de `theme.ts`.
   const aa: [string, string][] = [
@@ -108,7 +108,7 @@ describe("contraste de los roles", () => {
   });
 });
 
-describe("cn conoce los tokens propios (D109)", () => {
+describe("cn conoce los tokens propios (D110)", () => {
   test.each(themeKeys("text"))("text-%s sobrevive a un color", (t) => {
     expect(cn(`text-${t}`, "text-foreground")).toBe(
       `text-${t} text-foreground`,

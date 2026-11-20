@@ -18,7 +18,7 @@ import {
 } from "./tokens";
 
 function getPaletteOptions(mode: PaletteMode): ThemeOptions["palette"] {
-  // Los roles viven en `theme/roles.ts` (D108): también los genera
+  // Los roles viven en `theme/roles.ts` (D109): también los genera
   // `scripts/tokens-css.ts` a variables CSS para los componentes shadcn.
   return { mode, ...modeRoles(mode) };
 }

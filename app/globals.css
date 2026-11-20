@@ -2,7 +2,7 @@
  * Tailwind solo escanea el código: sin `source(none)` lee también
  * `context/` y `.claude/`, y las clases citadas en la documentación acaban
  * en el CSS. Tokens y roles por modo: `app/tokens.css`, generado desde
- * `theme/tokens.ts` (D108); no se escriben colores a mano aquí.
+ * `theme/tokens.ts` (D109); no se escriben colores a mano aquí.
  */
 @import "tailwindcss" source(none);
 @import "tw-animate-css";

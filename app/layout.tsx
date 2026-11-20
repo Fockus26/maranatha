@@ -80,7 +80,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sora.variable} ${ibmPlexSans.variable}`}
       // El modo ya resuelto llega en el HTML del servidor: la variante
       // `dark:` de Tailwind y los roles de `app/tokens.css` lo leen sin
-      // esperar al cliente (D108). `ThemeRegistry` lo actualiza al cambiar.
+      // esperar al cliente (D109). `ThemeRegistry` lo actualiza al cambiar.
       data-color-mode={initialMode}
       suppressHydrationWarning
     >

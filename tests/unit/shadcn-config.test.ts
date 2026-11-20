@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// D109: `shadcn add` trae los componentes importando `cn` del paquete `cn`
+// D110:`shadcn add` trae los componentes importando `cn` del paquete `cn`
 // (sin los tokens del proyecto) y lo agrega a package.json. Aquí se usa el
 // `cn` de `lib/utils.ts`, el que conoce `text-h2`, `shadow-hover`…
 describe("configuración de shadcn", () => {

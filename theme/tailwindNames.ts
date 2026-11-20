@@ -11,7 +11,7 @@ import {
 
 /**
  * Nombres de las utilidades de Tailwind que salen de `theme/tokens.ts`
- * (D108). Los usan el generador (`scripts/tokens-css.ts`) y el `cn` del
+ * (D109).Los usan el generador (`scripts/tokens-css.ts`) y el `cn` del
  * proyecto (`lib/utils.ts`), así los dos nombran igual cada token.
  */
 
