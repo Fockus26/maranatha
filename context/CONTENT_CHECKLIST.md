@@ -16,6 +16,8 @@
 | 9 | Logo definitivo (hoy provisional, D078): reemplazar `public/brand/*.svg` y correr `bun run brand:icons`; el texto del logotipo pasarlo a curvas para usos fuera del sitio | `public/brand/`, `components/brand/Logo.tsx` | feat/marca-provisional | — | Pendiente |
 | 10 | Tono de marca, "no debe parecer" y referencias visuales | `PROJECT_CONTEXT.md` | reconstrucción del context | — | Pendiente |
 | 11 | Copy de las pantallas de estado (404, 500, sin conexión, mantenimiento) y correo de soporte (`SITE_CONTACT_EMAIL` sigue siendo de relleno) | `components/status/statusCopy.ts`, `lib/siteConfig.ts` | feat/pantallas-estado (D079) | — | Pendiente de confirmar |
+| 12 | Copy de la sección Ofrendar del inicio: h2 «Tu ofrenda sostiene esta obra» (también en el modal), eyebrow, párrafo y contador de familias reutilizados del modal | `components/sections/Tithe.tsx`, `components/ui/TitheModal.tsx` | feat/seccion-ofrendar (D098) | 08 | Pendiente de confirmar con la iglesia |
+| 13 | Copy «¿Descartar los cambios?» al cerrar un formulario del panel con cambios | `components/ui/DashboardFormDrawer.tsx` | feat/formularios-panel-lateral (D096) | 08 | Provisional |
 
 <!-- Marca "Resuelto" (no borres la fila) cuando el cliente confirme el contenido real y se
      actualice el código. -->

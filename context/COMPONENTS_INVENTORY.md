@@ -8,6 +8,7 @@
 | AmountSelector | `components/ui/AmountSelector.tsx` | TitheForm, ProjectContributionForm | montos rápidos + libre |
 | ConfirmDialog | `components/ui/ConfirmDialog.tsx` | DashboardPayments, DashboardTable | confirmación con texto en negrita |
 | DateField | `components/ui/DateField.tsx` | DashboardProjectForm, PaymentStep | calendario propio (D062) |
+| TimeField | `components/ui/TimeField.tsx` | DashboardAgenda | selector de hora propio (D089) |
 | DonationFormCard | `components/ui/DonationFormCard.tsx` | TitheForm, ProjectContributionForm, PaymentStep | contenedor de formularios de aporte |
 | EmptyState | `components/ui/EmptyState.tsx` | dashboard, /proyectos, DashboardTable, DashboardPayments | D067 |
 | ImageUploadField | `components/ui/ImageUploadField.tsx` | DashboardProjectForm | |

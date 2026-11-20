@@ -10,32 +10,28 @@
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
-| QA agenda/pagos/Binance · hallazgos | `fix/qa-agenda-binance` | PR #20 en revisión | `PHASE_LOG/fix-qa-agenda-binance.md` |
-| QA pagos · 6 hallazgos medios | `fix/qa-pagos` | mergeada (PR #16) | `PHASE_LOG/fix-qa-pagos.md` |
-| Binance Pay Merchant por webhook (D081) | `feat/binance-pay-merchant` | PR en revisión | `PHASE_LOG/feat-binance-pay-merchant.md` |
-| Agenda editable desde el dashboard (D080) | `feat/agenda-dashboard` | PR en revisión | `PHASE_LOG/feat-agenda-dashboard.md` |
-| Adenda · pantallas de estado (D079) | `feat/pantallas-estado` | PR en revisión (apilado sobre marca) | `PHASE_LOG/feat-pantallas-estado.md` |
-| Adenda · marca provisional (D078) | `feat/marca-provisional` | PR en revisión | `PHASE_LOG/feat-marca-provisional.md` |
-| Adenda · selección y scrollbar (D077) | `style/seleccion-scrollbar` | PR en revisión | `PHASE_LOG/style-seleccion-scrollbar.md` |
-| Login amplio + motivo de rechazo centrado | `fix/ui-login-rechazo` | PR #4 en revisión | — |
-| Adoptar kit v3 (Changesets, modo pr, context) | `chore/kit-changesets-context` | PR en revisión | `PHASE_LOG/chore-kit-changesets-context.md` |
-| Feedback de UI en pagos y login | `fix/ui-feedback-pagos` | mergeada (PR #1) | `PHASE_LOG/fix-ui-feedback-pagos.md` |
-| Deploy doble Vercel + VPS | `chore/deploy-setup` | mergeada (local) | `PHASE_LOG/chore-deploy-setup.md` |
+| Versión (changesets de la tanda 2026-11-19 y anteriores) | `changeset-release/main` | PR #46 — lo mergea César | — |
+
+Tanda 2026-11-19 cerrada (#47–#51, main @ be90296): `PHASE_LOG/tanda-2026-11-19.md`, QA en `plans/qa-tanda-2026-11-19.md`; medios y bajos en `plans/backlog.md`. Todos los PRs que listaba este tablero (#2–#33) están mergeados.
 
 ## Bloquea (acciones de César o externas)
 
-- Aplicar `supabase/migrations/20261019210000_agenda_events.sql` (agenda).
-- Binance Pay: KYB de comercio + API key + webhook en el portal; aplicar `20261019230000_binance_pay_gateway.sql`.
-- Aplicar `supabase/migrations/0004_auth_email_exists.sql` en Supabase (si no se hizo).
+- Crear la cuenta de kevindominguez91@gmail.com (`scripts/create-admin.ts` + `ADMIN_EMAILS`); borrar `PAY_ZINLI_*`/`PAY_WALLY_*` de kit-deploy y Vercel.
+
+- Probar en producción: login de admin, recuperación de contraseña (¿llega o cae en spam?), aprobar un pago, editar la agenda.
+- Supabase: vivo y sin escrituras hasta el 2026-12-09 (rollback D082); luego borrar el proyecto y `NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_SECRET_KEY` de Vercel, y `supabase/` del repo.
+- Rotar la clave SMTP de Brevo (se compartió en un chat).
+- Binance Pay: KYB de comercio + API key + webhook en el portal.
 - GitHub › Settings › Actions › General › "Allow GitHub Actions to create and approve pull requests".
 - GitHub › Settings › General › "Automatically delete head branches"; proteger `main`.
-- Vercel: rama de producción = `vercel`, PayPal en sandbox.
-- VPS: configuración inicial pendiente (`deploy/README.md` §2–4).
+- Vercel: PayPal en sandbox (Production Branch ya es `main`, D091).
+- Hosting en kit-deploy (D093) **encendido el 2026-11-19**: `main` → https://maranatha.fockus.dev (deploy ec9f0c6 sano). Falta: login de admin ahí, reporte de pago con comprobante en un preview de PR, webhook de PayPal al pasar a Live. Vercel sigue de respaldo una semana (hasta ~2026-11-26); apagarlo lo decide César.
 
 ## Sigue
 
 - PR `style/biome-format`: formatear con Biome, corregir los 9 errores de lint y añadir el CI (D076).
-- Persistir los proyectos del dashboard en Supabase (hoy en memoria, D045).
+- Persistir los proyectos del dashboard en la base (Postgres, hoy en memoria, D045).
+- Antes del lanzamiento: borrar de producción `admin@maranatha.test` y los 13 pagos de prueba.
 - Revisar los contrastes marcados en `COLORS.md` (modo oscuro, `info`).
 - Contenido real: ver `CONTENT_CHECKLIST.md`.
 
