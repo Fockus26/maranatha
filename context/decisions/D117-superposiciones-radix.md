@@ -1,0 +1,6 @@
+# D117 · Componentes · Superposiciones sobre Radix: `dialog` y `sheet` (D057 en la forma nueva) y convivencia con el foco de MUI · Implementado
+
+**Decisión:** `components/ui/dialog.tsx` y `sheet.tsx` salen de `shadcn add` (Radix vía `radix-ui`) ajustados al `MuiDialog`: papel `bg-card` sólido, radio `xl`, `shadow-lg`, ancho 444 px (`sm:max-w-111`), backdrop `bg-black/50`, capas `z-modal-backdrop`/`z-modal`. Sin ring ni velo: el fondo del modal oscuro es `card` tal cual, que es lo que D057/D058 buscaban al quitar el overlay blanco de la elevación de MUI. El `sheet` es pantalla completa en móvil y `md:max-w-form-drawer` (D096), con `side` right/left/top/bottom. Botón X con ícono lucide y nombre accesible "Cerrar" (`closeLabel`). Radix no monta el contenido cerrado (D099 sigue valiendo). `ConfirmDialog` conserva su API y, con `pending`, bloquea Escape y clic fuera.
+**Por qué:** el foco, el `aria-modal`, el retorno del foco al disparador y el Tab atrapado vienen de Radix; el resto es tokens.
+**Convivencia con el `Drawer` de MUI (hasta la ola 4):** ver el resultado medido en el PR (sección "Foco sobre el Drawer").
+**Alternativa descartada:** copiar `dialog` de shadcn sin ajustes (overlay al 10 % con blur, `ring`, radio `xl` distinto y texto `text-sm`): cambia el look.
