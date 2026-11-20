@@ -38,6 +38,9 @@ export const TEXT_SCALE = {
 export const CONTAINERS = {
   narrow: layout.contentNarrow,
   "form-drawer": formDrawer.width,
+  ...Object.fromEntries(
+    Object.entries(layout.page).map(([k, n]) => [`page-${k}`, n]),
+  ),
 } as const;
 
 // Lo que va en la clase (`text-10.5`), no en la variable (`--text-10_5`).

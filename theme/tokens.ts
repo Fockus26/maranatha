@@ -132,6 +132,16 @@ export const typography = {
     body: "16px",
     small: "14px",
   },
+  // Desde `largeScreen` (1920px) el texto sube un peldaño (feedback de
+  // cliente): h1–h4 y los dos cuerpos. `small` no cambia.
+  sizeLarge: {
+    h1: "72px",
+    h2: "52px",
+    h3: "36px",
+    h4: "26px",
+    bodyLarge: "20px",
+    body: "18px",
+  },
   lineHeight: {
     h1: 1.1,
     h2: 1.15,
@@ -212,10 +222,18 @@ export const breakpoints = {
   xl: 1536,
 } as const;
 
+// Ancho desde el que aplican los escalones "pantalla grande" (texto, ancho del
+// contenedor). No es un breakpoint de MUI (`breakpoints` llega a `xl`); en
+// Tailwind es `wide:` (D119).
+export const largeScreen = 1920;
+
 // Anchos máximos de contenido (D109). `contentNarrow`: la fila texto +
 // formulario de Ofrendar (`TitheLayout`, D105). En Tailwind: `max-w-narrow`.
+// `page`: los `maxWidth` del `Container` de MUI (`xs`…`lg`) y los escalones de
+// `lg` en `xl` y ≥1920 (`wide`); en Tailwind `max-w-page-lg` (D119).
 export const layout = {
   contentNarrow: 960,
+  page: { xs: 444, sm: 600, md: 900, lg: 1200, xl: 1440, wide: 1600 },
 } as const;
 
 // Panel lateral de formularios del dashboard (D096): ancho desde `md`.
