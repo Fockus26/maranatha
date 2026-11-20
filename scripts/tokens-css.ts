@@ -11,7 +11,12 @@
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { type ColorMode, modeRoles, navyRoles } from "../theme/roles";
+import {
+  accentRoles,
+  type ColorMode,
+  modeRoles,
+  navyRoles,
+} from "../theme/roles";
 import { CONTAINERS, cssKey, TEXT_SCALE } from "../theme/tailwindNames";
 import {
   breakpoints,
@@ -162,6 +167,7 @@ function responsiveText() {
 /** Roles por modo: nombres de shadcn + los del proyecto. */
 export function roleVars(mode: ColorMode): [string, string][] {
   const r = modeRoles(mode);
+  const a = accentRoles(mode);
   return [
     ["--background", r.background.default],
     ["--foreground", r.text.primary],
@@ -179,6 +185,9 @@ export function roleVars(mode: ColorMode): [string, string][] {
     ["--secondary-dark", r.secondary.dark],
     ["--muted", r.muted],
     ["--muted-foreground", r.text.secondary],
+    // Hover/resaltado de opciones de menú y celdas (D116).
+    ["--accent", a.accent],
+    ["--accent-foreground", a.foreground],
     ["--destructive", r.error.main],
     ["--destructive-foreground", r.error.contrastText],
     ["--success", r.success.main],
@@ -202,6 +211,8 @@ export function navyVars(): [string, string][] {
     ["--popover-foreground", navyRoles.text],
     ["--muted", navyRoles.muted],
     ["--muted-foreground", navyRoles.textSecondary],
+    ["--accent", navyRoles.accent],
+    ["--accent-foreground", navyRoles.text],
     ["--border", navyRoles.divider],
     ["--input", navyRoles.divider],
   ];

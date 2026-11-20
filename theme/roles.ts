@@ -1,14 +1,6 @@
-import { gray, onNavy, primary, secondary, semantic } from "./tokens";
+import { common, gray, onNavy, primary, secondary, semantic } from "./tokens";
 
 export type ColorMode = "light" | "dark";
-
-/** `#RRGGBB` con alfa → `rgba()` (el `alpha()` de MUI, sin depender de MUI). */
-export function withAlpha(hex: string, a: number) {
-  const [r, g, b] = [1, 3, 5].map((i) =>
-    Number.parseInt(hex.slice(i, i + 2), 16),
-  );
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
 
 /**
  * Roles de color por modo (D109): la única fuente de los colores semánticos.
@@ -57,6 +49,31 @@ export function modeRoles(mode: ColorMode) {
   } as const;
 }
 
+/** `#RRGGBB` + alfa → `rgba(r,g,b,a)`. */
+function withAlpha(hex: string, a: number) {
+  const [r, g, b] = [1, 3, 5].map((i) =>
+    Number.parseInt(hex.slice(i, i + 2), 16),
+  );
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/**
+ * Resaltado de opciones de menú y celdas de calendario (`--accent`, D116):
+ * el `action.hover` de MUI — `gray[900]` al 4 % en claro, blanco al 8 % en
+ * oscuro — con el texto del modo encima. Fuera de `modeRoles` a propósito:
+ * esa función se esparce en la paleta de MUI y un `action` ahí cambiaría el
+ * hover de todos los componentes MUI que siguen vivos.
+ */
+export function accentRoles(mode: ColorMode) {
+  const isLight = mode === "light";
+  return {
+    accent: isLight
+      ? withAlpha(gray[900], 0.04)
+      : withAlpha(common.white, 0.08),
+    foreground: modeRoles(mode).text.primary,
+  } as const;
+}
+
 /**
  * Piezas navy fijas (D025, `data-surface="navy"`): no siguen el modo.
  * Solo los roles que esas piezas pintan; el resto se hereda del modo.
@@ -68,4 +85,5 @@ export const navyRoles = {
   textSecondary: onNavy.muted,
   divider: onNavy.divider,
   muted: withAlpha(onNavy.text, 0.13),
+  accent: onNavy.hover,
 } as const;

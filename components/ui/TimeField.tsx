@@ -1,20 +1,7 @@
 "use client";
 
-import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
-import Box from "@mui/material/Box";
-import ButtonBase from "@mui/material/ButtonBase";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
-import Popper from "@mui/material/Popper";
-import { useTheme } from "@mui/material/styles";
-import { motion, useReducedMotion } from "framer-motion";
-import {
-  type KeyboardEvent,
-  type MouseEvent,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { Clock } from "lucide-react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import {
   composeTime24,
   formatTime12,
@@ -24,13 +11,11 @@ import {
   type Period,
   parseTime24,
 } from "@/lib/timeOfDay";
-import {
-  common,
-  fontScale,
-  radius,
-  secondary,
-  typography,
-} from "@/theme/tokens";
+import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { Field } from "./field";
+import { fieldControlClasses } from "./input";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export interface TimeFieldProps {
   label: string;
@@ -42,10 +27,9 @@ export interface TimeFieldProps {
   required?: boolean;
 }
 
-const EASE = [0.2, 0.8, 0.2, 1] as const;
-// Altura táctil mínima de cada opción (≥ 44 px) y de filas visibles por columna.
+// Altura táctil mínima de cada opción (≥ 44 px = `min-h-11`) y filas visibles
+// por columna (5 × 44 = `max-h-55`).
 const OPTION_HEIGHT = 44;
-const VISIBLE_ROWS = 5;
 
 interface ColumnOption {
   key: string;
@@ -63,7 +47,6 @@ interface ColumnProps {
 /** Columna `listbox`: una sola parada de Tab (la opción marcada o la primera),
  * flechas arriba/abajo para moverse, Espacio elige, Enter elige y cierra. */
 function Column({ label, options, onChoose }: ColumnProps) {
-  const theme = useTheme();
   const listRef = useRef<HTMLDivElement>(null);
   const selectedIndex = options.findIndex((o) => o.selected);
   const tabStop = selectedIndex >= 0 ? selectedIndex : 0;
@@ -117,24 +100,15 @@ function Column({ label, options, onChoose }: ColumnProps) {
   }
 
   return (
-    <Box
+    <div
       ref={listRef}
       role="listbox"
       aria-label={label}
-      sx={{
-        flex: 1,
-        minWidth: 0,
-        maxHeight: OPTION_HEIGHT * VISIBLE_ROWS,
-        overflowY: "auto",
-        display: "flex",
-        flexDirection: "column",
-        gap: 0.5,
-        // Evita que el scroll de la columna arrastre la página.
-        overscrollBehavior: "contain",
-      }}
+      // `overscroll-contain`: el scroll de la columna no arrastra la página.
+      className="flex max-h-55 min-w-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain"
     >
       {options.map((option, index) => (
-        <Box
+        <div
           key={option.key}
           role="option"
           aria-selected={option.selected}
@@ -143,49 +117,36 @@ function Column({ label, options, onChoose }: ColumnProps) {
             option.select();
             onChoose(false);
           }}
-          onKeyDown={(e: KeyboardEvent) => handleKeyDown(e, index)}
-          sx={{
-            flexShrink: 0,
-            minHeight: OPTION_HEIGHT,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: `${radius.sm}px`,
-            cursor: "pointer",
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[14],
-            // Marcada: relleno + peso + borde, no solo color.
-            fontWeight: option.selected ? 700 : 500,
-            // Texto blanco en claro y oscuro (pedido de César): sobre
-            // `secondary[500]` el blanco da 2,77:1; sobre `secondary[700]`,
-            // 5,31:1 (AA). Mismo par que el día elegido de `DateField`.
-            backgroundColor: option.selected ? secondary[700] : "transparent",
-            color: option.selected ? common.white : theme.palette.text.primary,
-            border: `1px solid ${option.selected ? theme.palette.text.primary : "transparent"}`,
-            transition: theme.transitions.create(["background-color"], {
-              duration: theme.transitions.duration.shortest,
-            }),
-            "&:hover": {
-              backgroundColor: option.selected
-                ? secondary[700]
-                : theme.palette.action.hover,
-            },
-          }}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+          className={cn(
+            "flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-sm border",
+            "font-body text-14 transition-[background-color] duration-150",
+            // Marcada: relleno + peso + borde, no solo color. Texto blanco
+            // en claro y oscuro (pedido de César): sobre `secondary[500]` el
+            // blanco da 2,77:1; sobre `secondary[700]`, 5,31:1 (AA). Mismo
+            // par que el día elegido de `DateField`.
+            option.selected
+              ? "border-foreground bg-secondary-700 font-bold text-white"
+              : "border-transparent bg-transparent font-medium text-foreground hover:bg-accent",
+          )}
         >
           {option.text}
-        </Box>
+        </div>
       ))}
-    </Box>
+    </div>
   );
 }
 
 /**
- * Selector de hora propio (mismo patrón y estilo que `DateField`, D062): el
- * `<input type="time">` nativo abría el picker del sistema. Popper con
+ * Selector de hora propio (D089, mismo patrón y estilo que `DateField`):
  * columnas Hora (1–12), Minutos (de 5 en 5) y a. m./p. m. El valor sigue
  * siendo "HH:MM" en 24 h, así que el servidor no cambia. Un valor con minutos
  * fuera de la grilla (p. ej. 19:07) se muestra tal cual y la columna de
  * minutos no marca ninguno hasta que se elija.
+ *
+ * Sobre Radix Popover (D115): al abrir, el foco pasa a la primera columna;
+ * Escape, «Listo», Enter en una opción o Tab fuera del panel lo cierran y
+ * devuelven el foco al campo; clic fuera también cierra.
  */
 export function TimeField({
   label,
@@ -195,34 +156,24 @@ export function TimeField({
   helperText,
   required,
 }: TimeFieldProps) {
-  const theme = useTheme();
-  const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
+  const [container, setContainer] = useState<HTMLElement | null>(null);
   const parts = parseTime24(value);
-  const anchorRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const labelId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const valueId = useId();
 
-  // Al abrir, el foco pasa a la primera columna (su parada de Tab).
-  useEffect(() => {
-    if (!open) return;
-    const id = requestAnimationFrame(() => {
-      dialogRef.current
-        ?.querySelector<HTMLElement>('[role="option"][tabindex="0"]')
-        ?.focus();
-    });
-    return () => cancelAnimationFrame(id);
-  }, [open]);
-
-  function toggleOpen(e: MouseEvent) {
-    e.stopPropagation();
-    setOpen((prev) => !prev);
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      setContainer(
+        triggerRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null,
+      );
+    }
+    setOpen(next);
   }
 
-  function close(returnFocus: boolean) {
-    setOpen(false);
-    if (returnFocus) anchorRef.current?.focus();
-  }
+  // Al cerrar por estado (no por clic fuera), Radix devuelve el foco al campo.
+  const close = () => setOpen(false);
 
   // Base para componer cuando aún falta alguna parte (campo vacío).
   const base = parts ?? { hour12: 12, minute: 0, period: "am" as Period };
@@ -248,189 +199,111 @@ export function TimeField({
     select: () => emit({ period: p }),
   }));
 
-  function handleDialogKeyDown(e: KeyboardEvent) {
+  function handleContentKeyDown(e: KeyboardEvent) {
+    // Radix ya cerró el panel; sin esto el Escape sube por el árbol de React
+    // hasta el `Dialog`/`Drawer` de MUI y lo cierra también.
     if (e.key === "Escape") {
       e.stopPropagation();
-      close(true);
       return;
     }
     if (e.key !== "Tab") return;
-    // El Popper vive fuera del flujo del formulario: al salir por cualquiera
+    // El panel vive fuera del flujo del formulario: al salir por cualquiera
     // de sus extremos se cierra y el foco vuelve al campo.
-    const stops = dialogRef.current?.querySelectorAll<HTMLElement>(
+    const stops = contentRef.current?.querySelectorAll<HTMLElement>(
       '[tabindex="0"], button:not(:disabled)',
     );
     if (!stops?.length) return;
     const first = stops[0];
     const last = stops[stops.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
+    if (
+      (e.shiftKey && document.activeElement === first) ||
+      (!e.shiftKey && document.activeElement === last)
+    ) {
       e.preventDefault();
-      close(true);
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      close(true);
+      close();
     }
   }
 
   const shown = parts ? formatTime12(value) : "";
 
   return (
-    <Box>
-      <Box
-        component="span"
-        id={labelId}
-        sx={{
-          display: "block",
-          fontSize: fontScale[12],
-          fontWeight: 500,
-          color: error
-            ? theme.palette.error.main
-            : theme.palette.text.secondary,
-          mb: 0.75,
-        }}
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <Field
+        label={label}
+        required={required}
+        error={error ? helperText || true : undefined}
       >
-        {label}
-        {required ? " *" : ""}
-      </Box>
-
-      <Box
-        ref={anchorRef}
-        component="button"
-        type="button"
-        onClick={toggleOpen}
-        onKeyDown={(e: KeyboardEvent) => {
-          if (e.key === "Escape" && open) {
-            e.stopPropagation();
-            setOpen(false);
-          }
-        }}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-labelledby={labelId}
-        aria-invalid={error || undefined}
-        aria-describedby={error && helperText ? `${labelId}-error` : undefined}
-        sx={{
-          display: "flex",
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1,
-          border: `1px solid ${error ? theme.palette.error.main : open ? theme.palette.primary.main : theme.palette.divider}`,
-          borderRadius: `${radius.sm}px`,
-          backgroundColor: theme.palette.background.paper,
-          px: 1.75,
-          height: 40,
-          cursor: "pointer",
-          transition: theme.transitions.create(["border-color"], {
-            duration: theme.transitions.duration.shortest,
-          }),
-          "&:hover": {
-            borderColor: error
-              ? theme.palette.error.main
-              : theme.palette.text.secondary,
-          },
-        }}
-      >
-        <Box
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[14],
-            color: shown
-              ? theme.palette.text.primary
-              : theme.palette.text.secondary,
-          }}
-        >
-          {shown || "Seleccionar hora"}
-        </Box>
-        <ScheduleRoundedIcon
-          fontSize="small"
-          sx={{ color: theme.palette.text.secondary, flexShrink: 0 }}
-        />
-      </Box>
-
-      {error && helperText && (
-        <Box
-          component="p"
-          id={`${labelId}-error`}
-          role="alert"
-          sx={{
-            m: 0,
-            mt: 0.75,
-            ml: 1.75,
-            fontSize: fontScale[12],
-            color: theme.palette.error.main,
-          }}
-        >
-          {helperText}
-        </Box>
-      )}
-
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-        sx={{ zIndex: (t) => t.zIndex.modal + 10 }}
-        modifiers={[{ name: "offset", options: { offset: [0, 6] } }]}
-      >
-        <ClickAwayListener onClickAway={() => setOpen(false)}>
-          <Box
-            ref={dialogRef}
-            component={motion.div}
-            role="dialog"
-            aria-label={`${label} — elegir hora`}
-            onKeyDown={handleDialogKeyDown}
-            initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: reduceMotion ? 0 : 0.16, ease: EASE }}
-            sx={{
-              width: 280,
-              maxWidth: "calc(100vw - 32px)",
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.md}px`,
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: theme.shadows[8],
-              p: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Column
-                label="Hora"
-                options={hourOptions}
-                onChoose={(c) => c && close(true)}
-              />
-              <Column
-                label="Minutos"
-                options={minuteOptions}
-                onChoose={(c) => c && close(true)}
-              />
-              <Column
-                label="a. m. o p. m."
-                options={periodOptions}
-                onChoose={(c) => c && close(true)}
-              />
-            </Box>
-            <ButtonBase
+        {(control, { labelId }) => (
+          <PopoverTrigger asChild>
+            <button
+              ref={triggerRef}
               type="button"
-              onClick={() => close(true)}
-              sx={{
-                mt: 1.5,
-                width: "100%",
-                minHeight: OPTION_HEIGHT,
-                borderRadius: `${radius.sm}px`,
-                border: `1px solid ${theme.palette.divider}`,
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[14],
-                fontWeight: 600,
-                color: theme.palette.text.primary,
-                "&:hover": { backgroundColor: theme.palette.action.hover },
-              }}
+              {...control}
+              aria-labelledby={`${labelId} ${valueId}`}
+              className={cn(
+                fieldControlClasses,
+                "cursor-pointer justify-between gap-2 text-start",
+              )}
             >
-              Listo
-            </ButtonBase>
-          </Box>
-        </ClickAwayListener>
-      </Popper>
-    </Box>
+              <span
+                id={valueId}
+                className={cn(!shown && "text-muted-foreground")}
+              >
+                {shown || "Seleccionar hora"}
+              </span>
+              <Clock
+                aria-hidden
+                className="size-5 shrink-0 text-muted-foreground"
+              />
+            </button>
+          </PopoverTrigger>
+        )}
+      </Field>
+
+      <PopoverContent
+        ref={contentRef}
+        container={container}
+        align="start"
+        aria-label={`${label} — elegir hora`}
+        onKeyDown={handleContentKeyDown}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          // Tras el primer cuadro: la columna ya se desplazó a la opción marcada.
+          requestAnimationFrame(() => {
+            contentRef.current
+              ?.querySelector<HTMLElement>('[role="option"][tabindex="0"]')
+              ?.focus({ preventScroll: true });
+          });
+        }}
+      >
+        <div className="flex gap-2">
+          <Column
+            label="Hora"
+            options={hourOptions}
+            onChoose={(c) => c && close()}
+          />
+          <Column
+            label="Minutos"
+            options={minuteOptions}
+            onChoose={(c) => c && close()}
+          />
+          <Column
+            label="a. m. o p. m."
+            options={periodOptions}
+            onChoose={(c) => c && close()}
+          />
+        </div>
+        <Button
+          variant="plain"
+          onClick={close}
+          className={cn(
+            "mt-3 min-h-11 w-full rounded-sm border border-border",
+            "font-semibold text-14 text-foreground hover:bg-accent dark:text-foreground dark:hover:bg-accent",
+          )}
+        >
+          Listo
+        </Button>
+      </PopoverContent>
+    </Popover>
   );
 }
