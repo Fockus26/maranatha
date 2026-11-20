@@ -10,6 +10,8 @@ import {
   skeletonContentSx,
 } from "./skeletonParts";
 
+function noop() {}
+
 /** Esqueleto de `/dashboard/proyectos`: encabezado, buscador y la tabla en carga. */
 export function ProyectosSkeleton() {
   return (
@@ -37,7 +39,8 @@ export function ProyectosSkeleton() {
             borderRadius: `${radius.sm}px`,
           }}
         />
-        <DashboardTable projects={[]} loading />
+        {/* En carga la tabla no pinta filas: las acciones nunca se llaman. */}
+        <DashboardTable projects={[]} loading onEdit={noop} onDelete={noop} />
       </Box>
     </SkeletonFrame>
   );
