@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -62,6 +62,9 @@ export function ConfirmDialog({
   onClose,
   pending = false,
 }: ConfirmDialogProps) {
+  // Radix solo devuelve el foco a su `DialogTrigger`; aquí el diálogo es
+  // controlado y no tiene uno: se guarda el elemento que lo abrió.
+  const openerRef = useRef<HTMLElement | null>(null);
   return (
     <Dialog
       open={open}
@@ -73,6 +76,13 @@ export function ConfirmDialog({
         showCloseButton={false}
         // El foco inicial va al botón de cancelar (el primero), no al de
         // confirmar: una acción destructiva no debe quedar a un Enter.
+        onOpenAutoFocus={() => {
+          openerRef.current = document.activeElement as HTMLElement | null;
+        }}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          openerRef.current?.focus();
+        }}
         container={open ? findMuiModalPaper() : null}
         onEscapeKeyDown={(e) => {
           if (pending) e.preventDefault();
