@@ -11,10 +11,18 @@
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
 | Versión (changesets de la tanda 2026-11-19 y anteriores) | `changeset-release/main` | PR #46 — lo mergea César | — |
+| W1 skeleton por página (tanda 2026-11-20) | `feat/skeletons-por-pagina` | PR #52 — mergeado | `PHASE_LOG/feat-skeletons-por-pagina.md` |
+| W2 caché del panel | `feat/cache-panel` | PR #55 — mergeado | `PHASE_LOG/feat-cache-panel.md` |
+| W3 separación Ofrendar | `fix/ofrendar-separacion` | PR #53 — mergeado | `PHASE_LOG/fix-ofrendar-separacion.md` |
+| W4 ojo + iniciales | `feat/panel-perfil-y-contrasena` | PR #54 — mergeado | `PHASE_LOG/feat-panel-perfil-y-contrasena.md` |
 
 Tanda 2026-11-19 cerrada (#47–#51, main @ be90296): `PHASE_LOG/tanda-2026-11-19.md`, QA en `plans/qa-tanda-2026-11-19.md`; medios y bajos en `plans/backlog.md`. Todos los PRs que listaba este tablero (#2–#33) están mergeados.
 
 ## Bloquea (acciones de César o externas)
+
+- **GitHub Actions sin facturación**: desde 56b1cc4 ningún job arranca ("recent account payments have failed or your spending limit needs to be increased"). `main` @ fc94345 no está desplegado en maranatha.fockus.dev; CI no corrió (verificado a mano: typecheck, lint, 109 tests OK). Arreglar Billing & plans y relanzar el workflow `Deploy (VPS)` de main.
+
+- PR #54: si las cuentas admin se llaman "Administrador", ponerles nombre y apellido (SQL en el PR) en preview y producción.
 
 - Crear la cuenta de kevindominguez91@gmail.com (`scripts/create-admin.ts` + `ADMIN_EMAILS`); borrar `PAY_ZINLI_*`/`PAY_WALLY_*` de kit-deploy y Vercel.
 
@@ -28,6 +36,8 @@ Tanda 2026-11-19 cerrada (#47–#51, main @ be90296): `PHASE_LOG/tanda-2026-11-1
 - Hosting en kit-deploy (D093) **encendido el 2026-11-19**: `main` → https://maranatha.fockus.dev (deploy ec9f0c6 sano). Falta: login de admin ahí, reporte de pago con comprobante en un preview de PR, webhook de PayPal al pasar a Live. Vercel sigue de respaldo una semana (hasta ~2026-11-26); apagarlo lo decide César.
 
 ## Sigue
+
+- **Fase propia: migración MUI → shadcn** (decidida 2026-11-20). Planificar en otra sesión con §0 de `orchestrate` (`context/plans/orchestration-2026-11-20.md`, ola 2). Antes: `DashboardPageSkeleton.tsx` quedó sin uso (#52); token de ancho 960 (#53).
 
 - PR `style/biome-format`: formatear con Biome, corregir los 9 errores de lint y añadir el CI (D076).
 - Persistir los proyectos del dashboard en la base (Postgres, hoy en memoria, D045).
