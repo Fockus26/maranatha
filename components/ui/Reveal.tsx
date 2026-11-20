@@ -1,10 +1,18 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { type ReactNode, useSyncExternalStore } from "react";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
+import { breakpoints } from "@/theme/tokens";
+
+// Por debajo de `sm` (el `down("sm")` de MUI: 0,05 px menos que el breakpoint).
+const MOBILE_QUERY = `(max-width: ${breakpoints.sm - 0.05}px)`;
+
+function subscribeMobile(onChange: () => void) {
+  const query = window.matchMedia(MOBILE_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
 
 export interface RevealProps {
   children: ReactNode;
@@ -26,7 +34,6 @@ export interface RevealProps {
  * de reveal).
  */
 export function Reveal({ children, delay = 0, y = 18 }: RevealProps) {
-  const theme = useTheme();
   // a11y (WCAG 2.3.3): con "reducir movimiento" activo, el contenido aparece
   // directamente sin fade/slide — no se anima nada.
   const reduceMotion = useHydratedReducedMotion();
@@ -35,7 +42,13 @@ export function Reveal({ children, delay = 0, y = 18 }: RevealProps) {
   // del bloque visible antes de disparar) la animación tardaba en verse, o
   // el usuario ya había scrolleado de largo antes de que se cumpliera. Por
   // debajo de `sm` basta con que un 10% del bloque sea visible.
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  // `useSyncExternalStore`: el servidor y el render de hidratación asumen
+  // escritorio (sin `window`); tras hidratar lee el real, sin desajuste.
+  const isMobile = useSyncExternalStore(
+    subscribeMobile,
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false,
+  );
   const amount = isMobile ? 0.1 : 0.25;
 
   // Después de todos los hooks: salir antes violaría el orden de hooks.

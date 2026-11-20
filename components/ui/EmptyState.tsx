@@ -1,11 +1,8 @@
 "use client";
 
-import type { SvgIconComponent } from "@mui/icons-material";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { typography as typographyTokens } from "@/theme/tokens";
+import type { ComponentType } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * Empty state genérico — fase 09 (D067). Tratamiento elegido por el cliente
@@ -17,17 +14,26 @@ import { typography as typographyTokens } from "@/theme/tokens";
  * cierres" del Resumen sin proyectos activos) en vez de resolver cada caso
  * con texto suelto.
  *
+ * Migrado a shadcn (D119–D121): `icon` acepta un ícono de lucide y, mientras
+ * convivan, uno de `@mui/icons-material` (los consumidores sin migrar siguen
+ * pasando íconos MUI). Su tamaño va con `!` (`size-7!`) porque el `font-size`
+ * de MUI (Emotion, sin capa) le gana a la utilidad de Tailwind.
+ *
  * `compact` reduce el padding/tamaño de ícono para contextos donde el
  * empty state vive dentro de una tarjeta ya angosta (ej. "Próximos
  * cierres"), sin dejar de ser el mismo componente/lenguaje visual.
  */
 export interface EmptyStateProps {
-  icon: SvgIconComponent;
+  icon: ComponentType<{
+    className?: string;
+    "aria-hidden"?: boolean | "true";
+  }>;
   title: string;
   description?: string;
   ctaLabel?: string;
   onCtaClick?: () => void;
   compact?: boolean;
+  className?: string;
 }
 
 export function EmptyState({
@@ -37,51 +43,41 @@ export function EmptyState({
   ctaLabel,
   onCtaClick,
   compact,
+  className,
 }: EmptyStateProps) {
-  const theme = useTheme();
-
   return (
-    <Box
-      sx={{ textAlign: "center", py: compact ? 3 : { xs: 6, md: 8 }, px: 3 }}
+    <div
+      className={cn(
+        "px-3 text-center",
+        compact ? "py-3" : "py-6 md:py-8",
+        className,
+      )}
     >
-      <Box
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: compact ? 40 : 56,
-          height: compact ? 40 : 56,
-          borderRadius: "50%",
-          backgroundColor: theme.palette.action.hover,
-          color: theme.palette.text.secondary,
-          mb: compact ? 1.5 : 2.5,
-        }}
+      <div
+        className={cn(
+          "inline-flex items-center justify-center rounded-pill bg-accent text-muted-foreground",
+          compact ? "mb-1.5 size-10" : "mb-2.5 size-14",
+        )}
       >
-        <Icon sx={{ fontSize: compact ? 20 : 28 }} />
-      </Box>
-      <Typography
-        sx={{
-          fontFamily: typographyTokens.fontFamily.heading,
-          fontWeight: 600,
-          fontSize: compact ? 14 : 16,
-          color: theme.palette.text.primary,
-        }}
+        <Icon aria-hidden className={compact ? "size-5!" : "size-7!"} />
+      </div>
+      <p
+        className={cn(
+          "font-heading font-semibold leading-body text-foreground",
+          compact ? "text-14" : "text-16",
+        )}
       >
         {title}
-      </Typography>
+      </p>
       {description && (
-        <Typography
-          sx={{
-            fontFamily: typographyTokens.fontFamily.body,
-            fontSize: compact ? 13 : 14,
-            color: theme.palette.text.secondary,
-            maxWidth: 360,
-            mx: "auto",
-            mt: 0.75,
-          }}
+        <p
+          className={cn(
+            "mx-auto mt-0.75 max-w-90 font-body leading-body text-muted-foreground",
+            compact ? "text-13" : "text-14",
+          )}
         >
           {description}
-        </Typography>
+        </p>
       )}
       {ctaLabel && onCtaClick && (
         <Button
@@ -89,11 +85,11 @@ export function EmptyState({
           color="primary"
           size={compact ? "small" : "medium"}
           onClick={onCtaClick}
-          sx={{ mt: compact ? 2 : 3 }}
+          className={compact ? "mt-2" : "mt-3"}
         >
           {ctaLabel}
         </Button>
       )}
-    </Box>
+    </div>
   );
 }

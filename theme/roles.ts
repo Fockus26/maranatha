@@ -2,6 +2,14 @@ import { gray, onNavy, primary, secondary, semantic } from "./tokens";
 
 export type ColorMode = "light" | "dark";
 
+/** `#RRGGBB` con alfa → `rgba()` (el `alpha()` de MUI, sin depender de MUI). */
+export function withAlpha(hex: string, a: number) {
+  const [r, g, b] = [1, 3, 5].map((i) =>
+    Number.parseInt(hex.slice(i, i + 2), 16),
+  );
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 /**
  * Roles de color por modo (D109): la única fuente de los colores semánticos.
  * La leen la paleta de MUI (`theme/theme.ts`) y el generador de CSS
@@ -43,6 +51,9 @@ export function modeRoles(mode: ColorMode) {
       secondary: isLight ? gray[600] : gray[300],
     },
     divider: isLight ? gray[200] : gray[700],
+    // Fondo de skeleton y pistas de progreso: el `Skeleton` de MUI (D119),
+    // `text.primary` al 11 % en claro y 13 % en oscuro.
+    muted: withAlpha(isLight ? gray[900] : gray[50], isLight ? 0.11 : 0.13),
   } as const;
 }
 
@@ -56,4 +67,5 @@ export const navyRoles = {
   text: onNavy.text,
   textSecondary: onNavy.muted,
   divider: onNavy.divider,
+  muted: withAlpha(onNavy.text, 0.13),
 } as const;

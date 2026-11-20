@@ -193,3 +193,34 @@ body,
  * (MuiCssBaseline) para leer los tokens de `theme/tokens.ts` y seguir el modo
  * real del toggle (D053). Ver la adenda de diseño en el HANDOFF.
  */
+
+/*
+ * Animaciones de las primitivas de `components/ui/` (D119, D120): pan de un
+ * tile del `PatternLayer` (el tile y la duración llegan por variables en el
+ * propio elemento) y barra indeterminada de `Progress`.
+ */
+@keyframes pattern-pan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: var(--pattern-tile) var(--pattern-tile);
+  }
+}
+
+@keyframes progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@utility animate-pattern-pan {
+  animation: pattern-pan var(--pattern-duration) linear infinite;
+}
+
+@utility animate-progress-indeterminate {
+  animation: progress-indeterminate 1.6s ease-in-out infinite;
+}

@@ -18,6 +18,7 @@ import {
   common,
   fontScale,
   gray,
+  largeScreen,
   onNavy,
   primary,
   radius,
@@ -56,6 +57,8 @@ function themeBlock() {
   for (const [k, n] of Object.entries(breakpoints)) {
     if (n > 0) v.push([`--breakpoint-${k}`, px(n)]);
   }
+  // Pantalla grande (≥1920px): `wide:`; no existe en MUI (D119).
+  v.push(["--breakpoint-wide", px(largeScreen)]);
 
   // Colores: solo los del proyecto (sin la paleta por defecto de Tailwind).
   v.push(["--color-*", "initial"]);
@@ -143,12 +146,17 @@ function fontBlock() {
   ]);
 }
 
-/** h1–h4 de escritorio desde `sm`. */
+/** h1–h4 de escritorio desde `sm`, y el peldaño extra desde `largeScreen`. */
 function responsiveText() {
-  const vars: [string, string][] = (["h1", "h2", "h3", "h4"] as const).map(
+  const desktop: [string, string][] = (["h1", "h2", "h3", "h4"] as const).map(
     (k) => [`--text-${k}`, typography.size[k].desktop],
   );
-  return `@media (width >= ${px(breakpoints.sm)}) {\n  ${block(":root", vars).replace(/\n/g, "\n  ")}\n}`;
+  const large: [string, string][] = Object.entries(typography.sizeLarge).map(
+    ([k, size]) => [`--text-${kebab(k === "bodyLarge" ? "body-lg" : k)}`, size],
+  );
+  const media = (min: number, vars: [string, string][]) =>
+    `@media (width >= ${px(min)}) {\n  ${block(":root", vars).replace(/\n/g, "\n  ")}\n}`;
+  return `${media(breakpoints.sm, desktop)}\n\n${media(largeScreen, large)}`;
 }
 
 /** Roles por modo: nombres de shadcn + los del proyecto. */
@@ -169,6 +177,7 @@ export function roleVars(mode: ColorMode): [string, string][] {
     ["--secondary-foreground", r.secondary.contrastText],
     ["--secondary-light", r.secondary.light],
     ["--secondary-dark", r.secondary.dark],
+    ["--muted", r.muted],
     ["--muted-foreground", r.text.secondary],
     ["--destructive", r.error.main],
     ["--destructive-foreground", r.error.contrastText],
@@ -191,6 +200,7 @@ export function navyVars(): [string, string][] {
     ["--card-foreground", navyRoles.text],
     ["--popover", navyRoles.paper],
     ["--popover-foreground", navyRoles.text],
+    ["--muted", navyRoles.muted],
     ["--muted-foreground", navyRoles.textSecondary],
     ["--border", navyRoles.divider],
     ["--input", navyRoles.divider],

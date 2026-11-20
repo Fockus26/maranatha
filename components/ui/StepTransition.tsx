@@ -1,8 +1,8 @@
 "use client";
 
-import Box from "@mui/material/Box";
 import { motion, useReducedMotion } from "framer-motion";
 import { type ReactNode, type Ref, useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * Transición entre los dos pasos de un flujo de pago (D087): el paso 1
@@ -21,7 +21,6 @@ import { type ReactNode, type Ref, useEffect, useRef, useState } from "react";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const DURATION = 0.28;
 const SHIFT = 40;
-const INNER_STYLE = { display: "flex", justifyContent: "center" } as const;
 
 export function StepTransition({
   showSecond,
@@ -61,41 +60,33 @@ export function StepTransition({
     return () => observer.disconnect();
   }, [showSecond, content]);
 
-  const inactiveSx = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    pointerEvents: "none",
-  } as const;
+  // El paso inactivo sale del flujo sin perder su alto medido.
+  const inactive = "pointer-events-none absolute inset-x-0 top-0";
 
   return (
-    <Box
-      component={motion.div}
+    <motion.div
       initial={false}
       animate={{ height: height ?? "auto" }}
       transition={{ duration, ease: EASE }}
       // `clip` solo en X: el desplazamiento no genera scroll horizontal y los
       // anillos de foco verticales no se recortan.
-      sx={{ position: "relative", overflowX: "clip", width: "100%" }}
+      className="relative w-full overflow-x-clip"
     >
-      <Box
-        component={motion.div}
+      <motion.div
         ref={firstRef}
         initial={false}
         animate={{ x: showSecond ? -shift : 0, opacity: showSecond ? 0 : 1 }}
         transition={{ duration, ease: EASE }}
         inert={showSecond}
         aria-hidden={showSecond || undefined}
-        sx={showSecond ? inactiveSx : undefined}
+        className={cn(showSecond && inactive)}
       >
-        <div ref={firstInner} style={INNER_STYLE}>
+        <div ref={firstInner} className="flex justify-center">
           {first}
         </div>
-      </Box>
+      </motion.div>
       {content && (
-        <Box
-          component={motion.div}
+        <motion.div
           initial={{ x: shift, opacity: 0 }}
           animate={{ x: showSecond ? 0 : shift, opacity: showSecond ? 1 : 0 }}
           transition={{ duration, ease: EASE }}
@@ -104,13 +95,13 @@ export function StepTransition({
           }}
           inert={!showSecond}
           aria-hidden={!showSecond || undefined}
-          sx={showSecond ? undefined : inactiveSx}
+          className={cn(!showSecond && inactive)}
         >
-          <div ref={secondInner} style={INNER_STYLE}>
+          <div ref={secondInner} className="flex justify-center">
             {content}
           </div>
-        </Box>
+        </motion.div>
       )}
-    </Box>
+    </motion.div>
   );
 }
