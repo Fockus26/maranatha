@@ -21,6 +21,7 @@ import {
   type TitheFormValues,
   TYPE_LABEL,
 } from "@/components/ui/TitheForm";
+import { TitheLayout } from "@/components/ui/TitheLayout";
 import { patternLayerSx } from "@/theme/patterns";
 import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
 
@@ -156,108 +157,97 @@ export function Tithe() {
 
         <Container maxWidth="lg" sx={{ position: "relative" }}>
           <Reveal>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { xs: "center", md: "flex-start" },
-                justifyContent: "space-between",
-                gap: { xs: 6, md: 8 },
-              }}
-            >
-              <Box
-                sx={{
-                  maxWidth: 480,
-                  textAlign: { xs: "center", md: "left" },
-                  pt: { md: 2 },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 44,
-                    height: 44,
-                    borderRadius: `${radius.lg}px`,
-                    backgroundColor: "rgba(245,246,250,0.1)",
-                    color: "secondary.light",
-                    mb: 3,
-                  }}
-                >
-                  <VolunteerActivismRoundedIcon fontSize="small" />
-                </Box>
+            <TitheLayout
+              text={
+                <>
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 44,
+                      height: 44,
+                      borderRadius: `${radius.lg}px`,
+                      backgroundColor: "rgba(245,246,250,0.1)",
+                      color: "secondary.light",
+                      mb: 3,
+                    }}
+                  >
+                    <VolunteerActivismRoundedIcon fontSize="small" />
+                  </Box>
 
-                <Typography
-                  component="span"
-                  sx={{
-                    display: "block",
-                    fontFamily: "var(--font-body)",
-                    fontWeight: 500,
-                    fontSize: fontScale[11],
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: "secondary.light",
-                    mb: 1.5,
-                  }}
-                >
-                  Da con propósito
-                </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      display: "block",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 500,
+                      fontSize: fontScale[11],
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "secondary.light",
+                      mb: 1.5,
+                    }}
+                  >
+                    Da con propósito
+                  </Typography>
 
-                <Typography
-                  component="h2"
-                  id="ofrendar-title"
-                  sx={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 800,
-                    fontSize: { xs: "28px", md: "38px" },
-                    lineHeight: 1.2,
-                    letterSpacing: "-0.01em",
-                    color: gray[50],
-                    mb: 2,
-                  }}
-                >
-                  Tu ofrenda sostiene esta obra
-                </Typography>
+                  <Typography
+                    component="h2"
+                    id="ofrendar-title"
+                    sx={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 800,
+                      fontSize: { xs: "28px", md: "38px" },
+                      lineHeight: 1.2,
+                      letterSpacing: "-0.01em",
+                      color: gray[50],
+                      mb: 2,
+                    }}
+                  >
+                    Tu ofrenda sostiene esta obra
+                  </Typography>
 
-                <Typography
-                  sx={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: fontScale[16],
-                    lineHeight: 1.6,
-                    color: "rgba(245,246,250,0.72)",
-                  }}
-                >
-                  Cada aporte se destina directamente a nuestras áreas de
-                  servicio y proyectos activos. Elige un monto, única vez o
-                  mensual, y completa tus datos — sin compromisos, cancela
-                  cuando quieras.
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: fontScale[16],
+                      lineHeight: 1.6,
+                      color: "rgba(245,246,250,0.72)",
+                    }}
+                  >
+                    Cada aporte se destina directamente a nuestras áreas de
+                    servicio y proyectos activos. Elige un monto, única vez o
+                    mensual, y completa tus datos — sin compromisos, cancela
+                    cuando quieras.
+                  </Typography>
 
-                <AnimatedFamiliesCounter />
-              </Box>
-
-              <Box sx={{ flexShrink: 0, width: "100%", maxWidth: 440 }}>
-                {/* El formulario queda montado durante el paso 2 para que
+                  <AnimatedFamiliesCounter />
+                </>
+              }
+              form={
+                <>
+                  {/* El formulario queda montado durante el paso 2 para que
               "Volver" conserve lo ya ingresado (D087). */}
-                <StepTransition
-                  showSecond={!!contribution}
-                  firstRef={stepOneRef}
-                  first={<TitheForm width={440} onSubmit={handleSubmit} />}
-                  second={
-                    contribution && (
-                      <PaymentStep
-                        width={440}
-                        contribution={contribution}
-                        summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
-                        onBack={handleBack}
-                        onReported={handleReported}
-                      />
-                    )
-                  }
-                />
-              </Box>
-            </Box>
+                  <StepTransition
+                    showSecond={!!contribution}
+                    firstRef={stepOneRef}
+                    first={<TitheForm width={440} onSubmit={handleSubmit} />}
+                    second={
+                      contribution && (
+                        <PaymentStep
+                          width={440}
+                          contribution={contribution}
+                          summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                          onBack={handleBack}
+                          onReported={handleReported}
+                        />
+                      )
+                    }
+                  />
+                </>
+              }
+            />
           </Reveal>
         </Container>
       </Box>

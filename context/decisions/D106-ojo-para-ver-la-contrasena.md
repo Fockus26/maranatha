@@ -1,0 +1,5 @@
+# D106 · Componentes · Ojo para ver la contraseña en login y restablecer (`PasswordField`) · Implementado
+
+**Decisión:** `components/ui/PasswordField.tsx` envuelve el `TextField` de MUI (mismas props, menos `type`) y agrega un `IconButton` de fin con `VisibilityRounded` / `VisibilityOffRounded`. Se usa en el login y en los dos campos de restablecer, cada uno con su propio ojo. El botón es `type="button"`, mide 44 × 44 px, su nombre accesible dice la acción ("Mostrar contraseña" / "Ocultar contraseña") y usa el anillo de foco global (D085). `onMouseDown` con `preventDefault` deja el foco en el campo al hacer clic.
+**Por qué:** pedido de César. Cambiar el label en vez de sumar `aria-pressed` evita que el lector anuncie dos estados contradictorios ("Ocultar contraseña, presionado"). Un ojo por campo deja revisar la confirmación por separado.
+**Alternativa descartada:** un solo ojo que muestre las dos contraseñas de restablecer a la vez: menos botones, pero un control que cambia un campo que no es el suyo.
