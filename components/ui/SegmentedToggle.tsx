@@ -1,10 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
 import { type KeyboardEvent, useId, useRef } from "react";
-import { fontScale, gray, radius } from "@/theme/tokens";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
+import { cn } from "@/lib/utils";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -33,6 +32,9 @@ export interface SegmentedToggleProps<T extends string> {
  * `useId()` como base del `layoutId` aísla cada instancia — Tipo y
  * Frecuencia no comparten animación entre sí aunque se rendericen al mismo
  * tiempo.
+ *
+ * Migrado a Tailwind (D113): mismo `radiogroup`/`radio` con `aria-checked` y
+ * roving tabindex; con `prefers-reduced-motion` el indicador salta sin deslizar.
  */
 export function SegmentedToggle<T extends string>({
   value,
@@ -40,9 +42,9 @@ export function SegmentedToggle<T extends string>({
   onChange,
   "aria-label": ariaLabel,
 }: SegmentedToggleProps<T>) {
-  const theme = useTheme();
   const layoutId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useHydratedReducedMotion();
 
   // Patrón APG "radio group": flechas mueven la selección, el foco sigue al
   // control seleccionado (roving tabindex — solo el activo es tabbable).
@@ -63,73 +65,44 @@ export function SegmentedToggle<T extends string>({
   }
 
   return (
-    <Box
+    <div
       ref={containerRef}
       role="radiogroup"
       aria-label={ariaLabel}
       onKeyDown={handleKeyDown}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${options.length}, 1fr)`,
-        gap: "2px",
-        p: "3px",
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: `${radius.sm}px`,
-        backgroundColor:
-          theme.palette.mode === "dark"
-            ? "rgba(255,255,255,0.03)"
-            : "rgba(6,10,29,0.03)",
-      }}
+      style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}
+      className="grid gap-0.5 rounded-sm border border-border bg-primary-900/3 p-0.75 dark:bg-white/3"
     >
       {options.map((option) => {
         const active = option.value === value;
         return (
-          <Box
+          // biome-ignore lint/a11y/useSemanticElements: radio propio (botón con indicador animado), ver arriba.
+          <button
             key={option.value}
-            component="button"
             type="button"
             role="radio"
             aria-checked={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(option.value)}
-            sx={{
-              position: "relative",
-              textAlign: "center",
-              py: 1,
-              border: "none",
-              background: "transparent",
-              borderRadius: `${Math.max(radius.sm - 3, 4)}px`,
-              fontFamily: "var(--font-body)",
-              fontSize: fontScale[13],
-              fontWeight: 500,
-              cursor: "pointer",
-              color: active ? gray[50] : theme.palette.text.secondary,
-              transition: "color 0.2s ease",
-              "&:hover": !active
-                ? { color: theme.palette.text.primary }
-                : undefined,
-            }}
+            className={cn(
+              "relative cursor-pointer rounded-xs border-0 bg-transparent py-2 text-center font-body font-medium text-13 transition-colors duration-200",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+              active
+                ? "text-gray-50"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             {active && (
-              <Box
-                component={motion.div}
+              <motion.div
                 layoutId={`${layoutId}-highlight`}
-                transition={{ duration: 0.3, ease: EASE }}
-                sx={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: `${Math.max(radius.sm - 3, 4)}px`,
-                  backgroundColor: theme.palette.primary.main,
-                  zIndex: 0,
-                }}
+                transition={{ duration: reduceMotion ? 0 : 0.3, ease: EASE }}
+                className="absolute inset-0 rounded-xs bg-primary"
               />
             )}
-            <Box component="span" sx={{ position: "relative", zIndex: 1 }}>
-              {option.label}
-            </Box>
-          </Box>
+            <span className="relative">{option.label}</span>
+          </button>
         );
       })}
-    </Box>
+    </div>
   );
 }
