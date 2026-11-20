@@ -98,7 +98,7 @@ PENDIENTE (no quedó registrado).
 ## Repo y despliegue
 
 - Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
-- kit-deploy (D093): `main` → https://maranathasancristobal.com (D108; `www` redirige y `maranatha.fockus.dev` sigue respondiendo), cada PR → `maranatha-pr-<n>.preview.fockus.dev`; encendido con la variable del repo `KIT_DEPLOY_ENABLED`. Producción usa la base `maranatha`; previews y development, `maranatha_preview`
+- kit-deploy (D093): `main` → https://maranathasancristobal.com (D108; `www` redirige; `maranatha.fockus.dev` ya no responde), cada PR → `maranatha-pr-<n>.preview.fockus.dev`; encendido con la variable del repo `KIT_DEPLOY_ENABLED`. Producción usa la base `maranatha`; previews y development, `maranatha_preview`
 - Vercel: respaldo una semana, publica `main` (D091; no indexable, D073); luego decide César
 - Mantenimiento: no aplica (no hay página de mantenimiento)
 - Secreto en GitHub: `KIT_DEPLOY_TOKEN` (`deploy-vps.yml`). `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` quedan sin uso (D093): borrarlos lo decide César

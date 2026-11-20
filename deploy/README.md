@@ -4,7 +4,7 @@ Una sola rama: **`main`** (D091). Dos lugares la publican mientras dure la trans
 
 | Dónde | Qué publica | Cómo se dispara |
 |---|---|---|
-| **kit-deploy** (VPS de César) | `main` → `https://maranathasancristobal.com` (D108; `www` y `maranatha.fockus.dev` también responden); cada PR → `https://maranatha-pr-<n>.preview.fockus.dev` | `.github/workflows/deploy-vps.yml`, solo con la variable del repo `KIT_DEPLOY_ENABLED=true` |
+| **kit-deploy** (VPS de César) | `main` → `https://maranathasancristobal.com` (D108; `www` redirige); cada PR → `https://maranatha-pr-<n>.preview.fockus.dev` | `.github/workflows/deploy-vps.yml`, solo con la variable del repo `KIT_DEPLOY_ENABLED=true` |
 | Vercel (respaldo, una semana) | `main` y sus previews | Merge a `main` → Vercel lo publica solo |
 
 Archivos de cada lado:
@@ -70,7 +70,7 @@ Todo por `ssh kit-vps` desde la terminal de César. Ningún secreto pasa por el 
   `A @` y `A www` → IP del VPS.
 - **kit-deploy:** `domain add maranatha maranathasancristobal.com` y
   `domain add maranatha www.maranathasancristobal.com --redirect to-apex` (308 al dominio sin `www`).
-  `maranatha.fockus.dev` sigue respondiendo.
+  `maranatha.fockus.dev` se quitó el 2026-11-20 (`domain rm … --force`): ya no responde.
 - **production:** `NEXT_PUBLIC_SITE_URL` y `BETTER_AUTH_URL` = `https://maranathasancristobal.com`.
 - **Correo:** dominio autenticado en Brevo (TXT `brevo-code`, CNAME `brevo1._domainkey` / `brevo2._domainkey`,
   TXT `_dmarc`). Remitente `"Iglesia Maranatha" <maranatha@maranathasancristobal.com>` en `SMTP_FROM`
