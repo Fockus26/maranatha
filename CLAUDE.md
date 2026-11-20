@@ -39,8 +39,8 @@ las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"
 ## Stack
 
 - Next.js 16 (App Router) + **TypeScript** estricto + React Compiler
-- **Librería de componentes:** MUI 9 · **Estilos:** `sx` de MUI con los tokens de `theme/` — uno solo
-  (Tailwind está instalado pero no se usa para estilos nuevos)
+- **Librería de componentes:** migrando de MUI 9 a shadcn/ui (fase en `context/plans/phase-migracion-shadcn.md`)
+- **Estilos nuevos:** Tailwind con los tokens de `theme/tokens.ts` generados a `app/tokens.css` (`bun scripts/tokens-css.ts`, D109–D110)
 - **bun** para todo — nunca npm, yarn ni pnpm
 - Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
 - Deploy: kit-deploy en el VPS (`main` → producción, PR → preview; bases `maranatha` / `maranatha_preview`) · Vercel de respaldo (D093)

@@ -1,9 +1,27 @@
-@import "tailwindcss";
+/*
+ * Tailwind solo escanea el código: sin `source(none)` lee también
+ * `context/` y `.claude/`, y las clases citadas en la documentación acaban
+ * en el CSS. Tokens y roles por modo: `app/tokens.css`, generado desde
+ * `theme/tokens.ts` (D109); no se escriben colores a mano aquí.
+ */
+@import "tailwindcss" source(none);
+@import "tw-animate-css";
+/* Variantes `data-open:`, `data-disabled:`… y keyframes de las primitivas. */
+@import "shadcn/tailwind.css";
+@import "./tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@source "../app";
+@source "../components";
+@source "../lib";
+
+/* El modo lo decide el toggle (cookie + `data-color-mode` en `<html>`,
+   resuelto en el servidor), no `prefers-color-scheme` (D053, D077). */
+@custom-variant dark (&:where(
+    [data-color-mode="dark"],
+    [data-color-mode="dark"] *
+  ));
+/* Piezas navy fijas (D025): `navy:` dentro de `data-surface="navy"`. */
+@custom-variant navy (&:where([data-surface="navy"], [data-surface="navy"] *));
 
 html {
   scroll-behavior: smooth;
@@ -31,23 +49,23 @@ html {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 500;
+  z-index: var(--z-index-toast);
   transform: translateY(-120%);
-  padding: 12px 20px;
-  background-color: #060a1d;
-  color: #ffffff;
+  padding: var(--spacing-md) calc(var(--spacing) * 5);
+  background-color: var(--color-primary-900);
+  color: var(--color-white);
   font-family: var(--font-body), sans-serif;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--text-14);
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
-  border-radius: 0 0 8px 0;
+  border-radius: 0 0 var(--radius-md) 0;
   transition: transform 160ms ease;
 }
 
 .skip-link:focus-visible,
 .skip-link:focus {
   transform: translateY(0);
-  outline: 2px solid #f9750d;
+  outline: 2px solid var(--color-secondary-500);
   outline-offset: 2px;
 }
 
@@ -56,7 +74,7 @@ button:focus-visible,
 [role="button"]:focus-visible,
 [tabindex]:focus-visible,
 .MuiButtonBase-root:focus-visible {
-  outline: 2px solid var(--focus-ring, #f9750d);
+  outline: 2px solid var(--focus-ring, var(--color-secondary-500));
   outline-offset: 2px;
 }
 
@@ -121,26 +139,6 @@ button:focus-visible,
   .MuiLinearProgress-bar {
     background-color: Highlight;
   }
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 /*

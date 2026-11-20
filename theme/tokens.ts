@@ -139,6 +139,9 @@ export const typography = {
     h4: 1.25,
     body: 1.6,
     small: 1.5,
+    // Botones: el interlineado por defecto de MUI, que hoy pintan todos los
+    // botones (D110:`components/ui/button.tsx`).
+    button: 1.75,
   },
 } as const;
 
@@ -207,6 +210,12 @@ export const breakpoints = {
   md: 900,
   lg: 1200,
   xl: 1536,
+} as const;
+
+// Anchos máximos de contenido (D109). `contentNarrow`: la fila texto +
+// formulario de Ofrendar (`TitheLayout`, D105). En Tailwind: `max-w-narrow`.
+export const layout = {
+  contentNarrow: 960,
 } as const;
 
 // Panel lateral de formularios del dashboard (D096): ancho desde `md`.

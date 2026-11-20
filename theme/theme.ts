@@ -4,6 +4,7 @@ import {
   type ThemeOptions,
 } from "@mui/material/styles";
 import { getGlobalStyles } from "./globalStyles";
+import { modeRoles } from "./roles";
 import {
   breakpoints,
   gray,
@@ -17,43 +18,9 @@ import {
 } from "./tokens";
 
 function getPaletteOptions(mode: PaletteMode): ThemeOptions["palette"] {
-  const isLight = mode === "light";
-
-  return {
-    mode,
-    primary: {
-      main: isLight ? primary[700] : primary[400],
-      light: isLight ? primary[500] : primary[300],
-      dark: isLight ? primary[900] : primary[600],
-      contrastText: isLight ? "#FFFFFF" : gray[900],
-    },
-    secondary: {
-      // Modo claro: el naranja de marca (`#F9750D`) sobre fondo claro no
-      // llega a AA como texto (2.6:1) ni como fondo con texto blanco (2.8:1).
-      // En claro baja a `secondary[700]` (`#B34C02`, ~5.5:1). El modo oscuro
-      // conserva el naranja pleno (sobre navy sí contrasta).
-      main: isLight ? secondary[700] : secondary[500],
-      light: secondary[300],
-      dark: secondary[700],
-      contrastText: "#FFFFFF",
-    },
-    success: { main: semantic.success, contrastText: "#FFFFFF" },
-    error: {
-      main: isLight ? semantic.errorOnLight : semantic.errorOnDark,
-      contrastText: isLight ? "#FFFFFF" : gray[900],
-    },
-    warning: { main: semantic.warning, contrastText: gray[900] },
-    info: { main: semantic.info, contrastText: "#FFFFFF" },
-    background: {
-      default: isLight ? gray[50] : primary[900],
-      paper: isLight ? "#FFFFFF" : gray[800],
-    },
-    text: {
-      primary: isLight ? gray[900] : gray[50],
-      secondary: isLight ? gray[600] : gray[300],
-    },
-    divider: isLight ? gray[200] : gray[700],
-  };
+  // Los roles viven en `theme/roles.ts` (D109): también los genera
+  // `scripts/tokens-css.ts` a variables CSS para los componentes shadcn.
+  return { mode, ...modeRoles(mode) };
 }
 
 function getShapeOptions(): ThemeOptions["shape"] {

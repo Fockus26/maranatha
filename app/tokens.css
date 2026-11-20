@@ -1,0 +1,253 @@
+/*
+ * GENERADO por `bun scripts/tokens-css.ts` desde theme/tokens.ts y
+ * theme/roles.ts (D109). No se edita a mano: tests/unit/tokens-css.test.ts
+ * falla si no coincide.
+ */
+
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1200px;
+  --breakpoint-xl: 1536px;
+  --color-*: initial;
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-primary-50: #EEF0F7;
+  --color-primary-100: #D7DBEB;
+  --color-primary-200: #AFB7D6;
+  --color-primary-300: #8894C2;
+  --color-primary-400: #5B6B9E;
+  --color-primary-500: #37447A;
+  --color-primary-600: #1E2B5C;
+  --color-primary-700: #101B45;
+  --color-primary-800: #0B1433;
+  --color-primary-900: #060A1D;
+  --color-secondary-50: #FFF4EA;
+  --color-secondary-100: #FEE1C4;
+  --color-secondary-200: #FDC48A;
+  --color-secondary-300: #FCA355;
+  --color-secondary-400: #FA8A2E;
+  --color-secondary-500: #F9750D;
+  --color-secondary-600: #DC5F02;
+  --color-secondary-700: #B34C02;
+  --color-secondary-800: #8A3B03;
+  --color-secondary-900: #612903;
+  --color-gray-50: #F5F6FA;
+  --color-gray-100: #E7E9F1;
+  --color-gray-200: #CBD0E0;
+  --color-gray-300: #A6AEC7;
+  --color-gray-400: #7C86A8;
+  --color-gray-500: #5B6480;
+  --color-gray-600: #434A63;
+  --color-gray-700: #2F3448;
+  --color-gray-800: #1D2032;
+  --color-gray-900: #12131F;
+  --color-success-filled: #0B7A54;
+  --color-error: #EF4444;
+  --color-error-on-light: #C62828;
+  --color-error-on-dark: #F87171;
+  --color-on-navy: #FFFFFF;
+  --color-on-navy-muted: rgba(255,255,255,0.75);
+  --color-on-navy-subtle: rgba(255,255,255,0.65);
+  --color-on-navy-hover: rgba(255,255,255,0.08);
+  --color-on-navy-divider: rgba(255,255,255,0.15);
+  --color-on-navy-border: rgba(255,255,255,0.08);
+  --text-*: initial;
+  --text-h1: 36px;
+  --text-h1--line-height: 1.1;
+  --text-h2: 28px;
+  --text-h2--line-height: 1.15;
+  --text-h3: 22px;
+  --text-h3--line-height: 1.2;
+  --text-h4: 18px;
+  --text-h4--line-height: 1.25;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+  --text-body: 16px;
+  --text-body--line-height: 1.6;
+  --text-small: 14px;
+  --text-small--line-height: 1.5;
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-17: 17px;
+  --text-18: 18px;
+  --text-19: 19px;
+  --text-20: 20px;
+  --text-22: 22px;
+  --text-26: 26px;
+  --text-28: 28px;
+  --text-32: 32px;
+  --text-34: 34px;
+  --text-40: 40px;
+  --text-46: 46px;
+  --text-54: 54px;
+  --text-56: 56px;
+  --text-64: 64px;
+  --text-10_5: 10.5px;
+  --text-11_5: 11.5px;
+  --leading-*: initial;
+  --leading-h1: 1.1;
+  --leading-h2: 1.15;
+  --leading-h3: 1.2;
+  --leading-h4: 1.25;
+  --leading-body: 1.6;
+  --leading-small: 1.5;
+  --leading-button: 1.75;
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-sans: var(--font-body), sans-serif;
+  --spacing: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+  --container-*: initial;
+  --container-narrow: 960px;
+  --container-form-drawer: 560px;
+  --radius-*: initial;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --shadow-*: initial;
+  --shadow-sm: 0 1px 3px rgba(6, 10, 29, 0.06);
+  --shadow-md: 0 2px 8px rgba(6, 10, 29, 0.08);
+  --shadow-lg: 0 4px 16px rgba(6, 10, 29, 0.10);
+  --shadow-hover: 0 8px 20px rgba(6, 10, 29, 0.10);
+  --shadow-hover-navy: 0 10px 30px rgba(6, 10, 29, 0.28);
+  --z-index-base: 0;
+  --z-index-navbar: 100;
+  --z-index-sidebar: 200;
+  --z-index-dropdown: 300;
+  --z-index-modal-backdrop: 400;
+  --z-index-modal: 410;
+  --z-index-toast: 500;
+  --z-index-progress: 600;
+}
+
+@theme inline reference {
+  --font-heading: var(--font-heading), sans-serif;
+  --font-body: var(--font-body), sans-serif;
+}
+
+@media (width >= 600px) {
+  :root {
+    --text-h1: 60px;
+    --text-h2: 44px;
+    --text-h3: 30px;
+    --text-h4: 22px;
+  }
+}
+
+:root {
+  --background: #F5F6FA;
+  --foreground: #12131F;
+  --card: #FFFFFF;
+  --card-foreground: #12131F;
+  --popover: #FFFFFF;
+  --popover-foreground: #12131F;
+  --primary: #101B45;
+  --primary-foreground: #FFFFFF;
+  --primary-light: #37447A;
+  --primary-dark: #060A1D;
+  --secondary: #B34C02;
+  --secondary-foreground: #FFFFFF;
+  --secondary-light: #FCA355;
+  --secondary-dark: #B34C02;
+  --muted-foreground: #434A63;
+  --destructive: #C62828;
+  --destructive-foreground: #FFFFFF;
+  --success: #16B37A;
+  --success-foreground: #FFFFFF;
+  --warning: #F5A524;
+  --warning-foreground: #12131F;
+  --info: #3B9EF5;
+  --info-foreground: #FFFFFF;
+  --border: #CBD0E0;
+  --input: #CBD0E0;
+}
+
+[data-color-mode="dark"] {
+  --background: #060A1D;
+  --foreground: #F5F6FA;
+  --card: #1D2032;
+  --card-foreground: #F5F6FA;
+  --popover: #1D2032;
+  --popover-foreground: #F5F6FA;
+  --primary: #5B6B9E;
+  --primary-foreground: #12131F;
+  --primary-light: #8894C2;
+  --primary-dark: #1E2B5C;
+  --secondary: #F9750D;
+  --secondary-foreground: #FFFFFF;
+  --secondary-light: #FCA355;
+  --secondary-dark: #B34C02;
+  --muted-foreground: #A6AEC7;
+  --destructive: #F87171;
+  --destructive-foreground: #12131F;
+  --success: #16B37A;
+  --success-foreground: #FFFFFF;
+  --warning: #F5A524;
+  --warning-foreground: #12131F;
+  --info: #3B9EF5;
+  --info-foreground: #FFFFFF;
+  --border: #2F3448;
+  --input: #2F3448;
+}
+
+[data-surface="navy"] {
+  --background: #060A1D;
+  --foreground: #FFFFFF;
+  --card: #060A1D;
+  --card-foreground: #FFFFFF;
+  --popover: #060A1D;
+  --popover-foreground: #FFFFFF;
+  --muted-foreground: rgba(255,255,255,0.75);
+  --border: rgba(255,255,255,0.15);
+  --input: rgba(255,255,255,0.15);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--focus-ring);
+}
