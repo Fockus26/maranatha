@@ -11,12 +11,8 @@
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
 | Versión (changesets de la tanda 2026-11-19 y anteriores) | `changeset-release/main` | PR #46 — lo mergea César | — |
-| W1 skeleton por página (tanda 2026-11-20) | `feat/skeletons-por-pagina` | PR #52 — mergeado | `PHASE_LOG/feat-skeletons-por-pagina.md` |
-| W2 caché del panel | `feat/cache-panel` | PR #55 — mergeado | `PHASE_LOG/feat-cache-panel.md` |
-| W3 separación Ofrendar | `fix/ofrendar-separacion` | PR #53 — mergeado | `PHASE_LOG/fix-ofrendar-separacion.md` |
-| W4 ojo + iniciales | `feat/panel-perfil-y-contrasena` | PR #54 — mergeado | `PHASE_LOG/feat-panel-perfil-y-contrasena.md` |
 
-Tanda 2026-11-19 cerrada (#47–#51, main @ be90296): `PHASE_LOG/tanda-2026-11-19.md`, QA en `plans/qa-tanda-2026-11-19.md`; medios y bajos en `plans/backlog.md`. Todos los PRs que listaba este tablero (#2–#33) están mergeados.
+Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ fc94345, sin deploy: ver Bloquea); logs en `PHASE_LOG/` de cada rama. Tanda 2026-11-19: `PHASE_LOG/tanda-2026-11-19.md`.
 
 ## Bloquea (acciones de César o externas)
 
