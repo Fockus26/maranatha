@@ -109,7 +109,7 @@ function Field({
         data-disabled={disabled}
         className={cn("group/field flex min-w-0 flex-col", className)}
       >
-        <Label id={labelId} htmlFor={controlId} className="mb-1.5">
+        <Label id={labelId} htmlFor={controlId} className="mb-0.75">
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Label>
@@ -128,7 +128,7 @@ function Field({
 }
 
 /** Texto bajo el campo: el `FormHelperText` de MUI (12 px, sangrado 14 px). */
-const helperClasses = "mx-3.5 mt-0.75 mb-0 font-body text-12 leading-small";
+const helperClasses = "mx-3.5 mt-0.75 mb-0 font-body text-12";
 
 function FieldDescription({ className, ...props }: ComponentProps<"p">) {
   return (
