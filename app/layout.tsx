@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { Toaster } from "@/components/ui/sonner";
 import { TitheModal } from "@/components/ui/TitheModal";
 import {
   SITE_DESCRIPTION,
@@ -95,6 +96,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </TitheModalProvider>
           <NavigationProgress />
         </ThemeRegistry>
+        <Toaster />
         <ServiceWorkerRegister />
         {/* Solo en Vercel: fuera de ahí el script `/_vercel/insights` da 404. */}
         {process.env.VERCEL === "1" && <Analytics />}
