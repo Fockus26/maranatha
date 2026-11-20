@@ -1,12 +1,14 @@
 "use client";
 
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -30,6 +32,11 @@ export interface ConfirmDialogProps {
   pending?: boolean;
 }
 
+/**
+ * Confirmación modal sobre el `dialog` de shadcn (D117). Mismo contrato que
+ * la versión MUI: con `pending` no se cierra ni con Escape ni con clic fuera.
+ * Radix devuelve el foco al disparador al cerrar y atrapa el Tab dentro.
+ */
 export function ConfirmDialog({
   open,
   title,
@@ -42,45 +49,51 @@ export function ConfirmDialog({
   pending = false,
 }: ConfirmDialogProps) {
   return (
-    // `elevation: 0` — el Paper del Dialog usa `elevation={24}` por defecto y
-    // en modo oscuro MUI le suma automáticamente un overlay blanco
-    // translúcido proporcional a la elevación, lo que aclara el fondo del
-    // modal más de lo esperado (mismo diagnóstico que `TitheModal`, D057/D058).
     <Dialog
       open={open}
-      onClose={pending ? undefined : onClose}
-      maxWidth="xs"
-      fullWidth
-      slotProps={{ paper: { elevation: 0 } }}
+      onOpenChange={(next) => {
+        if (!next && !pending) onClose();
+      }}
     >
-      {/* Feedback de cliente: el modal de confirmar (usado para eliminar
-          proyecto, entre otros) se sentía "apretado" — se sube el padding
-          horizontal/vertical en las 3 secciones del dialog en vez de dejar
-          el default de MUI (16-20px). */}
-      <DialogTitle sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}>
-        {title}
-      </DialogTitle>
-      <DialogContent sx={{ px: 3.5, pb: 1 }}>
-        <DialogContentText>{description}</DialogContentText>
+      <DialogContent
+        showCloseButton={false}
+        // El foco inicial va al botón de cancelar (el primero), no al de
+        // confirmar: una acción destructiva no debe quedar a un Enter.
+        onEscapeKeyDown={(e) => {
+          if (pending) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (pending) e.preventDefault();
+        }}
+      >
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription asChild>
+          <div>{description}</div>
+        </DialogDescription>
+        <DialogFooter className="mt-3">
+          <Button
+            onClick={onClose}
+            color="primary"
+            variant="outlined"
+            disabled={pending}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            onClick={onConfirm}
+            disabled={pending}
+            color={destructive ? "primary" : "secondary"}
+            variant="contained"
+            className={
+              destructive
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90"
+                : undefined
+            }
+          >
+            {confirmLabel}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3.5, pb: 3.5, pt: 1.5 }}>
-        <Button
-          onClick={onClose}
-          color="primary"
-          variant="outlined"
-          disabled={pending}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          onClick={onConfirm}
-          disabled={pending}
-          color={destructive ? "error" : "secondary"}
-          variant="contained"
-        >
-          {confirmLabel}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
