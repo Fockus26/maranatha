@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { DashboardAgenda } from "@/components/ui/DashboardAgenda";
-import { listAgendaEvents } from "@/lib/agenda/repository";
+import { getAgendaVersion, listAgendaEvents } from "@/lib/agenda/repository";
 import { requireAdmin } from "@/lib/auth/admin";
 
 export const metadata: Metadata = {
@@ -16,6 +16,8 @@ export const metadata: Metadata = {
  */
 export default async function DashboardAgendaPage() {
   await requireAdmin();
+  // Versión antes que los datos (D104, mismo criterio que `/dashboard/pagos`).
+  const version = await getAgendaVersion();
   const result = await listAgendaEvents();
 
   return (
@@ -23,6 +25,7 @@ export default async function DashboardAgendaPage() {
       <DashboardAgenda
         events={result.ok ? result.data : []}
         loadError={!result.ok}
+        version={version.ok ? version.data : null}
       />
     </DashboardShell>
   );

@@ -15,6 +15,7 @@ import {
 } from "drizzle-orm";
 import { db, isDbConfigured, pgErrorCode, UNIQUE_VIOLATION } from "@/lib/db";
 import { payments, projectRaised, settings } from "@/lib/db/schema";
+import type { PanelVersion } from "@/lib/panelFreshness";
 import type {
   PaymentCurrency,
   PaymentFrequency,
@@ -481,6 +482,39 @@ export async function getPaymentStats(): Promise<
     };
   } catch (error) {
     return fail("getPaymentStats", error);
+  }
+}
+
+/**
+ * Versión de los datos del panel de pagos (D104): cuántos pagos hay y su
+ * último `updated_at` (lo mantiene el trigger `payments_set_updated_at`), más
+ * el de `settings` (tasas de respaldo). Una sola query; cualquier alta, baja o
+ * cambio de estado la mueve. Solo se compara, no se interpreta.
+ */
+export async function getPaymentsVersion(): Promise<
+  Result<PanelVersion, RepoError>
+> {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .select({
+        total: count(),
+        last: sql<string | null>`max(${payments.updatedAt})::text`,
+        settingsLast: sql<
+          string | null
+        >`(select max(${settings.updatedAt})::text from ${settings})`,
+      })
+      .from(payments);
+    if (!row) return { ok: false, error: "db_error" };
+    return {
+      ok: true,
+      data: {
+        token: `${row.total}|${row.last ?? ""}|${row.settingsLast ?? ""}`,
+        at: Date.now(),
+      },
+    };
+  } catch (error) {
+    return fail("getPaymentsVersion", error);
   }
 }
 

@@ -33,6 +33,7 @@ import {
   parseLocalDate,
   WEEKDAY_NAMES,
 } from "@/lib/agenda/schema";
+import type { PanelVersion } from "@/lib/panelFreshness";
 import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
 import {
   common,
@@ -45,6 +46,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardFormDrawer, DrawerSection } from "./DashboardFormDrawer";
 import { DateField } from "./DateField";
 import { EmptyState } from "./EmptyState";
+import { PanelFreshness } from "./PanelFreshness";
 import { TimeField } from "./TimeField";
 
 /**
@@ -426,9 +428,12 @@ function EventGroup({
 export function DashboardAgenda({
   events,
   loadError,
+  version,
 }: {
   events: AgendaEvent[];
   loadError: boolean;
+  /** Versión de los datos con la que se renderizó (D104); null si no se leyó. */
+  version: PanelVersion | null;
 }) {
   const theme = useTheme();
   const [pending, startTransition] = useTransition();
@@ -502,6 +507,7 @@ export function DashboardAgenda({
         mx: "auto",
       }}
     >
+      <PanelFreshness scope="agenda" version={version} />
       <Box
         sx={{
           display: "flex",
