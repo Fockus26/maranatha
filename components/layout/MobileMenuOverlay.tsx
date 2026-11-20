@@ -273,7 +273,7 @@ export default function MobileMenuOverlay({
           >
             <ThemeToggle
               size="medium"
-              className="hover:text-foreground dark:text-on-navy-muted dark:hover:bg-white/12 dark:hover:text-on-navy"
+              className="hover:bg-accent hover:text-foreground dark:text-on-navy-muted dark:hover:text-on-navy"
             />
             <Button
               onClick={() => {
