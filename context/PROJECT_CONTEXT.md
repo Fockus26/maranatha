@@ -98,7 +98,7 @@ PENDIENTE (no quedó registrado).
 ## Repo y despliegue
 
 - Repo: https://github.com/Fockus26/maranatha (`delete_branch_on_merge` activo; `main` sin protección de rama)
-- kit-deploy (D093): `main` → https://maranatha.fockus.dev, cada PR → `maranatha-pr-<n>.preview.fockus.dev`; encendido con la variable del repo `KIT_DEPLOY_ENABLED`. Producción usa la base `maranatha`; previews y development, `maranatha_preview`
+- kit-deploy (D093): `main` → https://maranathasancristobal.com (D108; `www` redirige; `maranatha.fockus.dev` ya no responde), cada PR → `maranatha-pr-<n>.preview.fockus.dev`; encendido con la variable del repo `KIT_DEPLOY_ENABLED`. Producción usa la base `maranatha`; previews y development, `maranatha_preview`
 - Vercel: respaldo una semana, publica `main` (D091; no indexable, D073); luego decide César
 - Mantenimiento: no aplica (no hay página de mantenimiento)
 - Secreto en GitHub: `KIT_DEPLOY_TOKEN` (`deploy-vps.yml`). `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` quedan sin uso (D093): borrarlos lo decide César
@@ -118,8 +118,8 @@ Detalle de tamaños y archivos: `reference/BRAND-ASSETS.md` del kit.
 ## Correos
 
 Un solo correo: la recuperación de contraseña del dashboard (D082), con React Email
-(`lib/email/`) por Brevo SMTP (`SMTP_*`; remitente `"Iglesia Maranatha" <maranatha@fockus.dev>`, dominio
-`fockus.dev` autenticado en Brevo con DKIM/SPF/DMARC en Cloudflare). Las cuentas se crean con `bun scripts/create-admin.ts`; sin registro.
+(`lib/email/`) por Brevo SMTP (`SMTP_*`; remitente `"Iglesia Maranatha" <maranatha@maranathasancristobal.com>`, dominio
+`maranathasancristobal.com` autenticado en Brevo con DKIM/DMARC en Cloudflare, D108). Las cuentas se crean con `bun scripts/create-admin.ts`; sin registro.
 En QA los correos caen en Mailpit.
 
 ## Track de fases

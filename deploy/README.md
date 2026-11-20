@@ -4,7 +4,7 @@ Una sola rama: **`main`** (D091). Dos lugares la publican mientras dure la trans
 
 | Dónde | Qué publica | Cómo se dispara |
 |---|---|---|
-| **kit-deploy** (VPS de César) | `main` → `https://maranatha.fockus.dev`; cada PR → `https://maranatha-pr-<n>.preview.fockus.dev` | `.github/workflows/deploy-vps.yml`, solo con la variable del repo `KIT_DEPLOY_ENABLED=true` |
+| **kit-deploy** (VPS de César) | `main` → `https://maranathasancristobal.com` (D108; `www` redirige); cada PR → `https://maranatha-pr-<n>.preview.fockus.dev` | `.github/workflows/deploy-vps.yml`, solo con la variable del repo `KIT_DEPLOY_ENABLED=true` |
 | Vercel (respaldo, una semana) | `main` y sus previews | Merge a `main` → Vercel lo publica solo |
 
 Archivos de cada lado:
@@ -16,6 +16,9 @@ Archivos de cada lado:
 ---
 
 ## Pasar el sitio a kit-deploy (una sola vez, César)
+
+> Hecho en 2026-11-18 con `maranatha.fockus.dev`; el dominio propio entró el 2026-11-20 (sección siguiente).
+> Las URLs de abajo quedan como estaban en ese paso.
 
 Todo por `ssh kit-vps` desde la terminal de César. Ningún secreto pasa por el chat ni por un archivo.
 
@@ -59,6 +62,21 @@ Todo por `ssh kit-vps` desde la terminal de César. Ningún secreto pasa por el 
    `{"ok":true,"sha":…}`, el login del panel, y en el preview de un PR un reporte de pago con comprobante de
    ~4 MB. PayPal Live: webhook a `https://maranatha.fockus.dev/api/payments/paypal/webhook` y su id en
    `PAYPAL_WEBHOOK_ID` (production).
+
+## Dominio propio: maranathasancristobal.com (D108)
+
+- **DNS:** en la cuenta de Cloudflare de César (nameservers `andronicus` / `cortney`). El dominio sigue registrado
+  en Namecheap a nombre de un tercero, que lo renueva. Todo DNS-only (nube gris), sin AAAA:
+  `A @` y `A www` → IP del VPS.
+- **kit-deploy:** `domain add maranatha maranathasancristobal.com` y
+  `domain add maranatha www.maranathasancristobal.com --redirect to-apex` (308 al dominio sin `www`).
+  `maranatha.fockus.dev` se quitó el 2026-11-20 (`domain rm … --force`): ya no responde.
+- **production:** `NEXT_PUBLIC_SITE_URL` y `BETTER_AUTH_URL` = `https://maranathasancristobal.com`.
+- **Correo:** dominio autenticado en Brevo (TXT `brevo-code`, CNAME `brevo1._domainkey` / `brevo2._domainkey`,
+  TXT `_dmarc`). Remitente `"Iglesia Maranatha" <maranatha@maranathasancristobal.com>` en `SMTP_FROM`
+  (production y preview). Sin MX: el dominio no recibe correo.
+- **PayPal Live:** webhook a `https://maranathasancristobal.com/api/payments/paypal/webhook`; si cambia su id,
+  va en `PAYPAL_WEBHOOK_ID` (production).
 
 ## Operación
 
