@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { type ReactNode, type Ref, useEffect, useRef, useState } from "react";
+import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,7 +36,7 @@ export function StepTransition({
   second: ReactNode | null;
   firstRef?: Ref<HTMLDivElement>;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useHydratedReducedMotion();
   const duration = reduce ? 0 : DURATION;
   const shift = reduce ? 0 : SHIFT;
 

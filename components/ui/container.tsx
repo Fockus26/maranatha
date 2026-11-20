@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Contenedor de página (D119): el `Container` de MUI con el tema del sitio.
- * Centrado, 100 % de ancho, gutters de 16 px (24 px desde `sm`) y tope por
+ * Centrado, 100 % de ancho, gutters de 8 px (12 desde `sm`: el `spacing` del tema es de 4 px por unidad) y tope por
  * `maxWidth`. `lg` (el de las secciones) sube a 1440 desde `xl` (1536) y a
  * 1600 desde 1920 (`wide:`), como el override de `MuiContainer` en
  * `theme/theme.ts`; los anchos salen de `layout.page` (`max-w-page-*`).
@@ -24,7 +24,7 @@ const containerVariants = cva("mx-auto box-border block w-full", {
     },
     disableGutters: {
       true: "",
-      false: "px-4 sm:px-6",
+      false: "px-2 sm:px-3",
     },
   },
   defaultVariants: { maxWidth: "lg", disableGutters: false },
