@@ -1,28 +1,12 @@
 "use client";
 
-import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import Box from "@mui/material/Box";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
-import IconButton from "@mui/material/IconButton";
-import Popper from "@mui/material/Popper";
-import { useTheme } from "@mui/material/styles";
-import { motion } from "framer-motion";
-import {
-  type KeyboardEvent,
-  type MouseEvent,
-  useId,
-  useRef,
-  useState,
-} from "react";
-import {
-  common,
-  fontScale,
-  radius,
-  secondary,
-  typography,
-} from "@/theme/tokens";
+import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { Field } from "./field";
+import { fieldControlClasses } from "./input";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export interface DateFieldProps {
   label: string;
@@ -37,7 +21,6 @@ export interface DateFieldProps {
   max?: string;
 }
 
-const EASE = [0.2, 0.8, 0.2, 1] as const;
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
 const MONTH_FORMATTER = new Intl.DateTimeFormat("es", {
   month: "long",
@@ -77,6 +60,25 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
+function isSameMonth(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+}
+
+function addDays(date: Date, n: number) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
+}
+
+/** Mismo día del mes `n` meses después (el 31 cae en el último día). */
+function addMonths(date: Date, n: number) {
+  const first = new Date(date.getFullYear(), date.getMonth() + n, 1);
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+  return new Date(
+    first.getFullYear(),
+    first.getMonth(),
+    Math.min(date.getDate(), last.getDate()),
+  );
+}
+
 // La semana arranca en lunes (convención en español) — a diferencia de
 // `Date.getDay()` (0 = domingo), se remapea a 0 = lunes … 6 = domingo.
 function mondayIndex(date: Date) {
@@ -89,32 +91,20 @@ function buildMonthGrid(viewDate: Date): Date[] {
   const firstOfMonth = new Date(year, month, 1);
   const startOffset = mondayIndex(firstOfMonth);
   const gridStart = new Date(year, month, 1 - startOffset);
-  return Array.from(
-    { length: 42 },
-    (_, i) =>
-      new Date(
-        gridStart.getFullYear(),
-        gridStart.getMonth(),
-        gridStart.getDate() + i,
-      ),
-  );
+  return Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
 }
 
 /**
- * Calendario propio (revisión — reemplaza la primera versión, D062): esa
- * primera versión mantenía el `<input type="date">` nativo con un contenedor
- * estilizado alrededor, pero al hacer click seguía abriendo el picker del
- * sistema operativo/navegador — el cliente aclaró que quería un calendario
- * con estilo propio, no solo un trigger estilizado sobre el picker nativo.
+ * Calendario propio (D062): mes/año + grilla de días, sin librería de
+ * calendario ni de fechas. El valor se guarda como string `YYYY-MM-DD`.
  *
- * Se construye un dropdown propio (mes/año + grilla de días) usando
- * `Popper`/`ClickAwayListener`, ya disponibles en MUI — sin sumar ninguna
- * librería de calendario ni de fechas nueva (mismo criterio que evitar
- * `@mui/x-date-pickers`, documentado en D062: esta sesión no puede correr
- * `npm install` en la máquina del cliente). La matemática de fechas es
- * simple (sin `date-fns`/`dayjs`). El valor se sigue guardando como string
- * `YYYY-MM-DD`, igual que antes — no cambia nada para quien consume
- * `DashboardProjectForm`.
+ * Sobre Radix Popover (D115): clic fuera y Escape cierran, y al cerrar el
+ * foco vuelve al campo. Al abrir, el foco va al día elegido (o a hoy); las
+ * flechas mueven un día / una semana, Inicio/Fin al borde de la semana y
+ * RePág/AvPág un mes (la grilla es una sola parada de Tab). Tab fuera del
+ * panel lo cierra y devuelve el foco al campo. Dentro de un `Dialog`/`Drawer`
+ * de MUI el panel se porta a ese `role="dialog"` (su trampa de foco lo
+ * respeta) y Escape no llega a cerrar el modal.
  */
 export function DateField({
   label,
@@ -124,33 +114,44 @@ export function DateField({
   helperText,
   max,
 }: DateFieldProps) {
-  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const selected = parseValue(value);
-  const [viewDate, setViewDate] = useState<Date>(selected ?? new Date());
-  const anchorRef = useRef<HTMLButtonElement>(null);
-  const labelId = useId();
-
-  function toggleOpen(e: MouseEvent) {
-    e.stopPropagation();
-    setOpen((prev) => {
-      const next = !prev;
-      if (next) setViewDate(selected ?? new Date());
-      return next;
-    });
-  }
-
-  function handleTriggerKeyDown(e: KeyboardEvent) {
-    if (e.key === "Escape" && open) {
-      e.stopPropagation();
-      setOpen(false);
-    }
-  }
-
-  const today = new Date();
   const maxDate = max ? parseValue(max) : null;
+  const [viewDate, setViewDate] = useState<Date>(selected ?? new Date());
+  const [focusDate, setFocusDate] = useState<Date>(selected ?? new Date());
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const moveFocus = useRef(false);
+  const valueId = useId();
+
   const isAfterMax = (day: Date) =>
     Boolean(maxDate && day > maxDate && !isSameDay(day, maxDate));
+
+  function handleOpenChange(next: boolean) {
+    if (next) {
+      const today = new Date();
+      let start = selected ?? today;
+      if (isAfterMax(start) && maxDate) start = maxDate;
+      setViewDate(start);
+      setFocusDate(start);
+      setContainer(
+        triggerRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null,
+      );
+    }
+    setOpen(next);
+  }
+
+  // Tras mover con el teclado, el foco sigue al día (que puede ser de otro mes).
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    contentRef.current
+      ?.querySelector<HTMLElement>(`[data-date="${formatValue(focusDate)}"]`)
+      ?.focus();
+  }, [focusDate]);
+
+  const today = new Date();
   const nextMonthStart = new Date(
     viewDate.getFullYear(),
     viewDate.getMonth() + 1,
@@ -159,6 +160,13 @@ export function DateField({
   const days = buildMonthGrid(viewDate);
   const currentMonth = viewDate.getMonth();
   const monthLabel = MONTH_FORMATTER.format(viewDate);
+  // Una sola parada de Tab en la grilla: el día enfocado si está a la vista,
+  // si no el elegido, si no el primero del mes.
+  const tabDate = isSameMonth(focusDate, viewDate)
+    ? focusDate
+    : selected && isSameMonth(selected, viewDate)
+      ? selected
+      : new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
 
   function selectDay(day: Date) {
     onChange(formatValue(day));
@@ -171,253 +179,197 @@ export function DateField({
     );
   }
 
+  function handleDayKeyDown(e: KeyboardEvent, day: Date) {
+    let next: Date | null = null;
+    switch (e.key) {
+      case "ArrowLeft":
+        next = addDays(day, -1);
+        break;
+      case "ArrowRight":
+        next = addDays(day, 1);
+        break;
+      case "ArrowUp":
+        next = addDays(day, -7);
+        break;
+      case "ArrowDown":
+        next = addDays(day, 7);
+        break;
+      case "Home":
+        next = addDays(day, -mondayIndex(day));
+        break;
+      case "End":
+        next = addDays(day, 6 - mondayIndex(day));
+        break;
+      case "PageUp":
+        next = addMonths(day, -1);
+        break;
+      case "PageDown":
+        next = addMonths(day, 1);
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    if (isAfterMax(next)) return;
+    moveFocus.current = true;
+    setFocusDate(next);
+    if (!isSameMonth(next, viewDate)) {
+      setViewDate(new Date(next.getFullYear(), next.getMonth(), 1));
+    }
+  }
+
+  function handleContentKeyDown(e: KeyboardEvent) {
+    // Radix ya cerró el panel; sin esto el Escape sube por el árbol de React
+    // hasta el `Dialog`/`Drawer` de MUI y lo cierra también.
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    // El panel vive fuera del flujo del formulario: al salir por cualquiera
+    // de sus extremos se cierra y el foco vuelve al campo.
+    const stops = contentRef.current?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled):not([tabindex="-1"])',
+    );
+    if (!stops?.length) return;
+    const first = stops[0];
+    const last = stops[stops.length - 1];
+    if (
+      (e.shiftKey && document.activeElement === first) ||
+      (!e.shiftKey && document.activeElement === last)
+    ) {
+      e.preventDefault();
+      setOpen(false);
+    }
+  }
+
   return (
-    <Box>
-      <Box
-        component="span"
-        id={labelId}
-        sx={{
-          display: "block",
-          fontSize: fontScale[12],
-          fontWeight: 500,
-          color: error
-            ? theme.palette.error.main
-            : theme.palette.text.secondary,
-          mb: 0.75,
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <Field label={label} error={error ? helperText || true : undefined}>
+        {(control, { labelId }) => (
+          <PopoverTrigger asChild>
+            <button
+              ref={triggerRef}
+              type="button"
+              {...control}
+              aria-labelledby={`${labelId} ${valueId}`}
+              className={cn(
+                fieldControlClasses,
+                "cursor-pointer justify-between gap-2 text-start",
+              )}
+            >
+              <span
+                id={valueId}
+                className={cn(!selected && "text-muted-foreground")}
+              >
+                {selected
+                  ? DISPLAY_FORMATTER.format(selected)
+                  : "Seleccionar fecha"}
+              </span>
+              <Calendar
+                aria-hidden
+                className="size-5 shrink-0 text-muted-foreground"
+              />
+            </button>
+          </PopoverTrigger>
+        )}
+      </Field>
+
+      <PopoverContent
+        ref={contentRef}
+        container={container}
+        align="start"
+        aria-label={`${label} — elegir fecha`}
+        onKeyDown={handleContentKeyDown}
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          contentRef.current
+            ?.querySelector<HTMLElement>('[data-date][tabindex="0"]')
+            ?.focus({ preventScroll: true });
         }}
       >
-        {label}
-      </Box>
-
-      <Box
-        ref={anchorRef}
-        component="button"
-        type="button"
-        onClick={toggleOpen}
-        onKeyDown={handleTriggerKeyDown}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-labelledby={labelId}
-        aria-invalid={error || undefined}
-        aria-describedby={error && helperText ? `${labelId}-error` : undefined}
-        sx={{
-          display: "flex",
-          width: "100%",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 1,
-          border: `1px solid ${error ? theme.palette.error.main : open ? theme.palette.primary.main : theme.palette.divider}`,
-          borderRadius: `${radius.sm}px`,
-          backgroundColor: theme.palette.background.paper,
-          px: 1.75,
-          height: 40,
-          cursor: "pointer",
-          transition: theme.transitions.create(["border-color"], {
-            duration: theme.transitions.duration.shortest,
-          }),
-          "&:hover": {
-            borderColor: error
-              ? theme.palette.error.main
-              : theme.palette.text.secondary,
-          },
-        }}
-      >
-        <Box
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[14],
-            color: selected
-              ? theme.palette.text.primary
-              : theme.palette.text.secondary,
-          }}
-        >
-          {selected ? DISPLAY_FORMATTER.format(selected) : "Seleccionar fecha"}
-        </Box>
-        <CalendarMonthRoundedIcon
-          fontSize="small"
-          sx={{ color: theme.palette.text.secondary, flexShrink: 0 }}
-        />
-      </Box>
-
-      {error && helperText && (
-        <Box
-          component="p"
-          id={`${labelId}-error`}
-          role="alert"
-          sx={{
-            m: 0,
-            mt: 0.75,
-            ml: 1.75,
-            fontSize: fontScale[12],
-            color: theme.palette.error.main,
-          }}
-        >
-          {helperText}
-        </Box>
-      )}
-
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-        sx={{ zIndex: (t) => t.zIndex.modal + 10 }}
-        modifiers={[{ name: "offset", options: { offset: [0, 6] } }]}
-      >
-        <ClickAwayListener onClickAway={() => setOpen(false)}>
-          <Box
-            component={motion.div}
-            role="dialog"
-            aria-label={`${label} — elegir fecha`}
-            onKeyDown={(e: KeyboardEvent) => {
-              if (e.key === "Escape") {
-                setOpen(false);
-                anchorRef.current?.focus();
-              }
-            }}
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.16, ease: EASE }}
-            sx={{
-              width: 280,
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.md}px`,
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: theme.shadows[8],
-              p: 2,
-            }}
+        <div className="mb-3 flex items-center justify-between">
+          <Button
+            variant="plain"
+            size="icon"
+            className="size-7.5 p-1.25"
+            onClick={() => shiftMonth(-1)}
+            aria-label="Mes anterior"
           >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                mb: 1.5,
-              }}
-            >
-              <IconButton
-                type="button"
-                size="small"
-                onClick={() => shiftMonth(-1)}
-                aria-label="Mes anterior"
-              >
-                <ChevronLeftRoundedIcon fontSize="small" />
-              </IconButton>
-              <Box
-                component="span"
-                sx={{
-                  fontFamily: typography.fontFamily.heading,
-                  fontWeight: 600,
-                  fontSize: fontScale[13],
-                  color: theme.palette.text.primary,
-                  textTransform: "capitalize",
-                }}
-              >
-                {monthLabel}
-              </Box>
-              <IconButton
-                type="button"
-                size="small"
-                onClick={() => shiftMonth(1)}
-                aria-label="Mes siguiente"
-                disabled={isAfterMax(nextMonthStart)}
-              >
-                <ChevronRightRoundedIcon fontSize="small" />
-              </IconButton>
-            </Box>
+            <ChevronLeft aria-hidden className="size-5" />
+          </Button>
+          <span
+            aria-live="polite"
+            className="font-heading font-semibold text-13 text-foreground capitalize"
+          >
+            {monthLabel}
+          </span>
+          <Button
+            variant="plain"
+            size="icon"
+            className="size-7.5 p-1.25"
+            onClick={() => shiftMonth(1)}
+            aria-label="Mes siguiente"
+            disabled={isAfterMax(nextMonthStart)}
+          >
+            <ChevronRight aria-hidden className="size-5" />
+          </Button>
+        </div>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                gap: 0.5,
-                mb: 0.5,
-              }}
+        <div className="mb-1 grid grid-cols-7 gap-1">
+          {WEEKDAY_LABELS.map((day) => (
+            <div
+              key={day}
+              className="py-1 text-center font-medium text-11 text-muted-foreground"
             >
-              {WEEKDAY_LABELS.map((day) => (
-                <Box
-                  key={day}
-                  sx={{
-                    textAlign: "center",
-                    fontSize: fontScale[11],
-                    fontWeight: 500,
-                    color: theme.palette.text.secondary,
-                    py: 0.5,
-                  }}
-                >
-                  {day}
-                </Box>
-              ))}
-            </Box>
+              {day}
+            </div>
+          ))}
+        </div>
 
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
-                gap: 0.5,
-              }}
-            >
-              {days.map((day) => {
-                const inCurrentMonth = day.getMonth() === currentMonth;
-                const isSelected = selected ? isSameDay(day, selected) : false;
-                const isToday = isSameDay(day, today);
-                const disabled = isAfterMax(day);
-                return (
-                  <Box
-                    key={day.toISOString()}
-                    component="button"
-                    type="button"
-                    onClick={() => selectDay(day)}
-                    disabled={disabled}
-                    aria-label={FULL_DATE_FORMATTER.format(day)}
-                    aria-pressed={isSelected}
-                    aria-current={isToday ? "date" : undefined}
-                    sx={{
-                      width: "100%",
-                      aspectRatio: "1 / 1",
-                      border: "none",
-                      borderRadius: `${radius.sm}px`,
-                      // Blanco sobre `secondary[700]` (5,31:1, AA): sobre el
-                      // naranja `main` el blanco daba 2,77:1.
-                      backgroundColor: isSelected
-                        ? secondary[700]
-                        : "transparent",
-                      color: isSelected
-                        ? common.white
-                        : inCurrentMonth
-                          ? theme.palette.text.primary
-                          : theme.palette.text.secondary,
-                      opacity: disabled ? 0.25 : inCurrentMonth ? 1 : 0.4,
-                      fontSize: fontScale[12],
-                      fontFamily: typography.fontFamily.body,
-                      fontWeight: isToday && !isSelected ? 700 : 500,
-                      cursor: disabled ? "not-allowed" : "pointer",
-                      outline:
-                        isToday && !isSelected
-                          ? `1px solid ${theme.palette.divider}`
-                          : "none",
-                      outlineOffset: -1,
-                      transition: theme.transitions.create(
-                        ["background-color", "color"],
-                        {
-                          duration: theme.transitions.duration.shortest,
-                        },
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((day) => {
+            const inCurrentMonth = day.getMonth() === currentMonth;
+            const isSelected = selected ? isSameDay(day, selected) : false;
+            const isToday = isSameDay(day, today);
+            const disabled = isAfterMax(day);
+            return (
+              <button
+                key={day.toISOString()}
+                type="button"
+                data-date={formatValue(day)}
+                tabIndex={isSameDay(day, tabDate) ? 0 : -1}
+                onClick={() => selectDay(day)}
+                onKeyDown={(e) => handleDayKeyDown(e, day)}
+                disabled={disabled}
+                aria-label={FULL_DATE_FORMATTER.format(day)}
+                aria-pressed={isSelected}
+                aria-current={isToday ? "date" : undefined}
+                className={cn(
+                  "aspect-square w-full cursor-pointer rounded-sm border-none font-body text-12",
+                  "transition-[background-color,color] duration-150",
+                  // Blanco sobre `secondary[700]` (5,31:1, AA): sobre el
+                  // naranja `main` el blanco daba 2,77:1.
+                  isSelected
+                    ? "bg-secondary-700 font-medium text-white"
+                    : cn(
+                        "bg-transparent enabled:hover:bg-accent",
+                        inCurrentMonth
+                          ? "text-foreground"
+                          : "text-muted-foreground opacity-40",
+                        isToday
+                          ? "font-bold outline-1 outline-border -outline-offset-1"
+                          : "font-medium",
                       ),
-                      "&:hover:not(:disabled)": {
-                        backgroundColor: isSelected
-                          ? secondary[700]
-                          : theme.palette.action.hover,
-                      },
-                    }}
-                  >
-                    {day.getDate()}
-                  </Box>
-                );
-              })}
-            </Box>
-          </Box>
-        </ClickAwayListener>
-      </Popper>
-    </Box>
+                  disabled && "cursor-not-allowed opacity-25",
+                )}
+              >
+                {day.getDate()}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

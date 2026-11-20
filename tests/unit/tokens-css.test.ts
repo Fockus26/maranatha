@@ -99,12 +99,28 @@ describe("contraste de los roles", () => {
     }
   });
 
+  // `--accent` es translúcido (D116): se compone sobre el `--popover` del
+  // modo antes de medir el texto encima.
+  test.each([
+    "light",
+    "dark",
+  ] as const)("%s: texto sobre --accent ≥ 4.5:1", (mode) => {
+    const v = Object.fromEntries(roleVars(mode));
+    const bg = rgb(v["--accent"], rgb(v["--popover"]));
+    const hex = `#${bg.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+    expect(ratio(v["--accent-foreground"], hex)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(v["--muted-foreground"], hex)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test("navy: texto y texto atenuado ≥ 4.5:1", () => {
     const v = Object.fromEntries(navyVars());
     expect(ratio(v["--foreground"], v["--background"])).toBeGreaterThan(4.5);
     expect(ratio(v["--muted-foreground"], v["--background"])).toBeGreaterThan(
       4.5,
     );
+    const accent = rgb(v["--accent"], rgb(v["--background"]));
+    const hex = `#${accent.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+    expect(ratio(v["--accent-foreground"], hex)).toBeGreaterThan(4.5);
   });
 });
 

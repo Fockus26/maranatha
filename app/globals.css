@@ -78,6 +78,14 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
+/* Campos de shadcn (`components/ui/input.tsx`, D114): como los de MUI (D085),
+   el foco vive en el borde del propio campo, sin outline exterior. Quita el
+   anillo de arriba a los disparadores que son `<button>` (selector, fecha,
+   hora). */
+[data-field-control]:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skip-link {
     transition: none;
@@ -126,7 +134,9 @@ button:focus-visible,
 
   /* Foco de campos de texto: sin outline exterior; el fieldset se pinta con
      colores de sistema y el grosor de 2px marca el foco (D085). */
-  .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+  [data-field-control]:focus-visible,
+  [data-field-control][data-state="open"] {
     border-color: Highlight;
     border-width: 2px;
   }
