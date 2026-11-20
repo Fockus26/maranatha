@@ -32,7 +32,7 @@ export default function ThemeToggle({
         mode === "light" ? "Activar modo oscuro" : "Activar modo claro"
       }
       className={cn(
-        "size-11 rounded-xl text-muted-foreground transition-[transform,background-color] duration-250",
+        "size-11 rounded-xl text-muted-foreground transition-[rotate,background-color] duration-250 dark:text-muted-foreground",
         "hover:rotate-20 motion-reduce:hover:rotate-0",
         "navy:text-on-navy-muted navy:hover:bg-on-navy-hover navy:hover:text-on-navy",
         className,
