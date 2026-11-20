@@ -1,0 +1,5 @@
+# D116 · Tokens · Rol `--accent` / `--accent-foreground`: el `action.hover` de MUI (gris al 4 % / blanco al 8 %; navy `onNavy.hover`) · Implementado
+
+**Decisión:** `accentRoles(mode)` en `theme/roles.ts` genera `--accent` = `gray[900]` al 4 % en claro y blanco al 8 % en oscuro, `--accent-foreground` = el texto del modo; en `[data-surface="navy"]`, `onNavy.hover` con texto blanco. Clases `bg-accent` / `text-accent-foreground`. Lo usan el resaltado de opciones del `select`, el hover de los días de `DateField` y de las opciones de `TimeField`. `tests/unit/tokens-css.test.ts` mide el texto sobre `--accent` compuesto sobre su fondo (≥ 4.5:1 en claro, oscuro y navy).
+**Por qué:** es el hover que hoy pintan los componentes MUI (`theme.palette.action.hover`), así las primitivas nuevas resaltan igual que sus vecinos. Va fuera de `modeRoles` porque esa función se esparce en la paleta de MUI y un `action` ahí cambiaría el hover de todo MUI.
+**Alternativa descartada:** un gris opaco de la escala (`gray[100]`): cambia el tono sobre `card` oscuro y sobre navy; necesitaría un valor por superficie.
