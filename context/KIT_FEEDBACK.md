@@ -62,3 +62,8 @@ Arma el informe con las filas sin enviar, agrupadas por pieza del kit y con lo m
 primero, y abre un PR en el repo del kit con la etiqueta `kit-feedback`. Las filas enviadas
 se marcan con `→ PR <owner/repo#N>` en "Propuesta" (no se borran). Las marcadas
 `→ informe <fecha>` cuentan como enviadas.
+| 31 | 2026-11-20 | Fricción | 1 | UI-LIBRARIES.md › shadcn | El registro actual (radix-nova, new-york-v4) importa `cn` del paquete npm `cn` y lo añade a `package.json`; `aliases.utils` no lo redirige | Añadir la trampa y un test guard (`shadcn-config.test.ts`) al kit |
+| 32 | 2026-11-20 | Hueco | 1 | UI-LIBRARIES.md › shadcn | `init` en v4 apunta a un `tailwind.config.ts` huérfano, mete `@layer base` y `.dark` y cambia a Geist | Ampliar la lista de "qué restaurar" tras `init` |
+| 33 | 2026-11-20 | Hueco | 1 | STACK-NEXTJS.md › Tailwind | Con `--container-*` reseteado, `max-w-md` cae a `--spacing-md`; `--font-heading` de `next/font` choca con la clave de tema (se resuelve con `@theme inline reference`, que Biome 2.4 no parsea) | Documentar las tres cosas |
+| 34 | 2026-11-20 | Fricción | 1 | entorno Windows | `bunx shadcn@latest` se colgó dos veces | `bun add -d shadcn` y `node node_modules/shadcn/dist/index.js` |
+| 35 | 2026-11-20 | Fricción | 1 | orchestrate §4 (IDs) | D108–D110 chocó con #56, mergeado mientras corría la ola | Reservar contra `origin/main` y los PRs abiertos justo antes de lanzar |

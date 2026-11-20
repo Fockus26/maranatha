@@ -5,18 +5,16 @@
 
 ## Ahora
 
-**Fase:** 08–09 — Pulido y salida a producción · **Track:** Producto
-**Ola:** — (esta fase no se hace en olas)
+**Fase:** migración MUI → shadcn (fase propia, antes del QA 09) · **Track:** Producto
+**Ola:** 1 de 5 — base, PR #58 abierto · plan: `context/plans/phase-migracion-shadcn.md`
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
-| Versión (changesets de la tanda 2026-11-19 y anteriores) | `changeset-release/main` | PR #46 — lo mergea César | — |
+| W1 base shadcn (tokens → `@theme`, `cn`, init, `button`) | `feat/shadcn-base` | PR #58 — ci y deploy verdes, lo mergea César | `PHASE_LOG/feat-shadcn-base.md` |
 
-Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ fc94345, sin deploy: ver Bloquea); logs en `PHASE_LOG/` de cada rama. Tanda 2026-11-19: `PHASE_LOG/tanda-2026-11-19.md`.
+Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ 4029221 con #46; CI, Deploy (VPS) y Release en verde); logs en `PHASE_LOG/` de cada rama. Tanda 2026-11-19: `PHASE_LOG/tanda-2026-11-19.md`.
 
 ## Bloquea (acciones de César o externas)
-
-- **GitHub Actions sin facturación**: desde 56b1cc4 ningún job arranca ("recent account payments have failed or your spending limit needs to be increased"). `main` @ fc94345 no está desplegado en maranatha.fockus.dev; CI no corrió (verificado a mano: typecheck, lint, 109 tests OK). Arreglar Billing & plans y relanzar el workflow `Deploy (VPS)` de main.
 
 - PR #54: si las cuentas admin se llaman "Administrador", ponerles nombre y apellido (SQL en el PR) en preview y producción.
 
@@ -33,7 +31,7 @@ Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ fc94345, sin deploy:
 
 ## Sigue
 
-- **Fase propia: migración MUI → shadcn** (decidida 2026-11-20). Planificar en otra sesión con §0 de `orchestrate` (`context/plans/orchestration-2026-11-20.md`, ola 2). Antes: `DashboardPageSkeleton.tsx` quedó sin uso (#52); token de ancho 960 (#53).
+- **Migración MUI → shadcn:** tras la ola 1, ola 2 (primitivas) en otra sesión: `/orchestrate ola 2 de la fase migración MUI → shadcn`. Look igual con ajustes menores, íconos lucide (César, 2026-11-20).
 
 - PR `style/biome-format`: formatear con Biome, corregir los 9 errores de lint y añadir el CI (D076).
 - Persistir los proyectos del dashboard en la base (Postgres, hoy en memoria, D045).
