@@ -10,6 +10,8 @@
 
 ## Decisiones de César (2026-11-20, una sola ronda)
 
+- **Merge:** César autorizó que el orquestador mergee él mismo los PRs de esta fase (CI verde y verificación local hecha; `gh pr merge <n> --merge`, nunca auto-merge ni push a `main`) hasta cerrar la ola 5. No cubre el PR de release.
+
 - **Look:** igual al actual, **con ajustes menores aceptados** — si copiar MUI exacto cuesta
   mucho (ripple, sombras de elevación, etiqueta flotante), se acerca al estilo shadcn y la
   diferencia se anota en el PR. Cada unidad con UI lleva **capturas antes/después** (main vs
@@ -48,8 +50,8 @@ campo), `theme/patterns.ts` (fondos con patrón).
 
 | Ola | Unidades (rama · qué · archivos principales) | Depende de | Estado |
 |---|---|---|---|
-| 1 | `feat/shadcn-base` · tokens de `theme/tokens.ts` generados a Tailwind `@theme`, variables por modo (claro/oscuro/navy), variante `dark` por `data-color-mode` resuelto en el servidor, `cn` del proyecto con `extendTailwindMerge`, `components.json` (init revisado), **todas** las dependencias de la fase, `button.tsx` como primera primitiva, token de ancho 960, borrar `DashboardPageSkeleton.tsx` · `app/globals.css`, `app/layout.tsx`, `theme/tokens.ts`, `lib/utils.ts`, `components.json`, `components/ui/button.tsx`, `scripts/`, `package.json` | — | en curso |
-| 2 | `feat/ui-acciones` · avatar, tooltip, link, badge; migra `SegmentedToggle`, `ThemeToggle` · `components/ui/{avatar,tooltip,badge}.tsx`, esos dos | ola 1 | pendiente |
+| 1 | `feat/shadcn-base` · tokens de `theme/tokens.ts` generados a Tailwind `@theme`, variables por modo (claro/oscuro/navy), variante `dark` por `data-color-mode` resuelto en el servidor, `cn` del proyecto con `extendTailwindMerge`, `components.json` (init revisado), **todas** las dependencias de la fase, `button.tsx` como primera primitiva, token de ancho 960, borrar `DashboardPageSkeleton.tsx` · `app/globals.css`, `app/layout.tsx`, `theme/tokens.ts`, `lib/utils.ts`, `components.json`, `components/ui/button.tsx`, `scripts/`, `package.json` | — | cerrada (#58) |
+| 2 | `feat/ui-acciones` · avatar, tooltip, link, badge; migra `SegmentedToggle`, `ThemeToggle` · `components/ui/{avatar,tooltip,badge}.tsx`, esos dos | ola 1 | siguiente |
 | 2 | `feat/ui-campos` · input, textarea, label, field (etiqueta + ayuda + error, D085/D086), select, radio-group, popover; migra `DateField`, `TimeField` · `components/ui/{input,textarea,label,field,select,radio-group,popover}.tsx`, esos dos | ola 1 | pendiente |
 | 2 | `feat/ui-superposiciones` · dialog (D057), sheet, alert, toast (sonner, con el ancho y la pila medidos: trampa de `UI-LIBRARIES.md`); migra `ConfirmDialog` · `components/ui/{dialog,sheet,alert,sonner}.tsx`, `ConfirmDialog.tsx` | ola 1 | pendiente |
 | 2 | `feat/ui-estados` · skeleton, progress, tabs, container, utilidades de tipografía y de patrón (sustituto de `theme/patterns.ts`), **mapa de íconos MUI → lucide** (`context/plans/mapa-iconos.md` + tamaños por token); migra `EmptyState`, `Reveal`, `StepTransition` · `components/ui/{skeleton,progress,tabs,container}.tsx`, esos tres | ola 1 | pendiente |
@@ -92,17 +94,17 @@ lo junta en un PR al cerrar, como los tokens que faltan (§4 de `orchestrate`).
 - **Decisiones:** IDs contra `origin/main` al lanzar cada ola. Ola 1: D108–D110. La ola 5
   reserva además el ID de la decisión de cierre de fase.
 
-## Ola actual: 1
+## Ola actual: 2 (por lanzar) · ola 1 cerrada
 
 - Brief y prompt: `context/plans/orchestration-2026-11-20-shadcn.md` / `…-shadcn-prompts.md`
-- PRs: #58 W1 base — abierto (ci y deploy verdes). Decisiones D109–D111 (D108 lo tomó #56)
+- Ola 1: #58 W1 base — mergeado (main @ dd080a4). Decisiones D109–D111 (D108 lo tomó #56)
 - QA: no aplica (QA: al final)
 
 ## Cierres
 
 | Ola | PRs | QA (C · A · M · B) | Pasa a la siguiente | Datos sin borrar |
 |---|---|---|---|---|
-| 1 | #58 (abierto) | no aplica | ver "Para la ola 2" | ninguno |
+| 1 | #58 (mergeado) | no aplica | ver "Para la ola 2" | ninguno |
 
 ## Para la ola 2 (del informe de W1, #58)
 

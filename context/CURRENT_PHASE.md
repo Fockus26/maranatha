@@ -6,11 +6,10 @@
 ## Ahora
 
 **Fase:** migración MUI → shadcn (fase propia, antes del QA 09) · **Track:** Producto
-**Ola:** 1 de 5 — base, PR #58 abierto · plan: `context/plans/phase-migracion-shadcn.md`
+**Ola:** 2 de 5 (primitivas) por lanzar · ola 1 cerrada (#58, main @ dd080a4) · plan: `context/plans/phase-migracion-shadcn.md`
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
-| W1 base shadcn (tokens → `@theme`, `cn`, init, `button`) | `feat/shadcn-base` | PR #58 — ci y deploy verdes, lo mergea César | `PHASE_LOG/feat-shadcn-base.md` |
 
 Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ 4029221 con #46; CI, Deploy (VPS) y Release en verde); logs en `PHASE_LOG/` de cada rama. Tanda 2026-11-19: `PHASE_LOG/tanda-2026-11-19.md`.
 
@@ -31,7 +30,7 @@ Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ 4029221 con #46; CI,
 
 ## Sigue
 
-- **Migración MUI → shadcn:** tras la ola 1, ola 2 (primitivas) en otra sesión: `/orchestrate ola 2 de la fase migración MUI → shadcn`. Look igual con ajustes menores, íconos lucide (César, 2026-11-20).
+- **Migración MUI → shadcn:** ola 2 (primitivas) en otra sesión: `/orchestrate ola 2 de la fase migración MUI → shadcn`. César autorizó al orquestador a mergear los PRs de la fase. Contrastes bajo AA heredados (oscuro): ver el plan.
 
 - PR `style/biome-format`: formatear con Biome, corregir los 9 errores de lint y añadir el CI (D076).
 - Persistir los proyectos del dashboard en la base (Postgres, hoy en memoria, D045).
