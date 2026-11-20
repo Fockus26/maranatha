@@ -1,7 +1,8 @@
 import "server-only";
-import { eq, gte, or } from "drizzle-orm";
+import { count, eq, gte, or, sql } from "drizzle-orm";
 import { db, isDbConfigured } from "@/lib/db";
 import { agendaEvents } from "@/lib/db/schema";
+import type { PanelVersion } from "@/lib/panelFreshness";
 import type { Result } from "@/lib/payments/schema";
 import {
   type AgendaEvent,
@@ -79,6 +80,32 @@ export async function listAgendaEvents(): Promise<
     return { ok: true, data: sortEvents(rows.map(toEvent)) };
   } catch (error) {
     logDbError("listAgendaEvents", error);
+    return { ok: false, error: "db_error" };
+  }
+}
+
+/**
+ * Versión de la agenda para el chequeo de frescura del panel (D104): cuántos
+ * eventos hay y su último `updated_at` (trigger `agenda_events_set_updated_at`).
+ */
+export async function getAgendaVersion(): Promise<
+  Result<PanelVersion, AgendaRepoError>
+> {
+  if (!isDbConfigured()) return { ok: false, error: "not_configured" };
+  try {
+    const [row] = await db()
+      .select({
+        total: count(),
+        last: sql<string | null>`max(${agendaEvents.updatedAt})::text`,
+      })
+      .from(agendaEvents);
+    if (!row) return { ok: false, error: "db_error" };
+    return {
+      ok: true,
+      data: { token: `${row.total}|${row.last ?? ""}`, at: Date.now() },
+    };
+  } catch (error) {
+    logDbError("getAgendaVersion", error);
     return { ok: false, error: "db_error" };
   }
 }

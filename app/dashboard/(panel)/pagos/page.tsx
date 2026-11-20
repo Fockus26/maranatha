@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { getExchangeRateSources } from "@/lib/payments/exchangeRates";
 import {
   getPaymentStats,
+  getPaymentsVersion,
   listPayments,
   PAYMENTS_PAGE_SIZE,
 } from "@/lib/payments/repository";
@@ -47,6 +48,11 @@ export default async function DashboardPagosPage({
   const pageParam = typeof params.pagina === "string" ? params.pagina : "";
   const page = /^\d{1,6}$/.test(pageParam) ? Math.max(1, Number(pageParam)) : 1;
 
+  // La versión (D104) se lee antes que los datos, no en paralelo: si un pago
+  // cambia entre ambas lecturas, la página queda con una versión más vieja que
+  // sus datos (a lo sumo un refresco de más), nunca al revés (un cambio que el
+  // chequeo de frescura no vería).
+  const version = await getPaymentsVersion();
   const [payments, stats, rates] = await Promise.all([
     listPayments({
       ...(filter === "all" ? {} : { status: filter }),
@@ -94,6 +100,7 @@ export default async function DashboardPagosPage({
         stats={stats.ok ? stats.data : null}
         liveRates={rates.live}
         fallbackRates={rates.fallback}
+        version={version.ok ? version.data : null}
       />
     </DashboardShell>
   );

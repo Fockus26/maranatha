@@ -27,6 +27,7 @@ import {
   rejectPayment,
   saveFallbackRates,
 } from "@/app/actions/adminPayments";
+import type { PanelVersion } from "@/lib/panelFreshness";
 import {
   formatAmount,
   METHOD_LABEL,
@@ -54,6 +55,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
 import { EmptyState } from "./EmptyState";
 import { outlinedActionSx } from "./outlinedActionSx";
+import { PanelFreshness } from "./PanelFreshness";
 
 // Patrón de animación de listas (D087).
 const LIST_EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -120,6 +122,8 @@ export interface DashboardPaymentsProps {
   liveRates: RatePair;
   /** Tasas de respaldo guardadas por el admin. */
   fallbackRates: RatePair;
+  /** Versión de los datos con la que se renderizó (D104); null si no se leyó. */
+  version: PanelVersion | null;
 }
 
 const FILTER_LABEL: Record<PaymentFilter, string> = {
@@ -611,6 +615,7 @@ export function DashboardPayments({
   stats,
   liveRates,
   fallbackRates,
+  version,
 }: DashboardPaymentsProps) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
@@ -693,6 +698,7 @@ export function DashboardPayments({
 
   return (
     <>
+      <PanelFreshness scope="payments" version={version} />
       <DashboardStatBand
         stats={[
           {

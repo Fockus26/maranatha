@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   }),
   reactCompiler: true,
   experimental: {
+    // Caché del router del cliente (D103): volver a una página o a un filtro
+    // del panel visitado hace menos de `dynamic` segundos no vuelve al
+    // servidor. Las Server Actions con `revalidatePath` la vacían; lo que
+    // cambia por fuera lo detecta `PanelFreshness` (D104).
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
     serverActions: {
       // Reporte de pago con comprobante adjunto (máx. 4 MB en
       // `lib/payments/receipts.ts`) + overhead del multipart. Vercel corta el
