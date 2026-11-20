@@ -1,59 +1,44 @@
 "use client";
 
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeRounded";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeRounded";
-import { IconButton, type IconButtonProps } from "@mui/material";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useColorMode } from "@/theme/ThemeRegistry";
-import { radius } from "@/theme/tokens";
 
 type ThemeToggleProps = {
-  size?: IconButtonProps["size"];
+  /** `large` agranda el ícono (24 px); `small`/`medium` usan 20 px. */
+  size?: "small" | "medium" | "large";
   /**
-   * Override de estilos — usado por DashboardSidebar/MobileMenuOverlay para
-   * ajustar el color del ícono cuando el toggle vive sobre un fondo navy
-   * permanente que no sigue el modo claro/oscuro (D024/D025).
+   * Clases extra — para ajustar el color si el toggle vive sobre un fondo que
+   * no sigue el modo (D024/D025). Sobre `data-surface="navy"` no hace falta:
+   * la variante `navy:` de aquí ya pone los colores del navy fijo.
    */
-  sx?: IconButtonProps["sx"];
+  className?: string;
 };
 
-export default function ThemeToggle({ size = "small", sx }: ThemeToggleProps) {
+export default function ThemeToggle({
+  size = "small",
+  className,
+}: ThemeToggleProps) {
   const { mode, toggleColorMode } = useColorMode();
+  const Icon = mode === "light" ? Moon : Sun;
 
   return (
-    <IconButton
+    <Button
+      variant="plain"
+      size="icon"
       onClick={toggleColorMode}
-      size={size}
       aria-label={
         mode === "light" ? "Activar modo oscuro" : "Activar modo claro"
       }
-      sx={[
-        {
-          color: "text.secondary",
-          borderRadius: `${radius.xl}px`,
-          // Área táctil de 44px (design-qa fase 09).
-          minWidth: 44,
-          minHeight: 44,
-          transition: (theme) =>
-            theme.transitions.create(["transform", "background-color"], {
-              duration: theme.transitions.duration.short,
-            }),
-          "&:hover": {
-            backgroundColor: "action.hover",
-            transform: "rotate(20deg)",
-          },
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
-      {mode === "light" ? (
-        <DarkModeOutlinedIcon
-          fontSize={size === "large" ? "medium" : "small"}
-        />
-      ) : (
-        <LightModeOutlinedIcon
-          fontSize={size === "large" ? "medium" : "small"}
-        />
+      className={cn(
+        "size-11 rounded-xl text-muted-foreground transition-[transform,background-color] duration-250",
+        "hover:rotate-20 motion-reduce:hover:rotate-0",
+        "navy:text-on-navy-muted navy:hover:bg-on-navy-hover navy:hover:text-on-navy",
+        className,
       )}
-    </IconButton>
+    >
+      <Icon className={size === "large" ? "size-6" : "size-5"} aria-hidden />
+    </Button>
   );
 }

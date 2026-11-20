@@ -121,16 +121,7 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
             justifyContent: "space-between",
           }}
         >
-          <ThemeToggle
-            size="small"
-            sx={{
-              color: "rgba(255,255,255,0.75)",
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.08)",
-                color: ON_DARK,
-              },
-            }}
-          />
+          <ThemeToggle size="small" />
           <Box
             component="button"
             type="button"

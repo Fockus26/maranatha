@@ -238,16 +238,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
           >
             <MenuRoundedIcon />
           </IconButton>
-          <ThemeToggle
-            size="small"
-            sx={{
-              color: onNavy.muted,
-              "&:hover": {
-                backgroundColor: onNavy.hover,
-                color: ON_DARK,
-              },
-            }}
-          />
+          <ThemeToggle size="small" />
           {/* Divisor puramente decorativo — se oculta en mobile para ganar
             espacio en el topbar (fase 08). */}
           <Box
