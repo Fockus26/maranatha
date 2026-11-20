@@ -22,6 +22,7 @@ import {
   type TitheFormValues,
   TYPE_LABEL,
 } from "./TitheForm";
+import { TitheLayout } from "./TitheLayout";
 
 /**
  * Modal "Ofrendar" (fase 07). Desde D098 la sección `Tithe.tsx` volvió a
@@ -248,117 +249,103 @@ export function TitheModal() {
               pb: { xs: 8, md: 6 },
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { xs: "center", md: "flex-start" },
-                justifyContent: "center",
-                gap: { xs: 6, md: 10 },
-                maxWidth: 960,
-                mx: "auto",
-                width: "100%",
-              }}
-            >
-              <Box
-                sx={{
-                  maxWidth: 480,
-                  textAlign: { xs: "center", md: "left" },
-                  pt: { md: 2 },
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 44,
-                    height: 44,
-                    borderRadius: `${radius.lg}px`,
-                    backgroundColor: "rgba(245,246,250,0.1)",
-                    color: "secondary.main",
-                    mb: 3,
-                  }}
-                >
-                  <VolunteerActivismRoundedIcon fontSize="small" />
-                </Box>
+            <TitheLayout
+              text={
+                <>
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 44,
+                      height: 44,
+                      borderRadius: `${radius.lg}px`,
+                      backgroundColor: "rgba(245,246,250,0.1)",
+                      color: "secondary.main",
+                      mb: 3,
+                    }}
+                  >
+                    <VolunteerActivismRoundedIcon fontSize="small" />
+                  </Box>
 
-                <Typography
-                  component="span"
-                  sx={{
-                    display: "block",
-                    fontFamily: "var(--font-body)",
-                    fontWeight: 500,
-                    fontSize: fontScale[11],
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: "secondary.main",
-                    mb: 1.5,
-                  }}
-                >
-                  Da con propósito
-                </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      display: "block",
+                      fontFamily: "var(--font-body)",
+                      fontWeight: 500,
+                      fontSize: fontScale[11],
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "secondary.main",
+                      mb: 1.5,
+                    }}
+                  >
+                    Da con propósito
+                  </Typography>
 
-                <Typography
-                  component="h2"
-                  id="tithe-modal-title"
-                  sx={{
-                    fontFamily: "var(--font-heading)",
-                    fontWeight: 800,
-                    fontSize: { xs: "26px", md: "32px" },
-                    lineHeight: 1.2,
-                    letterSpacing: "-0.01em",
-                    color: gray[50],
-                    mb: 2,
-                  }}
-                >
-                  Tu ofrenda sostiene esta obra
-                </Typography>
+                  <Typography
+                    component="h2"
+                    id="tithe-modal-title"
+                    sx={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 800,
+                      fontSize: { xs: "26px", md: "32px" },
+                      lineHeight: 1.2,
+                      letterSpacing: "-0.01em",
+                      color: gray[50],
+                      mb: 2,
+                    }}
+                  >
+                    Tu ofrenda sostiene esta obra
+                  </Typography>
 
-                {/* Feedback de cliente: en mobile este párrafo empujaba el
+                  {/* Feedback de cliente: en mobile este párrafo empujaba el
                 formulario más abajo sin aportar tanto como el heading — se
                 quita por debajo de `md` para que el modal quede más
                 compacto; desde `md` (donde hay espacio de sobra al lado del
                 formulario) se mantiene. */}
-                <Typography
-                  sx={{
-                    display: { xs: "none", md: "block" },
-                    fontFamily: "var(--font-body)",
-                    fontSize: fontScale[16],
-                    lineHeight: 1.6,
-                    color: "rgba(245,246,250,0.72)",
-                  }}
-                >
-                  Cada aporte se destina directamente a nuestras áreas de
-                  servicio y proyectos activos. Elige un monto, única vez o
-                  mensual, y completa tus datos — sin compromisos, cancela
-                  cuando quieras.
-                </Typography>
+                  <Typography
+                    sx={{
+                      display: { xs: "none", md: "block" },
+                      fontFamily: "var(--font-body)",
+                      fontSize: fontScale[16],
+                      lineHeight: 1.6,
+                      color: "rgba(245,246,250,0.72)",
+                    }}
+                  >
+                    Cada aporte se destina directamente a nuestras áreas de
+                    servicio y proyectos activos. Elige un monto, única vez o
+                    mensual, y completa tus datos — sin compromisos, cancela
+                    cuando quieras.
+                  </Typography>
 
-                <AnimatedFamiliesCounter active={open} />
-              </Box>
-
-              <Box sx={{ flexShrink: 0, width: "100%", maxWidth: 440 }}>
-                {/* El formulario queda montado durante el paso 2 para que
+                  <AnimatedFamiliesCounter active={open} />
+                </>
+              }
+              form={
+                <>
+                  {/* El formulario queda montado durante el paso 2 para que
                 "Volver" conserve monto, tipo y datos ya ingresados (D087). */}
-                <StepTransition
-                  showSecond={!!contribution}
-                  firstRef={stepOneRef}
-                  first={<TitheForm width={440} onSubmit={handleSubmit} />}
-                  second={
-                    contribution && (
-                      <PaymentStep
-                        width={440}
-                        contribution={contribution}
-                        summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
-                        onBack={handleBack}
-                        onReported={handleReported}
-                      />
-                    )
-                  }
-                />
-              </Box>
-            </Box>
+                  <StepTransition
+                    showSecond={!!contribution}
+                    firstRef={stepOneRef}
+                    first={<TitheForm width={440} onSubmit={handleSubmit} />}
+                    second={
+                      contribution && (
+                        <PaymentStep
+                          width={440}
+                          contribution={contribution}
+                          summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                          onBack={handleBack}
+                          onReported={handleReported}
+                        />
+                      )
+                    }
+                  />
+                </>
+              }
+            />
           </Box>
         </Box>
       </Dialog>
