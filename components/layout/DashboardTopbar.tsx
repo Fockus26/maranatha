@@ -12,6 +12,8 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { initialsOf, realName } from "@/lib/auth/initials";
+import { useDashboardAdmin } from "@/lib/dashboardAdminStore";
 import { fontScale, onNavy, primary, radius, secondary } from "@/theme/tokens";
 import { DASHBOARD_CONTENT_SX } from "./DashboardShell";
 
@@ -34,6 +36,41 @@ function isActiveHref(pathname: string | null, href: string) {
   return (
     pathname === href ||
     (href !== "/dashboard" && (pathname?.startsWith(`${href}/`) ?? false))
+  );
+}
+
+/**
+ * Círculo con las iniciales del admin con sesión (D107), del contexto que
+ * siembra el layout del panel. Se anuncia como imagen con el nombre (o el
+ * correo, si la cuenta quedó con el nombre por defecto). Oculto en xs para
+ * dar espacio a la navegación.
+ */
+function AdminInitials() {
+  const admin = useDashboardAdmin();
+  if (!admin) return null;
+  const label = realName(admin.name) ?? admin.email;
+  return (
+    <Box
+      role="img"
+      aria-label={`Sesión de ${label}`}
+      title={label}
+      sx={{
+        display: { xs: "none", sm: "flex" },
+        width: 32,
+        height: 32,
+        borderRadius: `${radius.pill}px`,
+        bgcolor: primary[600],
+        alignItems: "center",
+        justifyContent: "center",
+        color: ON_DARK,
+        fontFamily: "var(--font-heading)",
+        fontWeight: 700,
+        fontSize: fontScale[12],
+        flexShrink: 0,
+      }}
+    >
+      {initialsOf(admin.name, admin.email)}
+    </Box>
   );
 }
 
@@ -221,27 +258,7 @@ export function DashboardTopbar({ onLogout }: DashboardTopbarProps) {
               bgcolor: onNavy.divider,
             }}
           />
-          {/* Iniciales placeholder (decorativas): se ocultan en xs para dar
-            espacio a la navegación. */}
-          <Box
-            aria-hidden="true"
-            sx={{
-              display: { xs: "none", sm: "flex" },
-              width: 32,
-              height: 32,
-              borderRadius: `${radius.pill}px`,
-              bgcolor: primary[600],
-              alignItems: "center",
-              justifyContent: "center",
-              color: ON_DARK,
-              fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: fontScale[12],
-              flexShrink: 0,
-            }}
-          >
-            PD
-          </Box>
+          <AdminInitials />
           <Box
             component="button"
             type="button"

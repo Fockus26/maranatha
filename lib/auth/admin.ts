@@ -24,6 +24,8 @@ export const LOGIN_PATH = "/dashboard/login";
 export interface Admin {
   id: string;
   email: string;
+  /** `user.name` sin espacios de más; puede ser "Administrador" (D107). */
+  name: string;
 }
 
 async function readAdmin(): Promise<Admin | null> {
@@ -31,7 +33,11 @@ async function readAdmin(): Promise<Admin | null> {
     const result = await auth().api.getSession({ headers: await headers() });
     const email = result?.user.email;
     if (!result || !isAdminEmail(email)) return null;
-    return { id: result.user.id, email: String(email).toLowerCase() };
+    return {
+      id: result.user.id,
+      email: String(email).toLowerCase(),
+      name: (result.user.name ?? "").trim(),
+    };
   } catch (error) {
     // Base caída o sin configurar: nadie entra, y el login lo dice.
     console.error("[auth] getSession:", error);

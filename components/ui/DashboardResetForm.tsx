@@ -4,7 +4,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MuiLink from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
@@ -15,6 +14,7 @@ import {
 import { FORGOT_PATH, PASSWORD_MAX, PASSWORD_MIN } from "@/lib/auth/constants";
 import { fontScale } from "@/theme/tokens";
 import { authFormSx, DashboardAuthShell } from "./DashboardAuthShell";
+import { PasswordField } from "./PasswordField";
 
 const ERROR_TEXT: Record<ResetError, string> = {
   too_short: `La contraseña debe tener entre ${PASSWORD_MIN} y ${PASSWORD_MAX} caracteres.`,
@@ -82,9 +82,8 @@ export function DashboardResetForm({
       ) : (
         <Box component="form" action={formAction} noValidate sx={authFormSx}>
           <input type="hidden" name="token" value={token ?? ""} />
-          <TextField
+          <PasswordField
             name="password"
-            type="password"
             label="Contraseña nueva"
             autoComplete="new-password"
             value={password}
@@ -105,9 +104,8 @@ export function DashboardResetForm({
               },
             }}
           />
-          <TextField
+          <PasswordField
             name="confirm"
-            type="password"
             label="Repite la contraseña"
             autoComplete="new-password"
             value={confirm}
