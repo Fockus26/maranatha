@@ -13,6 +13,7 @@ const twMerge = extendTailwindMerge({
     theme: {
       text: twNames.text,
       leading: twNames.leading,
+      tracking: twNames.tracking,
       font: twNames.font,
       spacing: twNames.spacing,
       container: twNames.container,

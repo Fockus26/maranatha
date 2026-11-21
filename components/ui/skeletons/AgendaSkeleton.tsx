@@ -16,7 +16,7 @@ const GROUPS = [
 export function AgendaSkeleton() {
   return (
     <SkeletonFrame label="agenda">
-      <SkeletonContent maxWidthClass="max-w-[1000px]">
+      <SkeletonContent maxWidthClass="max-w-agenda">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <SkeletonHeading
             title="Agenda"

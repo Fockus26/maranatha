@@ -62,10 +62,10 @@ export function PhotoAnchorBand({
       </motion.div>
       <div aria-hidden className="absolute inset-0 bg-primary-900/68" />
       <div className="relative flex h-full flex-col items-center justify-center px-3 text-center">
-        <span className="mb-1.5 font-body font-medium text-11 text-secondary-light uppercase tracking-[0.18em]">
+        <span className="mb-1.5 font-body font-medium text-11 text-secondary-light uppercase tracking-eyebrow-lg">
           {eyebrow}
         </span>
-        <p className="mb-1 font-extrabold font-heading text-[44px] text-gray-50 leading-none tracking-[-0.01em] md:text-56">
+        <p className="mb-1 font-extrabold font-heading text-44 text-gray-50 leading-none tracking-tight md:text-56">
           {value}
         </p>
         <p className="font-body text-14 text-gray-50/80">{label}</p>

@@ -29,7 +29,7 @@ export function PagosSkeleton() {
   return (
     <SkeletonFrame label="pagos">
       <DashboardStatBand loading stats={STATS} />
-      <SkeletonContent maxWidthClass="max-w-[1400px]">
+      <SkeletonContent maxWidthClass="max-w-panel">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 shrink grow basis-80">
             <SkeletonHeading

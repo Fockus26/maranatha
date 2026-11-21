@@ -366,7 +366,7 @@ export function InstagramPostDialog({
             <div className="min-w-0 flex-1">
               <DialogTitle
                 id="ig-post-title"
-                className="truncate font-body font-semibold text-14 leading-[1.3]"
+                className="truncate font-body font-semibold text-14 leading-snug"
               >
                 {accountLabel}
               </DialogTitle>

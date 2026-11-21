@@ -45,7 +45,7 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
               index > 0 && "sm:border-l sm:border-on-navy-divider sm:pl-4",
             )}
           >
-            <p className="mb-1.25 font-body text-11 tracking-[0.08em] text-white/55 uppercase">
+            <p className="mb-1.25 font-body text-11 tracking-caps text-white/55 uppercase">
               {stat.label}
             </p>
             {loading ? (

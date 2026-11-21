@@ -62,6 +62,11 @@ export interface FieldProps {
   /** Añade el asterisco a la etiqueta (el control lleva su `required` nativo). */
   required?: boolean;
   disabled?: boolean;
+  /**
+   * La etiqueta existe para el lector de pantalla pero no se ve (`sr-only`):
+   * un campo cuyo contexto ya lo nombra, como "Otro monto" (D139).
+   */
+  hideLabel?: boolean;
   /** Id del control; si falta, `useId`. */
   id?: string;
   className?: string;
@@ -76,6 +81,7 @@ function Field({
   error,
   required,
   disabled,
+  hideLabel,
   id,
   className,
   children,
@@ -109,7 +115,11 @@ function Field({
         data-disabled={disabled}
         className={cn("group/field flex min-w-0 flex-col", className)}
       >
-        <Label id={labelId} htmlFor={controlId} className="mb-0.75">
+        <Label
+          id={labelId}
+          htmlFor={controlId}
+          className={hideLabel ? "sr-only" : "mb-0.75"}
+        >
           {label}
           {required && <span aria-hidden="true"> *</span>}
         </Label>

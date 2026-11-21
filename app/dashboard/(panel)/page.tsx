@@ -92,6 +92,7 @@ export default function DashboardResumenPage() {
       />
 
       <div className={cn(DASHBOARD_CONTENT_CLASS, "py-5")}>
+        {/* valor único: proporción tabla + lateral del resumen (la misma en ResumenSkeleton) */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.6fr_1fr]">
           <div className={CARD}>
             <p className={cn(CARD_TITLE, "mb-0.75")}>Próximos cierres</p>
@@ -138,7 +139,8 @@ export default function DashboardResumenPage() {
                         <Progress
                           value={percent}
                           aria-label={`${project.title}: ${percent}% recaudado`}
-                          className="h-1.25 rounded-pill **:data-[slot=progress-indicator]:bg-secondary"
+                          color="secondary"
+                          className="h-1.25 rounded-pill"
                         />
                       </div>
                       <div className="min-w-27.5 shrink-0 text-right">

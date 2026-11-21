@@ -12,7 +12,7 @@ import { DashboardTopbar } from "./DashboardTopbar";
  * (`layout.page` llega a 1200/1440/1600).
  */
 export const DASHBOARD_CONTENT_CLASS =
-  "mx-auto w-full max-w-[1400px] px-3 md:px-5";
+  "mx-auto w-full max-w-panel px-3 md:px-5";
 
 export interface DashboardShellProps {
   onLogout?: () => void;

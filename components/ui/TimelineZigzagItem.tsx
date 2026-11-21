@@ -55,7 +55,7 @@ export function TimelineZigzagItem({
         <h3 className="mb-1.5 font-bold font-heading text-20 text-foreground">
           {title}
         </h3>
-        <p className="mx-auto max-w-110 font-body text-body text-muted-foreground leading-[1.65] md:mx-0">
+        <p className="mx-auto max-w-110 font-body text-body text-muted-foreground leading-relaxed md:mx-0">
           {description}
         </p>
       </div>

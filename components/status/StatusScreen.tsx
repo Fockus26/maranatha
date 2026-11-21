@@ -136,7 +136,7 @@ export function StatusScreen({
           <div className="flex flex-col items-start gap-1.5 sm:items-center">
             <span
               className={cn(
-                "font-body font-medium text-small uppercase leading-small tracking-[0.08em]",
+                "font-body font-medium text-small uppercase leading-small tracking-caps",
                 ACCENT,
               )}
             >
@@ -278,7 +278,7 @@ function ErrorCode({ code }: { code: string }) {
         <span className="block font-body text-muted-foreground text-small leading-small">
           Código del error
         </span>
-        <p className="m-0 select-all wrap-anywhere font-heading font-semibold text-h4 leading-h4 tracking-[0.04em] tabular-nums">
+        <p className="m-0 select-all wrap-anywhere font-heading font-semibold text-h4 leading-h4 tracking-wide-4 tabular-nums">
           {code}
         </p>
       </div>
