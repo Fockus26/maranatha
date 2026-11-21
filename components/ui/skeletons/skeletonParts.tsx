@@ -1,23 +1,52 @@
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import Typography from "@mui/material/Typography";
 import type { ReactNode } from "react";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
-/** Alto de un botón de acción del panel (MUI `medium`, texto 14 px). */
+/** Alto de un botón de acción del panel (MUI `medium`, texto 14 px): `h-10`. */
 export const SKELETON_BUTTON_HEIGHT = 40;
-/** Alto de la fila de acción "Nuevo proyecto" / "Ver todos" del Resumen. */
+/** Alto de la fila de acción "Nuevo proyecto" / "Ver todos" del Resumen: `h-12`. */
 export const SKELETON_ACTION_HEIGHT = 48;
 
-/** Contenedor de contenido del panel: mismo padding que las páginas reales. */
-export function skeletonContentSx(maxWidth: number) {
-  return {
-    px: { xs: 3, md: 5 },
-    pt: { xs: "32px", md: "48px" },
-    pb: 5,
-    maxWidth,
-    mx: "auto",
-  } as const;
+/**
+ * Contenedor de contenido del panel: mismo padding que las páginas reales.
+ * `maxWidthClass`: el tope (`max-w-[1000px]` Agenda, `max-w-[1400px]` el
+ * resto; sin token, como en las páginas).
+ */
+export function SkeletonContent({
+  maxWidthClass,
+  children,
+}: {
+  maxWidthClass: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn("mx-auto px-3 pt-8 pb-5 md:px-5 md:pt-12", maxWidthClass)}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Línea de texto en gris: el `Skeleton variant="text"` de MUI (una línea del
+ * alto del texto, la barra al 60 % de ese alto). `size` = clases de tamaño de
+ * letra de la línea (`text-13`); `className` = ancho (`w-1/2`).
+ */
+export function SkeletonLine({
+  size,
+  className,
+}: {
+  size: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("leading-body", size)}>
+      <Skeleton className={cn("origin-left scale-y-60", className)}>
+        &nbsp;
+      </Skeleton>
+    </div>
+  );
 }
 
 /** Título h1 real de la página (no cambia entre carga y contenido). */
@@ -30,38 +59,20 @@ export function SkeletonHeading({
   subtitle?: ReactNode;
 }) {
   return (
-    <Box sx={{ minWidth: 0 }}>
-      <Typography
-        component="h1"
-        sx={{
-          fontFamily: typography.fontFamily.heading,
-          fontWeight: 800,
-          fontSize: fontScale[26],
-          color: "text.primary",
-          mb: 0.5,
-        }}
-      >
+    <div className="min-w-0">
+      <h1 className="mb-1 font-heading text-26 font-extrabold text-foreground">
         {title}
-      </Typography>
+      </h1>
       {subtitle ? (
-        <Typography sx={{ fontSize: fontScale[13], color: "text.secondary" }}>
-          {subtitle}
-        </Typography>
+        <p className="text-13 text-muted-foreground">{subtitle}</p>
       ) : (
-        <Skeleton variant="text" width={220} sx={{ fontSize: fontScale[13] }} />
+        <SkeletonLine size="text-13" className="w-55" />
       )}
-    </Box>
+    </div>
   );
 }
 
-/** Botón en gris del encabezado. */
-export function SkeletonButton({ width }: { width: number }) {
-  return (
-    <Skeleton
-      variant="rounded"
-      width={width}
-      height={SKELETON_BUTTON_HEIGHT}
-      sx={{ borderRadius: `${radius.sm}px` }}
-    />
-  );
+/** Botón en gris del encabezado (`width`: clase de ancho, p. ej. `w-40`). */
+export function SkeletonButton({ widthClass }: { widthClass: string }) {
+  return <Skeleton className={cn("h-10", widthClass)} />;
 }

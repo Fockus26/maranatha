@@ -1,12 +1,10 @@
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import Typography from "@mui/material/Typography";
-import { radius, typography } from "@/theme/tokens";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonFrame } from "./SkeletonFrame";
 import {
   SkeletonButton,
+  SkeletonContent,
   SkeletonHeading,
-  skeletonContentSx,
+  SkeletonLine,
 } from "./skeletonParts";
 
 const GROUPS = [
@@ -18,85 +16,36 @@ const GROUPS = [
 export function AgendaSkeleton() {
   return (
     <SkeletonFrame label="agenda">
-      <Box sx={skeletonContentSx(1000)}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 4,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
+      <SkeletonContent maxWidthClass="max-w-[1000px]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <SkeletonHeading
             title="Agenda"
             subtitle="Lo que se muestra en la sección «Agenda» de la página de inicio."
           />
-          <SkeletonButton width={150} />
-        </Box>
+          <SkeletonButton widthClass="w-37.5" />
+        </div>
         {GROUPS.map((group) => (
-          <Box component="section" key={group.title} sx={{ mb: 5 }}>
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 700,
-                fontSize: typography.size.h4.mobile,
-                color: "text.primary",
-                mb: 1.5,
-              }}
-            >
+          <section key={group.title} className="mb-5">
+            <h2 className="mb-1.5 font-heading text-18 font-bold text-foreground">
               {group.title}
-            </Typography>
-            <Box
-              sx={{
-                border: 1,
-                borderColor: "divider",
-                borderRadius: `${radius.lg}px`,
-                bgcolor: "background.paper",
-                overflow: "hidden",
-              }}
-            >
+            </h2>
+            <div className="overflow-hidden rounded-lg border border-border bg-card">
               {group.rows.map((row) => (
-                <Box
+                <div
                   key={row}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    px: { xs: 2, sm: 3 },
-                    py: 2,
-                    "&:not(:last-of-type)": {
-                      borderBottom: 1,
-                      borderColor: "divider",
-                    },
-                  }}
+                  className="flex items-center gap-2 px-2 py-2 not-last:border-b not-last:border-border sm:px-3"
                 >
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Skeleton
-                      variant="text"
-                      width="45%"
-                      sx={{ fontSize: typography.size.body }}
-                    />
-                    <Skeleton
-                      variant="text"
-                      width="30%"
-                      sx={{ fontSize: typography.size.small }}
-                    />
-                  </Box>
-                  <Skeleton
-                    variant="rounded"
-                    width={64}
-                    height={28}
-                    sx={{ borderRadius: `${radius.sm}px` }}
-                  />
-                </Box>
+                  <div className="min-w-0 flex-1">
+                    <SkeletonLine size="text-body" className="w-9/20" />
+                    <SkeletonLine size="text-small" className="w-3/10" />
+                  </div>
+                  <Skeleton className="h-7 w-16" />
+                </div>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </section>
         ))}
-      </Box>
+      </SkeletonContent>
     </SkeletonFrame>
   );
 }
