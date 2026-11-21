@@ -1,13 +1,11 @@
 "use client";
 
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
+import { ArrowRight } from "lucide-react";
+import NextLink from "next/link";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import { ProjectCard, type ProjectStatus } from "@/components/ui/ProjectCard";
 import { Reveal } from "@/components/ui/Reveal";
-import { fontScale, radius } from "@/theme/tokens";
 
 /**
  * Sección "Proyectos" (fase 06) — componente + datos en un solo archivo (D030).
@@ -80,75 +78,27 @@ const FEATURED_PROJECTS: FeaturedProject[] = [
 
 export function Projects() {
   return (
-    <Box component="section" id="proyectos" sx={{ py: { xs: 8, md: 12 } }}>
+    <section id="proyectos" className="py-8 md:py-12">
       <Container maxWidth="lg">
         <Reveal>
-          <Box
-            sx={{
-              maxWidth: 640,
-              mx: { xs: "auto", md: 0 },
-              textAlign: { xs: "center", md: "left" },
-              mb: { xs: 5, md: 7 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-              }}
-            >
+          <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em]">
               Proyectos
-            </Typography>
+            </span>
 
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: { xs: "28px", md: "38px" },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-[1.2] tracking-[-0.01em] md:text-[38px]">
               Construimos juntos lo que la comunidad necesita
-            </Typography>
+            </h2>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="font-body text-16 text-muted-foreground leading-[1.6]">
               Cada proyecto es una necesidad real de la iglesia — tu aporte hace
               la diferencia.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                lg: "repeat(3, 1fr)",
-              },
-              gap: "24px",
-              mb: { xs: 5, md: 6 },
-            }}
-          >
+          <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mb-6 lg:grid-cols-3">
             {FEATURED_PROJECTS.map((project) => (
               <ProjectCard
                 key={project.slug}
@@ -162,31 +112,24 @@ export function Projects() {
                 ctaHref={`/proyectos/${project.slug}`}
               />
             ))}
-          </Box>
+          </div>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: { xs: "center", md: "flex-start" },
-            }}
-          >
+          <div className="flex justify-center md:justify-start">
             <Button
-              href="/proyectos"
+              asChild
               variant="outlined"
               color="primary"
               size="large"
-              endIcon={<ArrowForwardRoundedIcon />}
-              sx={{
-                borderRadius: `${radius.md}px`,
-                textTransform: "none",
-                fontWeight: 600,
-              }}
+              className="rounded-md font-semibold"
             >
-              Ver todos los proyectos
+              <NextLink href="/proyectos">
+                Ver todos los proyectos
+                <ArrowRight aria-hidden className="size-5" />
+              </NextLink>
             </Button>
-          </Box>
+          </div>
         </Reveal>
       </Container>
-    </Box>
+    </section>
   );
 }

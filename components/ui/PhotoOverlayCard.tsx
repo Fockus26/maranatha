@@ -1,11 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { alpha, useTheme } from "@mui/material/styles";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import type { KeyboardEvent, ReactNode } from "react";
-import { primary, radius } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 export interface PhotoOverlayCardProps {
   imageUrl: string;
@@ -26,8 +24,6 @@ export function PhotoOverlayCard({
   bottomSlot,
   onClick,
 }: PhotoOverlayCardProps) {
-  const theme = useTheme();
-
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!onClick) return;
     if (e.key === "Enter" || e.key === " ") {
@@ -37,74 +33,54 @@ export function PhotoOverlayCard({
   };
 
   return (
-    <Box
-      component={motion.div}
+    <motion.div
       onClick={onClick}
       onKeyDown={handleKeyDown}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       whileHover="hover"
       initial="rest"
-      sx={{
-        position: "relative",
-        height,
-        borderRadius: `${radius.lg}px`,
-        overflow: "hidden",
-        border: `1px solid ${theme.palette.divider}`,
-        cursor: onClick ? "pointer" : "default",
-        transition: "border-color 0.2s ease",
-        "&:hover": { borderColor: theme.palette.secondary.main },
-        "&:focus-visible": {
-          outline: `2px solid ${theme.palette.secondary.main}`,
-          outlineOffset: "2px",
-        },
-      }}
+      style={{ height }}
+      className={cn(
+        "relative overflow-hidden rounded-lg border border-border transition-[border-color] duration-200 ease-in-out hover:border-secondary",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        onClick ? "cursor-pointer" : "cursor-default",
+      )}
     >
       {/* Foto de fondo — cubre el 100% de la altura del card */}
-      <Box
-        component={motion.div}
+      <motion.div
         variants={{
           rest: { scale: 1.02, filter: "grayscale(35%) contrast(1.05)" },
           hover: { scale: 1.08, filter: "grayscale(10%) contrast(1.05)" },
         }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        sx={{ position: "absolute", inset: 0 }}
+        className="absolute inset-0"
       >
         <Image
           src={imageUrl}
           alt={imageAlt}
           fill
           sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          style={{ objectFit: "cover" }}
+          className="object-cover"
         />
-      </Box>
+      </motion.div>
 
       {/* Overlay: gradiente navy de abajo hacia arriba, legibilidad del texto */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(to top,
-            ${alpha(primary[900], 0.92)} 0%,
-            ${alpha(primary[900], 0.5)} 40%,
-            ${alpha(primary[900], 0.05)} 70%)`,
-        }}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-linear-to-t from-0% from-primary-900/92 via-40% via-primary-900/50 to-70% to-primary-900/5"
       />
 
       {topLeftSlot && (
-        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
-          {topLeftSlot}
-        </Box>
+        <div className="absolute top-4 left-4">{topLeftSlot}</div>
       )}
       {topRightSlot && (
-        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-          {topRightSlot}
-        </Box>
+        <div className="absolute top-4 right-4">{topRightSlot}</div>
       )}
 
-      <Box sx={{ position: "absolute", left: 0, right: 0, bottom: 0, p: 2.25 }}>
+      <div className="absolute right-0 bottom-0 left-0 p-2.25">
         {bottomSlot}
-      </Box>
-    </Box>
+      </div>
+    </motion.div>
   );
 }

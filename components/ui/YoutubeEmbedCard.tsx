@@ -1,11 +1,7 @@
 "use client";
 
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import Box from "@mui/material/Box";
-import { alpha, useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
+import { Play } from "lucide-react";
 import type * as React from "react";
-import { fontScale, gray, primary, radius } from "@/theme/tokens";
 
 export interface YoutubeEmbedCardProps {
   videoId: string;
@@ -20,7 +16,6 @@ export function YoutubeEmbedCard({
   publishedAt,
   onPlay,
 }: YoutubeEmbedCardProps) {
-  const theme = useTheme();
   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
   const handleClick = () => onPlay?.(videoId);
@@ -33,105 +28,41 @@ export function YoutubeEmbedCard({
   };
 
   return (
-    <Box
+    // biome-ignore lint/a11y/useSemanticElements: tarjeta con miniatura y texto; conserva el `div` con rol de botón del diseño original
+    <div
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label={`Reproducir: ${title}`}
-      sx={{
-        borderRadius: `${radius.lg}px`,
-        overflow: "hidden",
-        border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: "background.paper",
-        cursor: "pointer",
-        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-        "&:hover": {
-          borderColor: theme.palette.secondary.main,
-          boxShadow: theme.shadows[1],
-        },
-        "&:hover .play-button": {
-          backgroundColor: primary[600],
-        },
-        "&:focus-visible": {
-          outline: `2px solid ${theme.palette.secondary.main}`,
-          outlineOffset: "2px",
-        },
-      }}
+      className="group cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-[border-color,box-shadow] duration-200 ease-in-out hover:border-secondary hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {/* Thumbnail */}
-      <Box
-        sx={{
-          position: "relative",
-          aspectRatio: "16 / 9",
-          backgroundColor: primary[400], // fallback mientras carga la miniatura
-          backgroundImage: `url(${thumbnailUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+      <div
+        style={{ backgroundImage: `url(${thumbnailUrl})` }}
+        // primary-400: fallback mientras carga la miniatura
+        className="relative aspect-video bg-center bg-cover bg-primary-400"
       >
-        <Box
-          className="play-button"
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: alpha(primary[700], 0.55),
-            transition: "background-color 0.2s ease",
-          }}
-        >
-          <PlayArrowRoundedIcon
-            sx={{ color: gray[50], fontSize: fontScale[22] }}
-          />
-        </Box>
-      </Box>
+        <div className="absolute top-1/2 left-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary-700/55 transition-colors duration-200 ease-in-out group-hover:bg-primary-600">
+          <Play aria-hidden className="size-5.5 fill-current text-gray-50" />
+        </div>
+      </div>
 
       {/* Cuerpo */}
-      <Box sx={{ p: 1.75 }}>
+      <div className="p-1.75">
         {/*
-          Fase 09 (feedback puntual): antes solo tenía `WebkitLineClamp: 2`
-          (recorta y agrega "…" si el título excede 2 líneas), pero sin una
-          altura reservada — un título de 1 línea dejaba la card más baja que
-          una de 2 líneas, así que el grid se veía dispar entre cards. Se fija
-          `height` a exactamente 2 líneas (`fontSize` 14px × `lineHeight` 1.3
-          × 2) para que toda card mida lo mismo sin importar cuántas líneas
-          ocupe el título real.
+          Fase 09 (feedback puntual): altura reservada de exactamente 2 líneas
+          (14px × 1.3 × 2 = 36.4px) para que toda card mida lo mismo sin
+          importar cuántas líneas ocupe el título real; `line-clamp-2` recorta
+          y agrega "…" si excede.
         */}
-        <Typography
-          component="p"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 600,
-            fontSize: fontScale[14],
-            color: "text.primary",
-            lineHeight: 1.3,
-            height: "36.4px",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
+        <p className="line-clamp-2 h-9.1 overflow-hidden font-heading font-semibold text-14 text-foreground leading-[1.3]">
           {title}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "var(--font-body)",
-            fontSize: fontScale[12],
-            color: "text.secondary",
-            mt: 0.75,
-          }}
-        >
+        </p>
+        <p className="mt-0.75 font-body text-12 text-muted-foreground">
           {publishedAt}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   );
 }

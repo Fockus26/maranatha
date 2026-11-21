@@ -1,13 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { alpha } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
-import { fontScale, gray, primary } from "@/theme/tokens";
 
 export interface PhotoAnchorBandProps {
   eyebrow: string;
@@ -46,92 +42,34 @@ export function PhotoAnchorBand({
   const y = reduceMotion ? "0%" : yTransform;
 
   return (
-    <Box
+    <section
       ref={ref}
-      component="section"
       aria-label={eyebrow}
-      sx={{
-        position: "relative",
-        height: { xs: 280, md: 360 },
-        overflow: "hidden",
-      }}
+      className="relative h-70 overflow-hidden md:h-90"
     >
       <motion.div
         aria-hidden
-        style={{
-          position: "absolute",
-          top: "-12%",
-          bottom: "-12%",
-          left: 0,
-          right: 0,
-          y,
-        }}
+        style={{ y }}
+        className="absolute inset-x-0 top-[-12%] bottom-[-12%]"
       >
         <Image
           src={imageUrl}
           alt=""
           fill
           sizes="100vw"
-          style={{ objectFit: "cover" }}
+          className="object-cover"
         />
       </motion.div>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundColor: alpha(primary[900], 0.68),
-        }}
-      />
-      <Box
-        sx={{
-          position: "relative",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          px: 3,
-        }}
-      >
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 500,
-            fontSize: fontScale[11],
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "secondary.light",
-            mb: 1.5,
-          }}
-        >
+      <div aria-hidden className="absolute inset-0 bg-primary-900/68" />
+      <div className="relative flex h-full flex-col items-center justify-center px-3 text-center">
+        <span className="mb-1.5 font-body font-medium text-11 text-secondary-light uppercase tracking-[0.18em]">
           {eyebrow}
-        </Typography>
-        <Typography
-          component="p"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            fontSize: { xs: "44px", md: "56px" },
-            lineHeight: 1,
-            letterSpacing: "-0.01em",
-            color: gray[50],
-            mb: 1,
-          }}
-        >
+        </span>
+        <p className="mb-1 font-extrabold font-heading text-[44px] text-gray-50 leading-none tracking-[-0.01em] md:text-56">
           {value}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "var(--font-body)",
-            fontSize: fontScale[14],
-            color: "rgba(245,246,250,0.8)",
-          }}
-        >
-          {label}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+        <p className="font-body text-14 text-gray-50/80">{label}</p>
+      </div>
+    </section>
   );
 }

@@ -1,26 +1,15 @@
 "use client";
 
-import EventRoundedIcon from "@mui/icons-material/EventRounded";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
+import { Calendar, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/Reveal";
 import { type AgendaEntry, buildMonthlyAgenda } from "@/lib/agenda/monthly";
 import type { AgendaEvent } from "@/lib/agenda/schema";
 import { useHydratedReducedMotion } from "@/lib/useHydratedReducedMotion";
-import {
-  fontScale,
-  gray,
-  primary,
-  radius,
-  secondary,
-  shadow,
-} from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 /**
  * Sección "Agenda" (fase 06) — componente + datos en un solo archivo
@@ -129,13 +118,15 @@ function findAccentKey(entries: AgendaEntry[]): string | undefined {
   return entries.find((e) => e.kind === "recurring")?.key;
 }
 
-const SPAN_BY_SIZE: Record<TileSize, { gridColumn: string; gridRow: string }> =
-  {
-    feature: { gridColumn: "span 2", gridRow: "span 2" },
-    wide: { gridColumn: "span 2", gridRow: "span 1" },
-    tall: { gridColumn: "span 1", gridRow: "span 2" },
-    sm: { gridColumn: "span 1", gridRow: "span 1" },
-  };
+// Celda del mosaico por tamaño (clases literales para que Tailwind las vea).
+// En móvil (2 columnas) todas ocupan el ancho; "tall" y "feature" siguen
+// siendo de 2 filas.
+const SPAN_BY_SIZE: Record<TileSize, string> = {
+  feature: "col-span-2 row-span-2",
+  wide: "col-span-2 row-span-1",
+  tall: "col-span-2 row-span-2 sm:col-span-1",
+  sm: "col-span-2 row-span-1 sm:col-span-1",
+};
 
 function AgendaTile({
   entry,
@@ -148,30 +139,26 @@ function AgendaTile({
   isAccented: boolean;
   isToday: boolean;
 }) {
-  const theme = useTheme();
   const day = String(entry.date.getDate()).padStart(2, "0");
   const month = MONTH_ABBR[entry.date.getMonth()];
   const isFeature = size === "feature";
   const isCompact = size === "sm";
   // Fase 10 (QA) — contraste: el tag naranja de la celda "feature" vive
-  // sobre `background.paper`, no sobre el navy fijo de las celdas
-  // destacadas — en modo claro eso es blanco sólido, y `secondary.light`
-  // (#FCA355, pastel) sobre blanco da ~2:1 de contraste, muy por debajo del
-  // mínimo de 4.5:1 para texto de este tamaño (11px). En modo oscuro
-  // `background.paper` es oscuro (`gray[800]`) y ahí sí funciona bien. Se
-  // resuelve igual que el resto del sitio ante este mismo problema
-  // (D047/D050/D057): un tono más oscuro/saturado de la escala
-  // (`secondary[700]`) solo en modo claro, sin tocar el tratamiento en modo
+  // sobre `card`, no sobre el navy fijo de las celdas destacadas — en modo
+  // claro eso es blanco sólido, y `secondary-light` (#FCA355, pastel) sobre
+  // blanco da ~2:1 de contraste, muy por debajo del mínimo de 4.5:1 para
+  // texto de este tamaño (11px). En modo oscuro la card es oscura y ahí sí
+  // funciona bien. Se resuelve igual que el resto del sitio ante este mismo
+  // problema (D047/D050/D057): un tono más oscuro/saturado de la escala
+  // (`secondary-700`) solo en modo claro, sin tocar el tratamiento en modo
   // oscuro ni el de las celdas destacadas (siempre sobre navy, sin este
   // problema).
-  // Las celdas destacadas son navy (`primary[700]`) en los dos modos: ahí el
-  // tag va en `secondary[300]` (8.3:1). `secondary[700]` sobre navy daba
+  // Las celdas destacadas son navy (`primary-700`) en los dos modos: ahí el
+  // tag va en `secondary-300` (8.3:1). `secondary-700` sobre navy daba
   // 3.1:1 en modo claro (QA 19-10-2026).
   const tagColor = isAccented
-    ? secondary[300]
-    : theme.palette.mode === "light"
-      ? secondary[700]
-      : theme.palette.secondary.light;
+    ? "text-secondary-300"
+    : "text-secondary-700 dark:text-secondary-light";
   // "Destacado" (fondo navy sólido) — solo el próximo evento recurrente
   // (D039). Los puntuales ("feature"/"wide") nunca lo llevan, solo su
   // tag naranja "Evento especial".
@@ -182,173 +169,118 @@ function AgendaTile({
         ? "Hoy"
         : "Próximo evento"
       : null;
+  // Blanco sólido, igual que el título — sin la opacidad reducida que antes
+  // separaba día/título de mes/hora (fase 07, ajuste post-entrega): en el tile
+  // destacado todo el texto es un mismo blanco, la jerarquía la da el
+  // tamaño/peso, no el color.
+  const onAccent = "text-gray-50";
 
   return (
-    <Box
-      sx={{
-        position: "relative",
-        gridColumn: { xs: "span 2", sm: SPAN_BY_SIZE[size].gridColumn },
-        gridRow: {
-          xs: size === "tall" || size === "feature" ? "span 2" : "span 1",
-          sm: SPAN_BY_SIZE[size].gridRow,
-        },
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: isCompact ? "flex-start" : "space-between",
-        gap: isCompact ? 0.5 : 1,
-        borderRadius: `${radius.lg}px`,
-        border: isAccented ? "none" : "1px solid",
-        borderColor: "divider",
-        // Navy fijo (no `primary.main`, que en modo oscuro cae en un azul
-        // claro "lavado" — mismo criterio de fondo fijo que el date block de
+    <div
+      className={cn(
+        "relative flex cursor-default flex-col rounded-lg transition-[box-shadow,border-color,background-color] duration-200",
+        SPAN_BY_SIZE[size],
+        isCompact ? "justify-start gap-0.5" : "justify-between gap-1",
+        isFeature || size === "tall" ? "p-2.75" : "p-2",
+        // Navy fijo (no `primary`, que en modo oscuro cae en un azul claro
+        // "lavado" — mismo criterio de fondo fijo que el date block de
         // AgendaItem/DashboardSidebar, D014/D025) para que el tile destacado
         // se lea igual de sólido en ambos modos.
-        backgroundColor: isAccented ? primary[700] : "background.paper",
-        p: isFeature || size === "tall" ? 2.75 : 2,
-        transition:
-          "box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease",
-        cursor: "default",
-        "&:hover": isAccented
-          ? {
-              boxShadow: shadow.hoverNavy,
-            }
-          : {
-              boxShadow: shadow.hover,
-              borderColor: "secondary.main",
-              backgroundColor: "action.hover",
-            },
-      }}
+        isAccented
+          ? "bg-primary-700 hover:shadow-hover-navy"
+          : "border border-border bg-card hover:border-secondary hover:bg-accent hover:shadow-hover",
+      )}
     >
       {tagLabel && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-          <EventRoundedIcon sx={{ fontSize: fontScale[16], color: tagColor }} />
-          <Typography
-            component="span"
-            sx={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              fontSize: fontScale[11],
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: tagColor,
-            }}
+        <div className="flex items-center gap-0.75">
+          <Calendar aria-hidden className={cn("size-4 shrink-0", tagColor)} />
+          <span
+            className={cn(
+              "font-body font-medium text-11 uppercase tracking-[0.14em]",
+              tagColor,
+            )}
           >
             {tagLabel}
-          </Typography>
-        </Box>
+          </span>
+        </div>
       )}
 
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: isCompact ? 0.75 : 1.25,
-        }}
+      <div
+        className={cn(
+          "flex items-baseline",
+          isCompact ? "gap-0.75" : "gap-1.25",
+        )}
       >
-        <Typography
-          component="span"
-          className="tile-day"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 800,
-            fontSize: isFeature
-              ? "44px"
+        <span
+          className={cn(
+            "font-extrabold font-heading leading-none transition-colors duration-200",
+            isFeature
+              ? "text-[44px]"
               : size === "tall"
-                ? "34px"
+                ? "text-34"
                 : isCompact
-                  ? "20px"
-                  : "26px",
-            lineHeight: 1,
-            // Blanco sólido, igual que el título — sin la opacidad reducida
-            // que antes separaba día/título de mes/hora (fase 07, ajuste
-            // post-entrega): en el tile destacado todo el texto es un mismo
-            // blanco, la jerarquía la da el tamaño/peso, no el color.
-            color: isAccented ? gray[50] : "text.primary",
-            transition: "color 0.2s ease",
-          }}
+                  ? "text-20"
+                  : "text-26",
+            isAccented ? onAccent : "text-foreground",
+          )}
         >
           {day}
-        </Typography>
-        <Typography
-          component="span"
-          className="tile-month"
-          sx={{
-            fontFamily: "var(--font-body)",
-            fontSize: isCompact ? "11px" : "12px",
-            fontWeight: 600,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: isAccented ? gray[50] : "text.secondary",
-            transition: "color 0.2s ease",
-          }}
+        </span>
+        <span
+          className={cn(
+            "font-body font-semibold uppercase tracking-[0.06em] transition-colors duration-200",
+            isCompact ? "text-11" : "text-12",
+            isAccented ? onAccent : "text-muted-foreground",
+          )}
         >
           {month}
-        </Typography>
-      </Box>
+        </span>
+      </div>
 
-      <Box>
-        <Typography
-          className="tile-title"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 600,
-            fontSize: isFeature
-              ? "20px"
+      <div>
+        <p
+          className={cn(
+            "overflow-hidden font-heading font-semibold leading-[1.25] transition-colors duration-200",
+            isFeature
+              ? "text-20"
               : size === "tall"
-                ? "17px"
+                ? "text-17"
                 : isCompact
-                  ? "13.5px"
-                  : "15px",
-            lineHeight: 1.25,
-            color: isAccented ? gray[50] : "text.primary",
-            mb: isCompact ? 0.25 : 0.75,
-            display: "-webkit-box",
-            WebkitLineClamp: isCompact ? 2 : 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            transition: "color 0.2s ease",
-          }}
+                  ? "text-[13.5px]"
+                  : "text-15",
+            isCompact ? "mb-px line-clamp-2" : "mb-0.75 line-clamp-3",
+            isAccented ? onAccent : "text-foreground",
+          )}
         >
           {entry.title}
-        </Typography>
-        {!isCompact && (
-          <Typography
-            className="tile-meta"
-            sx={{
-              fontFamily: "var(--font-body)",
-              fontSize: isFeature ? "13.5px" : "12.5px",
-              color: isAccented ? gray[50] : "text.secondary",
-              transition: "color 0.2s ease",
-            }}
-          >
-            {entry.schedule} &nbsp;·&nbsp; {entry.location}
-          </Typography>
-        )}
-        {isCompact && (
-          <Typography
-            className="tile-meta"
-            sx={{
-              fontFamily: "var(--font-body)",
-              fontSize: fontScale[11.5],
-              color: isAccented ? gray[50] : "text.secondary",
-              transition: "color 0.2s ease",
-            }}
+        </p>
+        {isCompact ? (
+          <p
+            className={cn(
+              "font-body text-11.5 transition-colors duration-200",
+              isAccented ? onAccent : "text-muted-foreground",
+            )}
           >
             {entry.schedule}
-          </Typography>
+          </p>
+        ) : (
+          <p
+            className={cn(
+              "font-body transition-colors duration-200",
+              isFeature ? "text-[13.5px]" : "text-[12.5px]",
+              isAccented ? onAccent : "text-muted-foreground",
+            )}
+          >
+            {entry.schedule} &nbsp;·&nbsp; {entry.location}
+          </p>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
 
-const AGENDA_GRID_SX = {
-  display: "grid",
-  gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(4, 1fr)" },
-  gridAutoRows: { xs: "84px", sm: "108px" },
-  gridAutoFlow: "dense",
-  gap: { xs: 1.25, sm: 1.75 },
-} as const;
+const AGENDA_GRID_CLASS =
+  "grid auto-rows-[84px] grid-cols-2 grid-flow-dense gap-1.25 sm:auto-rows-[108px] sm:grid-cols-4 sm:gap-1.75";
 
 export function Agenda({ events }: { events: AgendaEvent[] }) {
   const reduceMotion = useHydratedReducedMotion();
@@ -360,9 +292,9 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
   const isToday = (entry: AgendaEntry) =>
     entry.date.toDateString() === new Date().toDateString();
 
-  // Medidores ocultos: dos grillas invisibles (misma `gridAutoFlow: dense`,
-  // así que la altura medida coincide con la real) que existen únicamente
-  // para que `ResizeObserver` calcule la altura "colapsada" (primeros
+  // Medidores ocultos: dos grillas invisibles (misma `grid-flow-dense`, así
+  // que la altura medida coincide con la real) que existen únicamente para
+  // que `ResizeObserver` calcule la altura "colapsada" (primeros
   // `INITIAL_COUNT`) y "completa" (todos) — ver nota arriba de `AgendaTile`.
   const collapsedRef = useRef<HTMLDivElement>(null);
   const fullRef = useRef<HTMLDivElement>(null);
@@ -393,85 +325,35 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
       : collapsedHeight;
 
   return (
-    <Box component="section" id="agenda" sx={{ py: { xs: 8, md: 12 } }}>
+    <section id="agenda" className="py-8 md:py-12">
       <Container maxWidth="lg">
         <Reveal>
-          <Box
-            sx={{
-              maxWidth: 640,
-              mx: { xs: "auto", md: 0 },
-              textAlign: { xs: "center", md: "left" },
-              mb: { xs: 5, md: 7 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-              }}
-            >
+          <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
               Agenda
-            </Typography>
+            </span>
 
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: fontScale[46] },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-[1.2] tracking-[-0.01em] md:text-[38px] wide:text-46">
               Lo que se viene este mes
-            </Typography>
+            </h2>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                "@media (min-width:1920px)": { fontSize: fontScale[19] },
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="font-body text-16 text-muted-foreground leading-[1.6] wide:text-19">
               Servicios de cada semana y eventos especiales, todo en un solo
               lugar.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={0.12}>
           {agenda.length === 0 && (
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                color: "text.secondary",
-                textAlign: { xs: "center", md: "left" },
-              }}
-            >
+            <p className="text-center font-body text-16 text-muted-foreground md:text-left">
               No hay más eventos programados este mes.
-            </Typography>
+            </p>
           )}
-          {/* Medidores ocultos — nunca visibles, `height: 0` + `overflow: hidden`
-              los saca del flujo sin afectar el layout ni el ancho medido. */}
-          <Box
-            aria-hidden
-            sx={{ height: 0, overflow: "hidden", visibility: "hidden" }}
-          >
-            <Box ref={collapsedRef} sx={AGENDA_GRID_SX}>
+          {/* Medidores ocultos — nunca visibles, `h-0` + `overflow-hidden` los
+              sacan del flujo sin afectar el layout ni el ancho medido. */}
+          <div aria-hidden className="invisible h-0 overflow-hidden">
+            <div ref={collapsedRef} className={AGENDA_GRID_CLASS}>
               {agenda.slice(0, INITIAL_COUNT).map((entry) => (
                 <AgendaTile
                   key={entry.key}
@@ -481,8 +363,8 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
                   isToday={isToday(entry)}
                 />
               ))}
-            </Box>
-            <Box ref={fullRef} sx={AGENDA_GRID_SX}>
+            </div>
+            <div ref={fullRef} className={AGENDA_GRID_CLASS}>
               {agenda.map((entry) => (
                 <AgendaTile
                   key={entry.key}
@@ -492,24 +374,23 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
                   isToday={isToday(entry)}
                 />
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* Grilla visible: siempre renderiza TODOS los eventos — lo que anima
               es la altura de este contenedor (medida arriba), para que abrir/
               cerrar se sienta como descubrir/tapar filas que ya estaban ahí, no
               como aparecer/desaparecer contenido (pedido explícito del usuario). */}
-          <Box
-            component={motion.div}
+          <motion.div
             animate={{ height: targetHeight ?? "auto" }}
             transition={
               reduceMotion
                 ? { duration: 0 }
                 : { duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }
             }
-            sx={{ overflow: "hidden" }}
+            className="overflow-hidden"
           >
-            <Box sx={AGENDA_GRID_SX}>
+            <div className={AGENDA_GRID_CLASS}>
               {agenda.map((entry) => (
                 <AgendaTile
                   key={entry.key}
@@ -519,42 +400,36 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
                   isToday={isToday(entry)}
                 />
               ))}
-            </Box>
-          </Box>
+            </div>
+          </motion.div>
 
           {hasMore && (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <div className="mt-3 flex justify-center">
+              {/* En modo oscuro `primary` (`primary-400`) da 3.8:1 sobre el
+                  fondo; `primary-light` (`primary-300`) da 6.6:1. */}
               <Button
                 variant="text"
                 color="primary"
-                // En modo oscuro `primary.main` (`primary[400]`) da 3.8:1 sobre
-                // el fondo; `primary.light` (`primary[300]`) da 6.6:1.
-                sx={{
-                  color: (t) =>
-                    t.palette.mode === "dark"
-                      ? t.palette.primary.light
-                      : t.palette.primary.main,
-                }}
+                className="dark:text-primary-light"
                 onClick={() => setExpanded((v) => !v)}
                 aria-expanded={expanded}
-                endIcon={
-                  <motion.span
-                    style={{ display: "inline-flex" }}
-                    animate={{ rotate: expanded ? 180 : 0 }}
-                    transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
-                  >
-                    <ExpandMoreRoundedIcon fontSize="small" />
-                  </motion.span>
-                }
               >
                 {expanded
                   ? "Ver menos"
                   : `Ver toda la agenda (${agenda.length})`}
+                <motion.span
+                  aria-hidden
+                  style={{ display: "inline-flex" }}
+                  animate={{ rotate: expanded ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+                >
+                  <ChevronDown className="size-5" />
+                </motion.span>
               </Button>
-            </Box>
+            </div>
           )}
         </Reveal>
       </Container>
-    </Box>
+    </section>
   );
 }

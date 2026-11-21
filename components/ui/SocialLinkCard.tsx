@@ -1,18 +1,14 @@
 "use client";
 
-import type { SvgIconComponent } from "@mui/icons-material";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { fontScale, radius } from "@/theme/tokens";
-import { outlinedActionSx } from "./outlinedActionSx";
+import type { ComponentType } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface SocialLinkCardProps {
   platform: string;
   handle: string;
   href: string;
-  icon: SvgIconComponent;
+  icon: ComponentType<{ className?: string }>;
   ctaLabel: string;
   /**
    * Cuando es `true`, omite el border/radius/fondo/padding propios del
@@ -37,103 +33,47 @@ export function SocialLinkCard({
   avatarUrl,
   meta,
 }: SocialLinkCardProps) {
-  const theme = useTheme();
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1.5,
-        ...(bare
-          ? {}
-          : {
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.lg}px`,
-              p: 2,
-              backgroundColor: "background.paper",
-            }),
-      }}
+    <div
+      className={cn(
+        "flex items-center gap-1.5",
+        !bare && "rounded-lg border border-border bg-card p-2",
+      )}
     >
-      <Box
-        sx={{
-          width: 40,
-          height: 40,
-          borderRadius: `${radius.md}px`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          backgroundColor: (t) =>
-            t.palette.mode === "light" ? "primary.50" : "primary.dark",
-        }}
-      >
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary-50 dark:bg-primary-dark">
         {avatarUrl ? (
-          <Box
-            component="img"
+          // biome-ignore lint/performance/noImgElement: foto de perfil externa (feed de Behold), sin dominio fijo para `next/image`
+          <img
             src={avatarUrl}
             alt=""
-            sx={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "inherit",
-              objectFit: "cover",
-            }}
+            className="size-full rounded-[inherit] object-cover"
           />
         ) : (
-          <Icon
-            sx={{
-              fontSize: fontScale[20],
-              color: (t) =>
-                t.palette.mode === "light" ? "primary.main" : "primary.light",
-            }}
-          />
+          <Icon className="size-5 text-primary dark:text-primary-light" />
         )}
-      </Box>
+      </div>
 
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          component="p"
-          sx={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 600,
-            fontSize: fontScale[13],
-            color: "text.primary",
-          }}
-        >
+      <div className="min-w-0 flex-1">
+        <p className="font-heading font-semibold text-13 text-foreground">
           {platform}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "var(--font-body)",
-            fontSize: fontScale[12],
-            color: "text.secondary",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
+        </p>
+        <p className="truncate font-body text-12 text-muted-foreground">
           {handle}
           {meta && ` · ${meta}`}
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* Outlined con contraste real en reposo y relleno al hover (D084). */}
       <Button
-        component="a"
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        variant="outlined"
+        asChild
+        variant="action"
         size="small"
-        sx={(t) => ({
-          ...outlinedActionSx(t),
-          flexShrink: 0,
-          minHeight: 44, // área táctil (design-qa fase 09)
-        })}
+        className="min-h-11 shrink-0" // área táctil (design-qa fase 09)
       >
-        {ctaLabel}
+        <a href={href} target="_blank" rel="noopener noreferrer">
+          {ctaLabel}
+        </a>
       </Button>
-    </Box>
+    </div>
   );
 }
