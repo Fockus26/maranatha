@@ -1,19 +1,7 @@
 "use client";
 
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import IconButton from "@mui/material/IconButton";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import { motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft, Check, Copy, LoaderCircle, Paperclip } from "lucide-react";
 import {
   type FormEvent,
   type ReactNode,
@@ -33,14 +21,22 @@ import {
 } from "@/app/actions/payments";
 import { formatAmount } from "@/lib/payments/labels";
 import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
+import { Alert } from "./alert";
+import { Button } from "./button";
 import { DateField } from "./DateField";
 import { DonationFormCard } from "./DonationFormCard";
-import { outlinedActionSx } from "./outlinedActionSx";
+import { Field } from "./field";
+import { Input } from "./input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 /** Igual a `MAX_RECEIPT_BYTES` de lib/payments/receipts.ts (solo servidor). */
 const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
+
+/** Texto secundario de 12 px (ayudas, etiquetas de los datos de la cuenta). */
+const HINT_CLASSES = "font-body text-12 leading-body text-muted-foreground";
+/** Avisos del paso: el `Alert` con el texto de 12 px que tenía en MUI. */
+const ALERT_CLASSES = "text-12";
 
 /**
  * Paso 2 del aporte: el donante elige método de pago.
@@ -56,6 +52,9 @@ const MAX_RECEIPT_BYTES = 4 * 1024 * 1024;
  *
  * "Mensual" solo se ofrece con PayPal: los métodos manuales no pueden cobrar
  * de forma recurrente, así que el servidor ni siquiera los devuelve.
+ *
+ * No depende de dónde se monte (sección del inicio, modal de diezmo o el
+ * diálogo de un proyecto): el `DateField` busca su propio `role="dialog"`.
  */
 
 export interface PaymentStepContribution {
@@ -98,8 +97,16 @@ function todayIso() {
   return local.toISOString().slice(0, 10);
 }
 
+/**
+ * Botón de copiar con tooltip (hover y foco por teclado). Radix cierra el
+ * tooltip al pulsar el disparador, así que se mantiene abierto mientras dura
+ * el "Copiado"; el aviso también va a una región `aria-live` para el lector
+ * de pantalla (el tooltip solo se lee al enfocar).
+ */
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
+  const [hoverOpen, setHoverOpen] = useState(false);
+  const name = `Copiar ${label.toLowerCase()}`;
 
   async function copy() {
     try {
@@ -112,19 +119,30 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   }
 
   return (
-    <Tooltip title={copied ? "Copiado" : `Copiar ${label.toLowerCase()}`}>
-      <IconButton
-        size="small"
-        onClick={copy}
-        aria-label={`Copiar ${label.toLowerCase()}`}
-      >
-        {copied ? (
-          <CheckRoundedIcon fontSize="inherit" />
-        ) : (
-          <ContentCopyRoundedIcon fontSize="inherit" />
-        )}
-      </IconButton>
-    </Tooltip>
+    <>
+      <Tooltip open={hoverOpen || copied} onOpenChange={setHoverOpen}>
+        <TooltipTrigger asChild>
+          <Button
+            variant="plain"
+            size="icon"
+            // El `IconButton size="small"` de MUI: 28 px con ícono de 18.
+            className="size-7 p-1.25"
+            onClick={copy}
+            aria-label={name}
+          >
+            {copied ? (
+              <Check className="size-4.5" aria-hidden="true" />
+            ) : (
+              <Copy className="size-4.5" aria-hidden="true" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{copied ? "Copiado" : name}</TooltipContent>
+      </Tooltip>
+      <span className="sr-only" aria-live="polite">
+        {copied ? "Copiado" : ""}
+      </span>
+    </>
   );
 }
 
@@ -162,12 +180,7 @@ function AnimatedHeight({ children }: { children: ReactNode }) {
       // lugar a los anillos de foco de los campos para que no se corten.
       // `content-box`: la altura animada es la del contenido; el padding va
       // aparte (con border-box el padding se comía 8px y cortaba el botón).
-      style={{
-        overflow: "clip",
-        margin: -4,
-        padding: 4,
-        boxSizing: "content-box",
-      }}
+      className="-m-1 box-content overflow-clip p-1"
     >
       <div ref={innerRef}>{children}</div>
     </motion.div>
@@ -185,62 +198,39 @@ function MethodOption({
   name: string;
   onSelect: () => void;
 }) {
-  const theme = useTheme();
   return (
-    <Box
-      component="label"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1.5,
-        px: 2,
-        py: 1.5,
-        borderRadius: `${radius.sm}px`,
-        border: `1px solid ${checked ? theme.palette.secondary.main : theme.palette.divider}`,
-        backgroundColor: checked
-          ? `${theme.palette.secondary.light}22`
-          : "transparent",
-        cursor: "pointer",
-        transition: theme.transitions.create(
-          ["border-color", "background-color"],
-          { duration: 150 },
-        ),
-        "&:has(input:focus-visible)": {
-          outline: `2px solid ${theme.palette.secondary.main}`,
-          outlineOffset: 2,
-        },
-      }}
+    <label
+      className={cn(
+        "flex cursor-pointer items-center gap-1.5 rounded-sm border px-2 py-1.5 transition-[border-color,background-color] duration-150",
+        "has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-secondary",
+        checked
+          ? "border-secondary bg-secondary-light/13"
+          : "border-border bg-transparent",
+      )}
     >
-      <Box
-        component="input"
+      <input
         type="radio"
         aria-label={method.label}
         name={name}
         value={method.id}
         checked={checked}
         onChange={onSelect}
-        sx={{ accentColor: theme.palette.secondary.main, m: 0 }}
+        className="m-0 accent-secondary"
       />
       {/* Logos servidos desde /public (sin terceros). Decorativos: el
           nombre del método ya está en el texto y en el aria-label. */}
-      <Box
-        component="img"
+      {/* biome-ignore lint/performance/noImgElement: SVG local de 20 px; `next/image` no aporta nada aquí. */}
+      <img
         src={`/payment-methods/${method.id}.svg`}
         alt=""
         width={20}
         height={20}
-        sx={{ flexShrink: 0, display: "block" }}
+        className="block shrink-0"
       />
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[13],
-          fontWeight: 500,
-        }}
-      >
+      <span className="font-body text-13 font-medium leading-body">
         {method.label}
-      </Typography>
-    </Box>
+      </span>
+    </label>
   );
 }
 
@@ -282,7 +272,6 @@ function GatewayPanel({
   method: CheckoutMethod;
   contribution: PaymentStepContribution;
 }) {
-  const theme = useTheme();
   const gateway = method.id === "binance" ? GATEWAYS.binance : GATEWAYS.paypal;
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<PaypalCheckoutError | null>(null);
@@ -316,33 +305,26 @@ function GatewayPanel({
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[12],
-          color: theme.palette.text.secondary,
-        }}
-      >
+    <div className="flex flex-col gap-3">
+      <p className={HINT_CLASSES}>
         {method.hint} Te llevaremos a {gateway.name} para completar el pago de
         forma segura y volverás aquí al terminar.
-      </Typography>
+      </p>
       {contribution.frequency === "monthly" && (
-        <Alert severity="info" sx={{ fontSize: fontScale[12] }}>
+        <Alert severity="info" className={ALERT_CLASSES}>
           PayPal cobrará {formatAmount(contribution.amountUsd, "USD")} hoy y el
           mismo día de cada mes. Puedes cancelarlo cuando quieras desde tu
           cuenta PayPal (Configuración → Pagos automáticos).
         </Alert>
       )}
       {error && (
-        <Alert severity="error" role="alert" sx={{ fontSize: fontScale[12] }}>
+        <Alert severity="error" className={ALERT_CLASSES}>
           {gatewayErrorText(error, gateway.name)}
         </Alert>
       )}
       <Button
-        fullWidth
-        variant="contained"
         color="secondary"
+        className="w-full"
         onClick={handleClick}
         disabled={redirecting}
       >
@@ -350,7 +332,7 @@ function GatewayPanel({
           ? `Redirigiendo a ${gateway.name}…`
           : `Continuar a ${gateway.name}`}
       </Button>
-    </Box>
+    </div>
   );
 }
 
@@ -363,7 +345,6 @@ function ManualPaymentPanel({
   contribution: PaymentStepContribution;
   onReported: () => void;
 }) {
-  const theme = useTheme();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [reference, setReference] = useState("");
@@ -418,158 +399,60 @@ function ManualPaymentPanel({
   }
 
   return (
-    <Box>
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[12],
-          color: theme.palette.text.secondary,
-          mb: 2,
-        }}
-      >
-        {method.hint}
-      </Typography>
+    <div>
+      <p className={cn(HINT_CLASSES, "mb-2")}>{method.hint}</p>
 
-      <Box
-        sx={{
-          borderRadius: `${radius.sm}px`,
-          border: `1px solid ${theme.palette.divider}`,
-          p: 2,
-          mb: 3,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            gap: 2,
-            mb: 1.5,
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[12],
-              color: theme.palette.text.secondary,
-            }}
-          >
-            Monto a pagar
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontSize: fontScale[16],
-                fontWeight: 700,
-              }}
-            >
+      <div className="mb-3 rounded-sm border border-border p-2">
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          <p className={HINT_CLASSES}>Monto a pagar</p>
+          <div className="flex items-center gap-0.5">
+            <p className="font-heading text-16 font-bold leading-body">
               {method.amountDue != null
                 ? formatAmount(method.amountDue, method.currency)
                 : `${formatAmount(contribution.amountUsd, "USD")} (al cambio del día)`}
-            </Typography>
+            </p>
             {method.amountDue != null && (
               <CopyButton value={String(method.amountDue)} label="Monto" />
             )}
-          </Box>
-        </Box>
+          </div>
+        </div>
         {method.currency !== "USD" &&
           method.currency !== "USDT" &&
           method.exchangeRate && (
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[11],
-                color: theme.palette.text.secondary,
-                mb: 1.5,
-                textAlign: "right",
-              }}
-            >
+            <p className="mb-1.5 text-right font-body text-11 leading-body text-muted-foreground">
               Tasa {method.currency === "VES" ? "BCV" : "del día"}:{" "}
               {formatAmount(method.exchangeRate, method.currency)} por USD
-            </Typography>
+            </p>
           )}
-        <Box component="dl" sx={{ m: 0, display: "grid", gap: 1 }}>
+        <dl className="m-0 grid gap-1">
           {method.details.map((detail) => (
-            <Box
+            <div
               key={detail.label}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-              }}
+              className="flex items-center justify-between gap-2"
             >
-              <Typography
-                component="dt"
-                sx={{
-                  fontFamily: typography.fontFamily.body,
-                  fontSize: fontScale[12],
-                  color: theme.palette.text.secondary,
-                }}
-              >
-                {detail.label}
-              </Typography>
-              <Box
-                component="dd"
-                sx={{
-                  m: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  minWidth: 0,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: typography.fontFamily.body,
-                    fontSize: fontScale[13],
-                    fontWeight: 500,
-                    overflowWrap: "anywhere",
-                    textAlign: "right",
-                  }}
-                >
+              <dt className={HINT_CLASSES}>{detail.label}</dt>
+              <dd className="m-0 flex min-w-0 items-center gap-0.5">
+                <span className="text-right font-body text-13 font-medium leading-body wrap-anywhere">
                   {detail.value}
-                </Typography>
+                </span>
                 {detail.copyable && (
                   <CopyButton value={detail.value} label={detail.label} />
                 )}
-              </Box>
-            </Box>
+              </dd>
+            </div>
           ))}
-        </Box>
-      </Box>
+        </dl>
+      </div>
 
-      <Box
-        component="form"
-        noValidate
-        onSubmit={handleSubmit}
-        sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-      >
-        <Typography
-          component="h3"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            fontWeight: 500,
-          }}
-        >
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <h3 className="font-body text-12 font-medium leading-body">
           Cuando hayas pagado, repórtalo aquí
-        </Typography>
+        </h3>
 
         {/* Honeypot anti-spam: oculto para personas y lectores de pantalla. */}
-        <Box
+        <div
           aria-hidden="true"
-          sx={{
-            position: "absolute",
-            left: "-10000px",
-            // En `sx`, width/height ≤ 1 son porcentajes (1 = 100%): con
-            // números el honeypot medía todo el alto del modal y estiraba el
-            // scroll ~650px con espacio vacío. Van como string en px.
-            width: "1px",
-            height: "1px",
-            overflow: "hidden",
-          }}
+          className="absolute -left-2500 size-px overflow-hidden"
         >
           <input
             type="text"
@@ -578,54 +461,48 @@ function ManualPaymentPanel({
             autoComplete="off"
             defaultValue=""
           />
-        </Box>
+        </div>
 
-        {/* Referencia + comprobante en la misma fila (el botón conserva el
-            alto del campo; su texto completo queda en aria-label). */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: 1.5,
-            alignItems: "start",
-          }}
+        {/* Referencia + comprobante en la misma fila, a la altura de la caja
+            (la etiqueta va encima, D114); el texto completo del botón queda
+            en aria-label. */}
+        <Field
+          label="Referencia"
+          required
+          description={method.referenceHint}
+          error={
+            touched && !referenceValid
+              ? "Ingresa la referencia: letras o números (puede llevar guiones o puntos)."
+              : undefined
+          }
         >
-          <TextField
-            name="reference"
-            label="Referencia"
-            fullWidth
-            size="small"
-            required
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            error={touched && !referenceValid}
-            helperText={
-              touched && !referenceValid
-                ? "Ingresa la referencia: letras o números (puede llevar guiones o puntos)."
-                : method.referenceHint
-            }
-            sx={SMALL_FIELD_SX}
-          />
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            aria-label={
-              receipt
-                ? `Cambiar comprobante (${receipt.name})`
-                : "Adjuntar comprobante (opcional)"
-            }
-            aria-describedby={receipt ? `${fileInputId}-name` : undefined}
-            variant="outlined"
-            startIcon={<AttachFileRoundedIcon fontSize="small" />}
-            sx={(t) => ({
-              ...outlinedActionSx(t),
-              height: 40,
-              fontSize: fontScale[12],
-              whiteSpace: "nowrap",
-            })}
-          >
-            {receipt ? "Cambiar" : "Comprobante"}
-          </Button>
-        </Box>
+          {(control) => (
+            <div className="flex items-start gap-1.5">
+              <Input
+                {...control}
+                name="reference"
+                required
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                variant="action"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={
+                  receipt
+                    ? `Cambiar comprobante (${receipt.name})`
+                    : "Adjuntar comprobante (opcional)"
+                }
+                aria-describedby={receipt ? `${fileInputId}-name` : undefined}
+                className="whitespace-nowrap text-12"
+              >
+                <Paperclip className="size-5" aria-hidden="true" />
+                {receipt ? "Cambiar" : "Comprobante"}
+              </Button>
+            </div>
+          )}
+        </Field>
         {/* El input real queda fuera del orden de tabulación y del árbol
             accesible: el botón de arriba es el único control visible. */}
         <input
@@ -650,18 +527,12 @@ function ManualPaymentPanel({
           }}
         />
         {receipt && (
-          <Typography
+          <p
             id={`${fileInputId}-name`}
-            sx={{
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[11],
-              color: theme.palette.text.secondary,
-              mt: -1.5,
-              overflowWrap: "anywhere",
-            }}
+            className="-mt-1.5 font-body text-11 leading-body text-muted-foreground wrap-anywhere"
           >
             Comprobante: {receipt.name}
-          </Typography>
+          </p>
         )}
 
         {/* Mismo calendario que el formulario de proyectos; no se puede
@@ -675,43 +546,43 @@ function ManualPaymentPanel({
           error={touched && !dateValid}
           helperText="Elige una fecha válida."
         />
-        <TextField
-          name="amountPaid"
+        <Field
           label={`Monto pagado (${method.currency === "VES" ? "Bs" : method.currency})`}
-          type="number"
-          size="small"
           required
-          value={amountPaid}
-          onChange={(e) => setAmountPaid(e.target.value)}
-          error={touched && !amountValid}
-          helperText={
+          error={
             touched && !amountValid
               ? "Ingresa el monto que pagaste."
               : undefined
           }
-          slotProps={{
-            htmlInput: { min: 0, step: "0.01", inputMode: "decimal" },
-          }}
-          sx={SMALL_FIELD_SX}
-        />
+        >
+          <Input
+            name="amountPaid"
+            type="number"
+            required
+            min={0}
+            step="0.01"
+            inputMode="decimal"
+            value={amountPaid}
+            onChange={(e) => setAmountPaid(e.target.value)}
+          />
+        </Field>
 
         {error && (
-          <Alert severity="error" role="alert" sx={{ fontSize: fontScale[12] }}>
+          <Alert severity="error" className={ALERT_CLASSES}>
             {REPORT_ERROR_TEXT[error]}
           </Alert>
         )}
 
         <Button
-          fullWidth
           type="submit"
-          variant="contained"
           color="secondary"
+          className="w-full"
           disabled={submitting}
         >
           {submitting ? "Enviando…" : "Enviar reporte de pago"}
         </Button>
-      </Box>
-    </Box>
+      </form>
+    </div>
   );
 }
 
@@ -722,7 +593,6 @@ export function PaymentStep({
   onBack,
   onReported,
 }: PaymentStepProps) {
-  const theme = useTheme();
   const groupName = useId();
   const [methods, setMethods] = useState<CheckoutMethod[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -770,120 +640,83 @@ export function PaymentStep({
 
   return (
     <DonationFormCard width={width}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+      <div className="mb-3 flex items-center gap-1">
+        {/* El `Button size="small" color="inherit"` de MUI: hereda el color
+            del texto y resalta con el gris de acción. */}
         <Button
           ref={backRef}
           onClick={onBack}
+          variant="text"
           size="small"
-          color="inherit"
-          startIcon={<ArrowBackRoundedIcon fontSize="small" />}
-          sx={{ textTransform: "none", fontSize: fontScale[12], ml: -1 }}
+          className="-ml-1 text-12 text-inherit hover:bg-accent hover:text-inherit"
         >
+          <ArrowLeft className="size-4.5" aria-hidden="true" />
           Volver
         </Button>
-      </Box>
+      </div>
 
-      <Box
-        sx={{
-          textAlign: "center",
-          pb: 4,
-          mb: 4,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 800,
-            fontSize: fontScale[32],
-          }}
-        >
+      <div className="mb-4 border-b border-border pb-4 text-center">
+        <p className="font-heading text-32 font-extrabold leading-body">
           {formatAmount(amountUsd, "USD")}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            color: theme.palette.text.secondary,
-            mt: 0.25,
-          }}
-        >
-          {summary}
-        </Typography>
-      </Box>
+        </p>
+        <p className={cn(HINT_CLASSES, "mt-0.25")}>{summary}</p>
+      </div>
 
-      <Typography
+      <p
         id={`${groupName}-label`}
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[12],
-          fontWeight: 500,
-          mb: 2,
-        }}
+        className="mb-2 font-body text-12 font-medium leading-body"
       >
         Método de pago
-      </Typography>
+      </p>
 
       {!methods && !loadError && (
-        <Box
-          sx={{ display: "flex", justifyContent: "center", py: 4 }}
-          role="status"
-          aria-label="Cargando métodos de pago"
-        >
-          <CircularProgress size={24} color="secondary" />
-        </Box>
+        <output className="flex justify-center py-4">
+          <LoaderCircle
+            className="size-6 animate-spin text-secondary"
+            aria-hidden="true"
+          />
+          <span className="sr-only">Cargando métodos de pago</span>
+        </output>
       )}
 
       {loadError && (
-        <Alert
-          severity="error"
-          role="alert"
-          action={
+        <Alert severity="error" className={ALERT_CLASSES}>
+          <div className="flex items-center justify-between gap-2">
+            <span>{loadError}</span>
             <Button
-              color="inherit"
+              variant="text"
               size="small"
+              className="shrink-0 text-inherit hover:bg-accent hover:text-inherit"
               onClick={() => setAttempt((n) => n + 1)}
             >
               Reintentar
             </Button>
-          }
-          sx={{ fontSize: fontScale[12] }}
-        >
-          {loadError}
+          </div>
         </Alert>
       )}
 
       {methods && (
         <>
           {frequency === "monthly" && (
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[12],
-                color: theme.palette.text.secondary,
-                mb: 2,
-              }}
-            >
+            <p className={cn(HINT_CLASSES, "mb-2")}>
               Los aportes mensuales solo se pueden hacer con PayPal o tarjeta,
               que cobran automáticamente cada mes.
-            </Typography>
+            </p>
           )}
           {methods.length === 0 ? (
-            <Alert severity="info" sx={{ fontSize: fontScale[12] }}>
+            <Alert severity="info" className={ALERT_CLASSES}>
               {frequency === "monthly"
                 ? "El aporte mensual todavía no está disponible. Puedes hacer un aporte de única vez."
                 : "No hay métodos de pago disponibles en este momento."}
             </Alert>
           ) : (
-            <Box
+            <div
               role="radiogroup"
               aria-labelledby={`${groupName}-label`}
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                gap: 1.5,
-                mb: selected ? 4 : 0,
-              }}
+              className={cn(
+                "grid grid-cols-1 gap-1.5 sm:grid-cols-2",
+                selected && "mb-4",
+              )}
             >
               {methods.map((method) => (
                 <MethodOption
@@ -894,24 +727,24 @@ export function PaymentStep({
                   onSelect={() => setSelectedId(method.id)}
                 />
               ))}
-            </Box>
+            </div>
           )}
         </>
       )}
 
       <AnimatedHeight>
         {selected && selected.kind === "gateway" && (
-          <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
+          <div className="border-t border-border pt-4">
             <GatewayPanel
               key={selected.id}
               method={selected}
               contribution={contribution}
             />
-          </Box>
+          </div>
         )}
 
         {selected && selected.kind === "manual" && (
-          <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4 }}>
+          <div className="border-t border-border pt-4">
             {/* `key`: al cambiar de método se reinicia el formulario de reporte. */}
             <ManualPaymentPanel
               key={selected.id}
@@ -919,7 +752,7 @@ export function PaymentStep({
               contribution={contribution}
               onReported={onReported}
             />
-          </Box>
+          </div>
         )}
       </AnimatedHeight>
     </DonationFormCard>

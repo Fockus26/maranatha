@@ -1,11 +1,10 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { fontScale, radius, secondary, typography } from "@/theme/tokens";
+import { useId, useState } from "react";
+import { cn } from "@/lib/utils";
+import { FieldError } from "./field";
+import { Input } from "./input";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -36,9 +35,10 @@ export function AmountSelector({
   error,
   helperText,
 }: AmountSelectorProps) {
-  const theme = useTheme();
+  const errorId = useId();
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
+  const showError = Boolean(error && helperText);
 
   function handlePresetClick(value: number) {
     if (selectedPreset === value) {
@@ -62,138 +62,70 @@ export function AmountSelector({
   }
 
   return (
-    <Box>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${presets.length}, 1fr)`,
-          gap: 2,
-          mb: 3.5,
-        }}
+    <div>
+      <div
+        className="mb-3.5 grid gap-2"
+        // Una columna por preset (la cantidad llega por prop).
+        style={{ gridTemplateColumns: `repeat(${presets.length}, 1fr)` }}
       >
         {presets.map((value) => {
           const active = selectedPreset === value;
           return (
-            <Box
+            <button
               key={value}
-              component="button"
               type="button"
               onClick={() => handlePresetClick(value)}
               aria-pressed={active}
               aria-label={`Monto ${formatCurrency(value)}`}
-              sx={{
-                position: "relative",
-                textAlign: "center",
-                py: 2.5,
-                borderRadius: `${radius.sm}px`,
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[13],
-                fontWeight: 500,
-                cursor: "pointer",
-                backgroundColor: "transparent",
-                // Borde y texto ya no dependen de una animación compartida
-                // entre presets (ver abajo) — cambian de golpe, es el fondo
-                // el que hace la transición.
-                border: `1px solid ${active ? theme.palette.secondary.main : theme.palette.divider}`,
-                // El texto del preset activo usaba `secondary.dark`
-                // (#B34C02) sobre el fondo naranja translúcido — el cliente
-                // lo vio "sucio" (un naranja quemado/marrón, poco legible).
-                // `secondary[700]` es el mismo naranja apagado ya usado para
-                // "seleccionado" en el resto del sitio (tabs de Proyectos,
-                // D051; píldora activa del navbar, D054) — más claro y
-                // consistente.
-                // Modo oscuro: `secondary[700]` sobre el paper oscuro se veía apagado;
-                // ahí se usa el naranja claro (~8:1 sobre gray[800]).
-                color: active
-                  ? theme.palette.mode === "dark"
-                    ? secondary[300]
-                    : secondary[700]
-                  : theme.palette.text.primary,
-              }}
+              className={cn(
+                "relative cursor-pointer rounded-sm border bg-transparent py-2.5 text-center font-body text-13 font-medium",
+                // Borde y texto cambian de golpe; es el fondo el que hace la
+                // transición (ver abajo). El texto activo es `secondary[700]`,
+                // el naranja de "seleccionado" del sitio (D051, D054); en
+                // oscuro, el naranja claro (~8:1 sobre gray[800]).
+                active
+                  ? "border-secondary text-secondary-700 dark:text-secondary-300"
+                  : "border-border text-foreground",
+              )}
             >
               {/*
-                Revisión: el fondo naranja ya NO usa `layoutId` compartido
-                entre presets. Con `layoutId`, framer-motion trata el
-                highlight como un único elemento que se desliza (FLIP) desde
-                la posición del preset anterior hasta la del nuevo — el
-                cliente pidió específicamente que NO se deslizara: quería un
-                fundido (fade out del anterior, fade in del nuevo), cada uno
-                en su propio lugar. Por eso cada preset ahora tiene su propio
-                `AnimatePresence` independiente: al cambiar de selección, el
-                highlight del preset que se deselecciona se desmonta con
-                `exit` (fade out) mientras el del nuevo preset se monta con
-                `initial`→`animate` (fade in), en simultáneo pero sin ningún
-                movimiento compartido entre ambos.
+                El fondo naranja no usa `layoutId` compartido entre presets: el
+                cliente pidió un fundido (fade out del anterior, fade in del
+                nuevo), cada uno en su lugar, sin deslizarse. Cada preset tiene
+                su propio `AnimatePresence`.
               */}
               <AnimatePresence>
                 {active && (
-                  <Box
+                  <motion.div
                     key="highlight"
-                    component={motion.div}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.22, ease: EASE }}
-                    sx={{
-                      position: "absolute",
-                      inset: -1,
-                      borderRadius: `${radius.sm}px`,
-                      border: `1px solid ${theme.palette.secondary.main}`,
-                      backgroundColor: `${theme.palette.secondary.light}22`,
-                      zIndex: 0,
-                    }}
+                    className="absolute -inset-px z-0 rounded-sm border border-secondary bg-secondary-light/13"
                   />
                 )}
               </AnimatePresence>
-              <Box component="span" sx={{ position: "relative", zIndex: 1 }}>
-                {formatCurrency(value)}
-              </Box>
-            </Box>
+              <span className="relative z-1">{formatCurrency(value)}</span>
+            </button>
           );
         })}
-      </Box>
-      <TextField
+      </div>
+      <Input
         placeholder={customLabel}
+        aria-label={customLabel}
         // "text" y no "number": con "number" el navegador deja pasar "1e3" y
-        // no hay forma de limitar los decimales al escribir.
+        // no hay forma de limitar los decimales al escribir. "decimal": se
+        // aceptan centavos.
         type="text"
-        // En el <input> (no en el contenedor): es el que necesita el nombre
-        // accesible. "decimal": se aceptan centavos.
-        slotProps={{
-          htmlInput: {
-            "aria-label": customLabel,
-            inputMode: "decimal",
-            autoComplete: "off",
-          },
-        }}
-        fullWidth
-        size="small"
+        inputMode="decimal"
+        autoComplete="off"
         value={customAmount}
         onChange={(e) => handleCustomChange(e.target.value)}
-        error={error}
-        helperText={error ? helperText : undefined}
-        sx={{
-          // Placeholder/valor del input más chico — el default de MUI (16px)
-          // se veía "muy grande" para el cliente en un campo de una sola
-          // línea; 14px iguala el resto de texto secundario del formulario.
-          "& .MuiInputBase-input": { fontSize: typography.size.small },
-          "& .MuiInputBase-input::placeholder": {
-            fontSize: typography.size.small,
-          },
-          // Quita las flechas de incremento/decremento del input numérico
-          // (Chrome/Safari vía -webkit-appearance, Firefox vía
-          // -moz-appearance) — al cliente no le gustaban.
-          "& input[type=number]": { MozAppearance: "textfield" },
-          "& input[type=number]::-webkit-outer-spin-button": {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-          "& input[type=number]::-webkit-inner-spin-button": {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-        }}
+        aria-invalid={error || undefined}
+        aria-describedby={showError ? errorId : undefined}
       />
-    </Box>
+      {showError && <FieldError id={errorId}>{helperText}</FieldError>}
+    </div>
   );
 }
