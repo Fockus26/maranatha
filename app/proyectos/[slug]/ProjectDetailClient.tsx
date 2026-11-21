@@ -1,17 +1,12 @@
 "use client";
 
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import IconButton from "@mui/material/IconButton";
-import Snackbar from "@mui/material/Snackbar";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import Footer from "@/components/layout/Footer";
 import PageNavbar from "@/components/layout/PageNavbar";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { Container } from "@/components/ui/container";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   PaymentStep,
   type PaymentStepContribution,
@@ -25,7 +20,6 @@ import { ProjectSidebar } from "@/components/ui/ProjectSidebar";
 import { StepTransition } from "@/components/ui/StepTransition";
 import { breadcrumbJsonLd } from "@/lib/jsonLd";
 import type { ProjectRecord } from "@/lib/projectsData";
-import { gray, semantic } from "@/theme/tokens";
 
 /**
  * Parte interactiva de la página de detalle: botón "Aportar" del sidebar
@@ -40,7 +34,6 @@ import { gray, semantic } from "@/theme/tokens";
  */
 export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
   const [contributeOpen, setContributeOpen] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
   const [contribution, setContribution] =
     useState<PaymentStepContribution | null>(null);
   const isCompleted = project.status === "completed";
@@ -57,6 +50,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
   }
 
   const stepOneRef = useRef<HTMLDivElement>(null);
+  // Quien abrió el modal: Radix solo devuelve el foco a un `DialogTrigger`
+  // (aquí el botón vive en `ProjectSidebar`), así que se restaura a mano.
+  const openerRef = useRef<HTMLElement | null>(null);
 
   // Al volver, el botón "Volver" desaparece: el foco va al submit del paso 1
   // (que es desde donde el usuario había avanzado) en vez de caer al <body>.
@@ -76,7 +72,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
 
   function handleReported() {
     handleClose();
-    setConfirmed(true);
+    toast.success(
+      `¡Gracias por tu aporte a "${project.title}"! Verificaremos tu pago en las próximas horas.`,
+    );
   }
 
   return (
@@ -90,16 +88,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
       />
       <PageNavbar />
 
-      <Box component="main" id="main-content" sx={{ py: { xs: 6, md: 9 } }}>
+      <main id="main-content" className="py-6 md:py-9">
         <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "1fr 340px" },
-              gap: { xs: 6, md: 8 },
-              alignItems: "start",
-            }}
-          >
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_340px] md:gap-8">
             <ProjectDetailContent
               title={project.title}
               description={project.longDescription}
@@ -113,46 +104,41 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
               goalAmount={project.goalAmount}
               deadlineLabel={project.deadlineLabel}
               encargados={project.encargados}
-              onCtaClick={() =>
-                isCompleted ? undefined : setContributeOpen(true)
-              }
+              onCtaClick={() => {
+                if (isCompleted) return;
+                openerRef.current =
+                  document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : null;
+                setContributeOpen(true);
+              }}
             />
-          </Box>
+          </div>
         </Container>
-      </Box>
+      </main>
 
       <Footer />
 
       <Dialog
         open={contributeOpen}
-        onClose={handleClose}
-        maxWidth="xs"
-        fullWidth
-        aria-label={`Aportar a "${project.title}"`}
-        slotProps={{
-          paper: { sx: { backgroundImage: "none", m: { xs: 2, sm: 4 } } },
+        onOpenChange={(open) => {
+          if (!open) handleClose();
         }}
       >
-        <IconButton
-          onClick={handleClose}
-          aria-label="Cerrar"
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            zIndex: 1,
-            color: "text.secondary",
-          }}
-        >
-          <CloseRoundedIcon fontSize="small" />
-        </IconButton>
         <DialogContent
-          sx={{
-            p: { xs: 2.5, sm: 4 },
-            display: "flex",
-            justifyContent: "center",
+          aria-label={`Aportar a "${project.title}"`}
+          aria-describedby={undefined}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            openerRef.current?.focus();
           }}
+          // Márgenes de 8 px (16 desde `sm`) como el papel de MUI; el paso
+          // interior trae su propio ancho.
+          className="flex max-w-[calc(100%-1rem)] justify-center p-2.5 sm:max-w-111 sm:p-4"
         >
+          <DialogTitle asChild>
+            <span className="sr-only">{`Aportar a "${project.title}"`}</span>
+          </DialogTitle>
           {/* Paso 1 montado durante el paso 2: "Volver" conserva lo escrito (D087). */}
           <StepTransition
             showSecond={!!contribution}
@@ -179,27 +165,6 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
           />
         </DialogContent>
       </Dialog>
-
-      <Snackbar
-        open={confirmed}
-        autoHideDuration={5000}
-        onClose={() => setConfirmed(false)}
-      >
-        <Alert
-          onClose={() => setConfirmed(false)}
-          severity="success"
-          variant="filled"
-          sx={{
-            width: "100%",
-            bgcolor: semantic.successFilled,
-            color: gray[50],
-            "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
-          }}
-        >
-          ¡Gracias por tu aporte a &quot;{project.title}&quot;! Verificaremos tu
-          pago en las próximas horas.
-        </Alert>
-      </Snackbar>
     </>
   );
 }

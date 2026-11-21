@@ -1,25 +1,16 @@
 "use client";
 
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Toolbar,
-  useScrollTrigger,
-  useTheme,
-} from "@mui/material";
 import { motion } from "framer-motion";
+import { ExternalLink, Menu } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { SITE_NAME } from "@/lib/siteConfig";
 import { useTitheModal } from "@/lib/titheModalStore";
-import { fontScale, radius } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 import MobileMenuOverlay from "./MobileMenuOverlay";
 import {
   HOME_ANCHOR_ITEMS,
@@ -27,6 +18,7 @@ import {
   PAGE_NAV_ITEMS,
 } from "./navItems";
 import { useActiveAnchor } from "./useActiveAnchor";
+import { useScrolled } from "./useScrolled";
 
 const ANCHOR_IDS = HOME_ANCHOR_ITEMS.map((item) => item.id);
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -46,8 +38,7 @@ const EASE = [0.2, 0.8, 0.2, 1] as const;
  * del navbar a mano ni desincronizarse si esta cambia (ej. breakpoint).
  */
 export default function Navbar() {
-  const theme = useTheme();
-  const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 8 });
+  const scrolled = useScrolled(8);
   const activeAnchor = useActiveAnchor(ANCHOR_IDS);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { openTithe } = useTitheModal();
@@ -87,76 +78,39 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar
+      <header
         ref={appBarRef}
-        position="sticky"
-        elevation={0}
-        sx={{
-          zIndex: theme.zIndex.appBar,
-          backgroundColor: "background.default",
-          color: "text.primary",
-          borderBottom: `1px solid ${scrolled ? "transparent" : theme.palette.divider}`,
-          boxShadow: scrolled ? theme.shadows[1] : "none",
-          transition: theme.transitions.create(
-            ["box-shadow", "border-bottom"],
-            {
-              duration: theme.transitions.duration.shortest,
-            },
-          ),
-        }}
+        className={cn(
+          "sticky top-0 z-navbar box-border flex w-full flex-col border-b bg-background text-foreground transition-[box-shadow,border-color] duration-150",
+          scrolled ? "border-transparent shadow-sm" : "border-border",
+        )}
       >
-        <Container maxWidth="lg" disableGutters={false}>
-          <Toolbar
-            disableGutters
-            sx={{
-              justifyContent: "space-between",
-              py: 1.5,
-              minHeight: "auto",
-            }}
-          >
+        <Container maxWidth="lg">
+          <div className="relative flex items-center justify-between py-3">
             {/* Logo */}
-            <Box
-              component={Link}
+            <Link
               href="/"
               aria-label={`${SITE_NAME}, ir al inicio`}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                minHeight: 44,
-                textDecoration: "none",
-              }}
+              className="flex min-h-11 items-center no-underline"
             >
               <Logo variant="responsive" size={{ xs: 32, sm: 40 }} />
-            </Box>
+            </Link>
 
             {/* Links de escritorio: anclas + páginas */}
-            <Box
-              component="nav"
+            <nav
               aria-label="Principal"
-              sx={{
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                gap: 3,
-              }}
+              className="hidden items-center gap-6 md:flex"
             >
               {HOME_ANCHOR_ITEMS.map((item) => {
                 const isActive = activeAnchor === item.id;
                 return (
-                  <Box
+                  <a
                     key={item.id}
-                    component="a"
                     href={`#${item.id}`}
-                    sx={{
-                      position: "relative",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 500,
-                      fontSize: fontScale[13],
-                      "@media (min-width:1920px)": { fontSize: fontScale[15] },
-                      textDecoration: "none",
-                      color: isActive ? "text.primary" : "text.secondary",
-                      pb: 0.25,
-                      "&:hover": { color: "secondary.main" },
-                    }}
+                    className={cn(
+                      "relative pb-px font-body font-medium text-13 no-underline hover:text-secondary wide:text-15",
+                      isActive ? "text-foreground" : "text-muted-foreground",
+                    )}
                   >
                     {item.label}
                     {/* Antes: `borderBottom` estático que solo cambiaba de
@@ -167,22 +121,14 @@ export default function Navbar() {
                         deslice de una ancla a la siguiente en vez de
                         aparecer/desaparecer de golpe. */}
                     {isActive && (
-                      <Box
-                        component={motion.div}
+                      <motion.span
                         layoutId="navbar-active-underline"
                         transition={{ duration: 0.25, ease: EASE }}
-                        sx={{
-                          position: "absolute",
-                          left: 0,
-                          right: 0,
-                          bottom: -2,
-                          height: "2px",
-                          borderRadius: `${radius.xs}px`,
-                          bgcolor: "secondary.main",
-                        }}
+                        aria-hidden
+                        className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded-xs bg-secondary"
                       />
                     )}
-                  </Box>
+                  </a>
                 );
               })}
               {/* Links de página (Proyectos, etc.), separados visualmente de
@@ -197,78 +143,46 @@ export default function Navbar() {
                   navbar (`secondary.main`, D023) — la píldora es la que
                   cambia, no el criterio de color. */}
               {PAGE_NAV_ITEMS.length > 0 && (
-                <Box
-                  sx={{ width: "1px", height: 20, backgroundColor: "divider" }}
-                />
+                <div aria-hidden className="h-5 w-px bg-border" />
               )}
               {PAGE_NAV_ITEMS.map((item) => (
-                <Box
+                <Link
                   key={item.href}
-                  component={Link}
                   href={item.href}
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.75,
-                    fontFamily: "var(--font-body)",
-                    fontWeight: 500,
-                    fontSize: fontScale[13],
-                    textDecoration: "none",
-                    color: "text.secondary",
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: `${radius.pill}px`,
-                    pl: 1.5,
-                    pr: 1.75,
-                    py: 0.75,
-                    "&:hover": {
-                      color: "secondary.main",
-                      borderColor: "secondary.main",
-                    },
-                  }}
+                  className="inline-flex items-center gap-0.75 rounded-pill border border-border py-0.75 pr-1.75 pl-1.5 font-body font-medium text-13 text-muted-foreground no-underline hover:border-secondary hover:text-secondary"
                 >
-                  <OpenInNewRoundedIcon sx={{ fontSize: fontScale[13] }} />
+                  <ExternalLink className="size-3.25 shrink-0" aria-hidden />
                   {item.label}
-                </Box>
+                </Link>
               ))}
-            </Box>
+            </nav>
 
             {/* Theme toggle + CTA (escritorio) / hamburguesa (mobile) */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box
-                sx={{
-                  display: { xs: "none", md: "flex" },
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-3 md:flex">
                 <ThemeToggle />
                 <Button
                   onClick={openTithe}
-                  variant="contained"
                   color="secondary"
                   size="small"
-                  sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
+                  className="rounded-sm px-2"
                 >
                   Ofrendar
                 </Button>
-              </Box>
-              <IconButton
+              </div>
+              <Button
+                variant="plain"
+                size="icon"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
-                sx={{
-                  display: { xs: "inline-flex", md: "none" },
-                  width: 44,
-                  height: 44,
-                  color: "text.primary",
-                }}
+                className="size-11 text-foreground md:hidden dark:text-foreground"
               >
-                <MenuRoundedIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
+                <Menu aria-hidden />
+              </Button>
+            </div>
+          </div>
         </Container>
-      </AppBar>
+      </header>
 
       <MobileMenuOverlay
         open={mobileOpen}

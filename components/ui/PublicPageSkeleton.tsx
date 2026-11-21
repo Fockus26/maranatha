@@ -1,8 +1,6 @@
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Skeleton from "@mui/material/Skeleton";
 import PageNavbar from "@/components/layout/PageNavbar";
-import { radius } from "@/theme/tokens";
+import { Container } from "@/components/ui/container";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Esqueleto de las páginas públicas con fetch en servidor (D095): navbar
@@ -12,38 +10,25 @@ export function PublicPageSkeleton({ cards = 6 }: { cards?: number }) {
   return (
     <>
       <PageNavbar />
-      <Box
-        component="main"
+      <main
         id="main-content"
         aria-busy="true"
-        sx={{ py: { xs: 8, md: 12 }, minHeight: "100vh" }}
+        className="min-h-screen py-8 md:py-12"
       >
         <Container maxWidth="lg">
-          <Skeleton variant="text" width="45%" sx={{ fontSize: 40 }} />
-          <Skeleton variant="text" width="70%" sx={{ fontSize: 18, mb: 5 }} />
-          <Box
-            sx={{
-              display: "grid",
-              gap: 3,
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(3, 1fr)",
-              },
-            }}
-          >
+          <Skeleton className="my-2.5 h-8 w-[45%]" />
+          <Skeleton className="mt-1 mb-5 h-4 w-[70%]" />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {Array.from({ length: cards }, (_, i) => (
               <Skeleton
                 // biome-ignore lint/suspicious/noArrayIndexKey: lista fija de esqueletos
                 key={i}
-                variant="rounded"
-                height={280}
-                sx={{ borderRadius: `${radius.lg}px` }}
+                className="h-70 rounded-lg"
               />
             ))}
-          </Box>
+          </div>
         </Container>
-      </Box>
+      </main>
     </>
   );
 }

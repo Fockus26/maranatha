@@ -1,23 +1,11 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import LinearProgress from "@mui/material/LinearProgress";
-import { alpha, useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  common,
-  fontScale,
-  gray,
-  primary,
-  radius,
-  semantic,
-  typography,
-} from "@/theme/tokens";
-import { outlinedActionSx } from "./outlinedActionSx";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 export type ProjectStatus = "active" | "completed";
 
@@ -43,6 +31,110 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+/**
+ * Foto de la card vía `next/image` (optimización/AVIF/tamaños por
+ * dispositivo). `className` da el marco (medida, fallback navy); la imagen la
+ * cubre con `fill`.
+ */
+function CardPhoto({
+  imageUrl,
+  className,
+  sizes,
+  children,
+}: {
+  imageUrl?: string;
+  className?: string;
+  sizes: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative shrink-0 overflow-hidden bg-primary-dark",
+        className,
+      )}
+    >
+      {imageUrl && (
+        <Image
+          src={imageUrl}
+          alt=""
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
+      )}
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Chip "Activo" (rama sin foto, layout `horizontal` del listado): navy
+ * fijo en vez de `primary.main`, mismo motivo que el chip de
+ * `ProjectSidebar.tsx` — `primary.main` se ve "lavado" en modo oscuro y no
+ * resaltaba lo suficiente (feedback directo del cliente); en modo oscuro
+ * sube un peldaño en la escala (`primary[600]`) + borde sutil para marcar
+ * el borde del chip. La rama `inverted` (sobre foto, con overlay navy) no
+ * tiene este problema — se queda con el fondo blanco de siempre.
+ */
+function StatusChip({
+  inverted,
+  isCompleted,
+}: {
+  inverted: boolean;
+  isCompleted: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-block shrink-0 whitespace-nowrap rounded-pill px-2.25 py-0.75 font-body font-medium text-11",
+        isCompleted
+          ? "bg-success-filled text-white"
+          : inverted
+            ? "bg-white/92 text-primary"
+            : "border border-gray-50/14 bg-primary-700 text-gray-50 dark:bg-primary-600",
+      )}
+    >
+      {isCompleted ? "Completado" : "Activo"}
+    </span>
+  );
+}
+
+function ProgressBlock({
+  percent,
+  isCompleted,
+  currentAmount,
+  goalAmount,
+}: {
+  percent: number;
+  isCompleted: boolean;
+  currentAmount: number;
+  goalAmount: number;
+}) {
+  return (
+    <>
+      <Progress
+        value={percent}
+        aria-label={`${percent}% recaudado de la meta`}
+        className={cn(
+          "mb-2 h-1.5 rounded-pill",
+          isCompleted
+            ? "[&>[data-slot=progress-indicator]]:bg-success"
+            : "[&>[data-slot=progress-indicator]]:bg-secondary",
+        )}
+      />
+      <div className="mb-4 flex justify-between font-body text-12">
+        <span className="font-medium text-foreground">
+          {formatCurrency(currentAmount)}
+        </span>
+        <span className="text-muted-foreground">
+          de {formatCurrency(goalAmount)}
+        </span>
+      </div>
+    </>
+  );
+}
+
 export function ProjectCard({
   layout = "vertical",
   title,
@@ -55,289 +147,97 @@ export function ProjectCard({
   onCtaClick,
   ctaHref,
 }: ProjectCardProps) {
-  const theme = useTheme();
   const isCompleted = status === "completed";
   const percent = Math.min(Math.round((currentAmount / goalAmount) * 100), 100);
   const resolvedCtaLabel =
     ctaLabel ?? (isCompleted ? "Ver proyecto" : "Aportar");
 
-  // Foto de la card vía `next/image` (optimización/AVIF/tamaños por
-  // dispositivo). `sx` da el marco (medida, radios, fallback navy); la
-  // imagen la cubre con `fill`.
-  const CardPhoto = ({
-    sx,
-    sizes,
-    children,
-  }: {
-    sx: object;
-    sizes: string;
-    children?: ReactNode;
-  }) => (
-    <Box
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        flexShrink: 0,
-        backgroundColor: theme.palette.primary.dark,
-        ...sx,
-      }}
-    >
-      {imageUrl && (
-        <Image
-          src={imageUrl}
-          alt=""
-          fill
-          sizes={sizes}
-          style={{ objectFit: "cover" }}
-        />
-      )}
-      {children}
-    </Box>
-  );
-
-  // Chip "Activo" (rama sin foto, layout `horizontal` del listado): navy
-  // fijo en vez de `theme.palette.primary.main`, mismo motivo que el chip de
-  // `ProjectSidebar.tsx` — `primary.main` se ve "lavado" en modo oscuro y no
-  // resaltaba lo suficiente (feedback directo del cliente); en modo oscuro
-  // sube un peldaño en la escala (`primary[600]`) + borde sutil para marcar
-  // el borde del chip. La rama `inverted` (sobre foto, con overlay navy) no
-  // tiene este problema — se queda con el fondo blanco de siempre.
-  const StatusChip = ({ inverted }: { inverted: boolean }) => (
-    <Box
-      sx={{
-        display: "inline-block",
-        flexShrink: 0,
-        fontSize: fontScale[11],
-        fontWeight: 500,
-        borderRadius: `${radius.pill}px`,
-        px: 2.25,
-        py: 0.75,
-        whiteSpace: "nowrap",
-        backgroundColor: isCompleted
-          ? semantic.successFilled
-          : inverted
-            ? alpha(theme.palette.common.white, 0.92)
-            : theme.palette.mode === "dark"
-              ? primary[600]
-              : primary[700],
-        color: isCompleted
-          ? common.white
-          : inverted
-            ? theme.palette.primary.main
-            : gray[50],
-        border:
-          !isCompleted && !inverted
-            ? `1px solid ${alpha(gray[50], 0.14)}`
-            : "none",
-      }}
-    >
-      {isCompleted ? "Completado" : "Activo"}
-    </Box>
-  );
-
-  const ProgressBlock = ({ light }: { light: boolean }) => (
-    <>
-      <LinearProgress
-        variant="determinate"
-        value={percent}
-        aria-label={`${percent}% recaudado de la meta`}
-        color={isCompleted ? "success" : "secondary"}
-        sx={{
-          height: 6,
-          borderRadius: `${radius.pill}px`,
-          mb: 2,
-          backgroundColor: light
-            ? alpha(theme.palette.common.white, 0.2)
-            : theme.palette.action.hover,
-        }}
-      />
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: fontScale[12],
-          mb: 4,
-        }}
-      >
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontWeight: 500,
-            fontSize: fontScale[12],
-            color: light ? gray[50] : theme.palette.text.primary,
-          }}
-        >
-          {formatCurrency(currentAmount)}
-        </Typography>
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            color: light ? gray[300] : theme.palette.text.secondary,
-          }}
-        >
-          de {formatCurrency(goalAmount)}
-        </Typography>
-      </Box>
-    </>
+  const progress = (
+    <ProgressBlock
+      percent={percent}
+      isCompleted={isCompleted}
+      currentAmount={currentAmount}
+      goalAmount={goalAmount}
+    />
   );
 
   // "Ver proyecto" (completado): mismo botón outlined con contraste que
-  // "Seguir" (D084, `outlinedActionSx`). El estilo neutro anterior (borde
+  // "Seguir" (D084, `variant="action"`). El estilo neutro anterior (borde
   // `divider`, texto gris) no llegaba a 3:1 en el borde.
   // "Aportar" (activo) no cambia: sigue siendo el CTA de alta prioridad
-  // contained/secondary reservado por D011.
-  const CtaButton = ({ sx = {} }: { sx?: object }) => (
-    <Button
-      {...(ctaHref ? { component: Link, href: ctaHref } : {})}
-      onClick={onCtaClick}
-      variant={isCompleted ? "outlined" : "contained"}
-      color={isCompleted ? "primary" : "secondary"}
-      sx={{
-        ...(isCompleted && outlinedActionSx(theme)),
-        ...sx,
-      }}
-    >
-      {resolvedCtaLabel}
-    </Button>
-  );
+  // contained/secondary reservado por D011. Con `ctaHref` es un enlace real
+  // (D101): `asChild` + `next/link`.
+  const ctaProps = {
+    variant: isCompleted ? ("action" as const) : ("contained" as const),
+    color: isCompleted ? ("primary" as const) : ("secondary" as const),
+    onClick: onCtaClick,
+  };
+  const cta = (className: string) =>
+    ctaHref ? (
+      <Button {...ctaProps} asChild className={className}>
+        <Link href={ctaHref}>{resolvedCtaLabel}</Link>
+      </Button>
+    ) : (
+      <Button {...ctaProps} className={className}>
+        {resolvedCtaLabel}
+      </Button>
+    );
 
   if (layout === "horizontal") {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          // Fase 08: por debajo de `sm` la fila (foto lateral + texto) se
-          // apila en columna — el layout `horizontal` original (fila fija,
-          // foto 200px) no cabía en mobile. Desde `sm` en adelante queda
-          // exactamente igual que antes.
-          flexDirection: { xs: "column", sm: "row" },
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: `${radius.lg}px`,
-          overflow: "hidden",
-          backgroundColor: theme.palette.background.paper,
-        }}
-      >
+      // Fase 08: por debajo de `sm` la fila (foto lateral + texto) se apila en
+      // columna — el layout `horizontal` original (fila fija, foto 200px) no
+      // cabía en mobile. Desde `sm` en adelante queda exactamente igual.
+      <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card sm:flex-row">
         <CardPhoto
-          sx={{
-            width: { xs: "100%", sm: 200 },
-            height: { xs: 180, sm: "auto" },
-          }}
+          imageUrl={imageUrl}
+          className="h-45 w-full sm:h-auto sm:w-50"
           sizes="(max-width: 600px) 100vw, 200px"
         />
-        <Box
-          sx={{
-            p: { xs: 4, sm: 5 },
-            flex: 1,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 3, sm: 7 },
-            alignItems: { xs: "stretch", sm: "flex-start" },
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "flex-start",
-                mb: 1.5,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: typography.fontFamily.heading,
-                  fontWeight: 600,
-                  fontSize: fontScale[17],
-                  color: theme.palette.text.primary,
-                }}
-              >
+        <div className="flex flex-1 flex-col items-stretch gap-3 p-4 sm:flex-row sm:items-start sm:gap-7 sm:p-5">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1.5 flex items-start gap-2">
+              <p className="m-0 font-heading font-semibold text-17 text-foreground leading-body">
                 {title}
-              </Typography>
-              <StatusChip inverted={false} />
-            </Box>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: theme.typography.body2.fontSize,
-                color: theme.palette.text.secondary,
-                mb: 3,
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
+              </p>
+              <StatusChip inverted={false} isCompleted={isCompleted} />
+            </div>
+            <p className="m-0 mb-3 line-clamp-3 overflow-hidden font-body text-body text-muted-foreground leading-body">
               {description}
-            </Typography>
-            <ProgressBlock light={false} />
-          </Box>
-          <CtaButton sx={{ width: { xs: "100%", sm: 120 }, flexShrink: 0 }} />
-        </Box>
-      </Box>
+            </p>
+            {progress}
+          </div>
+          {cta("w-full shrink-0 sm:w-30")}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: `${radius.lg}px`,
-        overflow: "hidden",
-        backgroundColor: theme.palette.background.paper,
-        height: "100%",
-      }}
-    >
-      <CardPhoto sx={{ height: 140 }} sizes="(max-width: 900px) 100vw, 400px">
-        <Box sx={{ position: "absolute", top: 3, left: 3, zIndex: 1 }}>
-          <StatusChip inverted={true} />
-        </Box>
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card">
+      <CardPhoto
+        imageUrl={imageUrl}
+        className="h-35"
+        sizes="(max-width: 900px) 100vw, 400px"
+      >
+        <div className="absolute top-3 left-3 z-1">
+          <StatusChip inverted isCompleted={isCompleted} />
+        </div>
       </CardPhoto>
 
-      <Box sx={{ p: 4, display: "flex", flexDirection: "column", flex: 1 }}>
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 600,
-            fontSize: fontScale[17],
-            color: theme.palette.text.primary,
-            mb: 1.5,
-            minHeight: "calc(1.3em * 2)",
-            lineHeight: 1.3,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
+      <div className="flex flex-1 flex-col p-4">
+        <p className="m-0 mb-1.5 line-clamp-2 min-h-[calc(1.3em*2)] overflow-hidden font-heading font-semibold text-17 text-foreground leading-[1.3]">
           {title}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: theme.typography.body2.fontSize,
-            color: theme.palette.text.secondary,
-            mb: 4,
-            minHeight: "calc(1.5em * 3)",
-            lineHeight: 1.5,
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
+        </p>
+        <p className="m-0 mb-4 line-clamp-3 min-h-[calc(1.5em*3)] overflow-hidden font-body text-body text-muted-foreground leading-small">
           {description}
-        </Typography>
+        </p>
 
-        <Box sx={{ mt: "auto" }}>
-          <ProgressBlock light={false} />
-          <CtaButton sx={{ width: "100%" }} />
-        </Box>
-      </Box>
-    </Box>
+        <div className="mt-auto">
+          {progress}
+          {cta("w-full")}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,25 +1,19 @@
 "use client";
 
-import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
-import SearchOffRoundedIcon from "@mui/icons-material/SearchOffRounded";
-import ViewListRoundedIcon from "@mui/icons-material/ViewListRounded";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import { alpha, useTheme } from "@mui/material/styles";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { LayoutGrid, List, SearchX } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import PageNavbar from "@/components/layout/PageNavbar";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProjectCard } from "@/components/ui/ProjectCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { breadcrumbJsonLd } from "@/lib/jsonLd";
 import type { ProjectRecord } from "@/lib/projectsData";
-import { fontScale, radius, secondary } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 /**
  * Página "Proyectos" (`/proyectos`, fase 07, D044) — listado completo, a
@@ -44,7 +38,6 @@ type ViewMode = "list" | "grid";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
-  const theme = useTheme();
   const [tab, setTab] = useState<FilterTab>("all");
   // Toggle lista / cuadrícula (D016 — `ProjectCard` ya tiene ambos layouts).
   // Solo se muestra desde `sm` en adelante; en mobile no aparece y siempre
@@ -66,233 +59,159 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
       />
       <PageNavbar />
 
-      <Box component="main" id="main-content" sx={{ py: { xs: 8, md: 12 } }}>
+      <main id="main-content" className="py-8 md:py-12">
         <Container maxWidth="lg">
-          <Box sx={{ maxWidth: 640, mb: { xs: 5, md: 7 } }}>
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-              }}
-            >
+          <div className="mb-5 max-w-160 md:mb-7">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
               Proyectos
-            </Typography>
+            </span>
 
-            <Typography
-              component="h1"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                fontSize: { xs: "32px", md: "44px" },
-                "@media (min-width:1920px)": { fontSize: fontScale[54] },
-                lineHeight: 1.15,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h1 className="m-0 mb-2 font-extrabold font-heading text-32 text-foreground leading-h2 tracking-[-0.01em] md:text-[44px] wide:text-54">
               Todos los proyectos
-            </Typography>
+            </h1>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                "@media (min-width:1920px)": { fontSize: fontScale[19] },
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="m-0 font-body text-16 text-muted-foreground leading-body wide:text-19">
               Cada proyecto es una necesidad real de la iglesia — tu aporte hace
               la diferencia.
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              mb: { xs: 4, md: 5 },
-            }}
+          {/* El indicador del tab usa el naranja de marca a toda intensidad
+              (línea de 2px, no compite); el TEXTO del tab activo baja a
+              `secondary[700]` (`[300]` en oscuro, D051): el naranja vivo se
+              leía demasiado intenso como color de texto. Ambos ya vienen en
+              `TabsTrigger` (D119). */}
+          <Tabs
+            value={tab}
+            onValueChange={(value) => setTab(value as FilterTab)}
           >
-            <Tabs
-              value={tab}
-              onChange={(_, value: FilterTab) => setTab(value)}
-              aria-label="Filtrar proyectos por estado"
-              // El indicador (línea inferior) sí usa el naranja de marca a toda
-              // intensidad vía el prop nativo `indicatorColor` — es una línea
-              // delgada de 2px, no compite. El TEXTO del tab activo, en cambio,
-              // no usa `textColor="secondary"` (que lo pondría en `secondary.main`,
-              // el naranja más vivo de la escala) — el cliente lo encontró
-              // demasiado intenso como color de texto, así que baja un peldaño
-              // a `secondary[700]`, más apagado/oscuro mantiene la identidad
-              // naranja sin saturar el texto.
-              indicatorColor="secondary"
-              sx={{
-                minHeight: "auto",
-                borderBottom: 1,
-                borderColor: "divider",
-                "& .MuiTab-root": {
-                  textTransform: "none",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 500,
-                  fontSize: fontScale[14],
-                  minHeight: 44, // área táctil (design-qa fase 09)
-                  py: 1.5,
-                },
-                "& .MuiTabs-indicator": { height: 2 },
-                // Naranja del tab activo, contrastado según el modo: en claro
-                // `secondary[700]` (oscuro sobre fondo claro), en oscuro
-                // `secondary[300]` (claro sobre navy).
-                "& .Mui-selected": {
-                  color: (t) =>
-                    `${t.palette.mode === "dark" ? secondary[300] : secondary[700]} !important`,
-                  fontWeight: 600,
-                },
-              }}
-            >
-              <Tab value="all" label={`Todos (${projects.length})`} />
-              <Tab
-                value="active"
-                label={`Activos (${projects.filter((p) => p.status === "active").length})`}
-              />
-              <Tab
-                value="completed"
-                label={`Completados (${projects.filter((p) => p.status === "completed").length})`}
-              />
-            </Tabs>
-
-            {/* Toggle lista / cuadrícula — oculto en mobile (< sm). */}
-            <Box
-              role="group"
-              aria-label="Vista del listado"
-              sx={{
-                display: { xs: "none", sm: "inline-flex" },
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: `${radius.md}px`,
-                overflow: "hidden",
-                flexShrink: 0,
-              }}
-            >
-              <IconButton
-                onClick={() => setViewMode("list")}
-                aria-label="Ver en lista"
-                aria-pressed={viewMode === "list"}
-                size="small"
-                sx={{
-                  borderRadius: 0,
-                  px: 1.25,
-                  color:
-                    viewMode === "list" ? "primary.main" : "text.secondary",
-                  backgroundColor:
-                    viewMode === "list"
-                      ? alpha(theme.palette.primary.main, 0.08)
-                      : "transparent",
-                  "&:hover": {
-                    color: "primary.main",
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                  },
-                }}
+            <div className="mb-4 flex items-center justify-between gap-2 md:mb-5">
+              <TabsList
+                aria-label="Filtrar proyectos por estado"
+                className="min-w-0 overflow-x-auto"
               >
-                <ViewListRoundedIcon fontSize="small" />
-              </IconButton>
-              <Box sx={{ width: "1px", backgroundColor: "divider" }} />
-              <IconButton
-                onClick={() => setViewMode("grid")}
-                aria-label="Ver en cuadrícula"
-                aria-pressed={viewMode === "grid"}
-                size="small"
-                sx={{
-                  borderRadius: 0,
-                  px: 1.25,
-                  color:
-                    viewMode === "grid" ? "primary.main" : "text.secondary",
-                  backgroundColor:
+                <TabsTrigger value="all">Todos ({projects.length})</TabsTrigger>
+                <TabsTrigger value="active">
+                  Activos (
+                  {projects.filter((p) => p.status === "active").length})
+                </TabsTrigger>
+                <TabsTrigger value="completed">
+                  Completados (
+                  {projects.filter((p) => p.status === "completed").length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Toggle lista / cuadrícula — oculto en mobile (< sm). */}
+              <fieldset
+                aria-label="Vista del listado"
+                className="m-0 hidden min-w-0 shrink-0 overflow-hidden rounded-md border border-border p-0 sm:inline-flex"
+              >
+                <ViewButton
+                  active={viewMode === "list"}
+                  label="Ver en lista"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="size-5" aria-hidden />
+                </ViewButton>
+                <div aria-hidden className="w-px bg-border" />
+                <ViewButton
+                  active={viewMode === "grid"}
+                  label="Ver en cuadrícula"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <LayoutGrid className="size-5" aria-hidden />
+                </ViewButton>
+              </fieldset>
+            </div>
+
+            <TabsContent value={tab}>
+              {filtered.length === 0 ? (
+                <EmptyState
+                  icon={SearchX}
+                  title="No hay proyectos en esta categoría"
+                  description="Prueba con otra pestaña para ver el resto de los proyectos."
+                  ctaLabel={
+                    tab !== "all" ? "Ver todos los proyectos" : undefined
+                  }
+                  onCtaClick={tab !== "all" ? () => setTab("all") : undefined}
+                />
+              ) : (
+                // `layout` en el contenedor y en cada card anima con FLIP
+                // (framer-motion) el reflow al cambiar de tab o de vista — mismo
+                // criterio de easing/duración que el resto del sitio.
+                <motion.div
+                  layout
+                  transition={{ duration: 0.45, ease: EASE }}
+                  className={
                     viewMode === "grid"
-                      ? alpha(theme.palette.primary.main, 0.08)
-                      : "transparent",
-                  "&:hover": {
-                    color: "primary.main",
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                  },
-                }}
-              >
-                <GridViewRoundedIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </Box>
-
-          {filtered.length === 0 ? (
-            <EmptyState
-              icon={SearchOffRoundedIcon}
-              title="No hay proyectos en esta categoría"
-              description="Prueba con otra pestaña para ver el resto de los proyectos."
-              ctaLabel={tab !== "all" ? "Ver todos los proyectos" : undefined}
-              onCtaClick={tab !== "all" ? () => setTab("all") : undefined}
-            />
-          ) : (
-            // `layout` en el contenedor y en cada card anima con FLIP
-            // (framer-motion) el reflow al cambiar de tab o de vista — mismo
-            // criterio de easing/duración que el resto del sitio.
-            <Box
-              component={motion.div}
-              layout
-              transition={{ duration: 0.45, ease: EASE }}
-              sx={
-                viewMode === "grid"
-                  ? {
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        lg: "repeat(3, 1fr)",
-                      },
-                      gap: "24px",
-                    }
-                  : { display: "flex", flexDirection: "column", gap: 3 }
-              }
-            >
-              <AnimatePresence mode="popLayout">
-                {filtered.map((project) => (
-                  <Box
-                    key={project.slug}
-                    component={motion.div}
-                    layout
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.35, ease: EASE }}
-                  >
-                    <ProjectCard
-                      layout={viewMode === "grid" ? "vertical" : "horizontal"}
-                      title={project.title}
-                      description={project.description}
-                      imageUrl={project.imageUrl}
-                      status={project.status}
-                      currentAmount={project.currentAmount}
-                      goalAmount={project.goalAmount}
-                      ctaHref={`/proyectos/${project.slug}`}
-                    />
-                  </Box>
-                ))}
-              </AnimatePresence>
-            </Box>
-          )}
+                      ? "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                      : "flex flex-col gap-3"
+                  }
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filtered.map((project) => (
+                      <motion.div
+                        key={project.slug}
+                        layout
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{ duration: 0.35, ease: EASE }}
+                      >
+                        <ProjectCard
+                          layout={
+                            viewMode === "grid" ? "vertical" : "horizontal"
+                          }
+                          title={project.title}
+                          description={project.description}
+                          imageUrl={project.imageUrl}
+                          status={project.status}
+                          currentAmount={project.currentAmount}
+                          goalAmount={project.goalAmount}
+                          ctaHref={`/proyectos/${project.slug}`}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </TabsContent>
+          </Tabs>
         </Container>
-      </Box>
+      </main>
 
       <Footer />
     </>
+  );
+}
+
+/** Botón del toggle lista / cuadrícula (`aria-pressed`, 30 px como el `IconButton` small). */
+function ViewButton({
+  active,
+  label,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Button
+      variant="plain"
+      size="icon"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
+      className={cn(
+        "size-7.5 rounded-none p-1.25 hover:bg-primary/8 hover:text-primary dark:hover:bg-primary/8 dark:hover:text-primary",
+        active
+          ? "bg-primary/8 text-primary dark:text-primary"
+          : "text-muted-foreground dark:text-muted-foreground",
+      )}
+    >
+      {children}
+    </Button>
   );
 }
