@@ -1,6 +1,5 @@
 "use client";
 
-import Box from "@mui/material/Box";
 import * as React from "react";
 import { signOut } from "@/app/actions/auth";
 import { DashboardTopbar } from "./DashboardTopbar";
@@ -9,13 +8,11 @@ import { DashboardTopbar } from "./DashboardTopbar";
  * Contenedor horizontal único del dashboard: topbar, banda de KPIs y
  * contenido de cada página comparten ancho máximo y padding, así sus bordes
  * quedan alineados (antes el topbar y la banda iban de borde a borde).
+ * Clases de Tailwind (ya no `sx`); el tope de 1400 px no tiene token
+ * (`layout.page` llega a 1200/1440/1600).
  */
-export const DASHBOARD_CONTENT_SX = {
-  width: "100%",
-  maxWidth: 1400,
-  mx: "auto",
-  px: { xs: 3, md: 5 },
-} as const;
+export const DASHBOARD_CONTENT_CLASS =
+  "mx-auto w-full max-w-[1400px] px-3 md:px-5";
 
 export interface DashboardShellProps {
   onLogout?: () => void;
@@ -60,11 +57,9 @@ export function DashboardShell({
   children,
 }: DashboardShellProps) {
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <div className="min-h-screen bg-background">
       <DashboardTopbar onLogout={onLogout} />
-      <Box component="main" id="main-content">
-        {children}
-      </Box>
-    </Box>
+      <main id="main-content">{children}</main>
+    </div>
   );
 }

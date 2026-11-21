@@ -1,0 +1,12 @@
+/*
+ * Reducir movimiento para los `Skeleton` de MUI que aún viven dentro de los
+ * esqueletos (la tabla de `DashboardTable`, ola 4). Los `Skeleton` de shadcn
+ * ya se quedan quietos solos (`motion-reduce:animate-none`). Se borra cuando
+ * la ola 4 migre la tabla.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .frame [class*="MuiSkeleton-root"],
+  .frame [class*="MuiSkeleton-root"]::after {
+    animation: none;
+  }
+}

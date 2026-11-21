@@ -1,19 +1,17 @@
 "use client";
 
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import MuiLink from "@mui/material/Link";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useActionState, useState } from "react";
 import {
   type ResetError,
   type ResetState,
   resetPassword,
 } from "@/app/actions/auth";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { FORGOT_PATH, PASSWORD_MAX, PASSWORD_MIN } from "@/lib/auth/constants";
-import { fontScale } from "@/theme/tokens";
-import { authFormSx, DashboardAuthShell } from "./DashboardAuthShell";
+import { authFormClass, DashboardAuthShell } from "./DashboardAuthShell";
 import { PasswordField } from "./PasswordField";
 
 const ERROR_TEXT: Record<ResetError, string> = {
@@ -51,7 +49,6 @@ export function DashboardResetForm({
         : null;
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const describedBy = error ? "reset-error" : "reset-hint";
 
   return (
     <DashboardAuthShell
@@ -59,28 +56,26 @@ export function DashboardResetForm({
       subtitle="Al guardarla se cierran las sesiones abiertas en otros dispositivos."
     >
       {error === "invalid_token" ? (
-        <Box sx={authFormSx}>
+        <div className={authFormClass}>
           <Alert
             id="reset-error"
             severity="error"
             role="alert"
-            sx={{ fontSize: fontScale[13] }}
+            className="text-13"
           >
             {ERROR_TEXT.invalid_token}
           </Alert>
           <Button
-            component={Link}
-            href={FORGOT_PATH}
-            variant="contained"
+            asChild
             color="secondary"
             size="large"
-            sx={{ alignSelf: "flex-start", px: 5 }}
+            className="self-start px-5"
           >
-            Pedir otro enlace
+            <NextLink href={FORGOT_PATH}>Pedir otro enlace</NextLink>
           </Button>
-        </Box>
+        </div>
       ) : (
-        <Box component="form" action={formAction} noValidate sx={authFormSx}>
+        <form action={formAction} noValidate className={authFormClass}>
           <input type="hidden" name="token" value={token ?? ""} />
           <PasswordField
             name="password"
@@ -89,20 +84,15 @@ export function DashboardResetForm({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            fullWidth
             error={error === "too_short"}
-            helperText={
-              <span id="reset-hint">
+            description={
+              <>
                 Entre {PASSWORD_MIN} y {PASSWORD_MAX} caracteres.
-              </span>
+              </>
             }
-            slotProps={{
-              htmlInput: {
-                minLength: PASSWORD_MIN,
-                maxLength: PASSWORD_MAX,
-                "aria-describedby": describedBy,
-              },
-            }}
+            minLength={PASSWORD_MIN}
+            maxLength={PASSWORD_MAX}
+            aria-describedby={error ? "reset-error" : undefined}
           />
           <PasswordField
             name="confirm"
@@ -111,14 +101,8 @@ export function DashboardResetForm({
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
-            fullWidth
             error={error === "mismatch"}
-            slotProps={{
-              htmlInput: {
-                "aria-describedby":
-                  error === "mismatch" ? "reset-error" : undefined,
-              },
-            }}
+            aria-describedby={error === "mismatch" ? "reset-error" : undefined}
           />
 
           {error && (
@@ -126,42 +110,27 @@ export function DashboardResetForm({
               id="reset-error"
               severity="error"
               role="alert"
-              sx={{ fontSize: fontScale[13] }}
+              className="text-13"
             >
               {ERROR_TEXT[error]}
             </Alert>
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 2,
-              justifyContent: "space-between",
-            }}
-          >
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <Button
               type="submit"
-              variant="contained"
               color="secondary"
               disabled={pending}
               size="large"
-              sx={{ px: 5 }}
+              className="px-5"
             >
               {pending ? "Guardando…" : "Guardar contraseña"}
             </Button>
-            <MuiLink
-              component={Link}
-              href="/dashboard/login"
-              color="text.secondary"
-              underline="always"
-              sx={{ fontSize: fontScale[14] }}
-            >
-              Volver a ingresar
-            </MuiLink>
-          </Box>
-        </Box>
+            <Link asChild tone="muted" underline="always" className="text-14">
+              <NextLink href="/dashboard/login">Volver a ingresar</NextLink>
+            </Link>
+          </div>
+        </form>
       )}
     </DashboardAuthShell>
   );

@@ -1,17 +1,16 @@
 "use client";
 
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import MuiLink from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useActionState, useState } from "react";
 import { type SignInError, type SignInState, signIn } from "@/app/actions/auth";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Link } from "@/components/ui/link";
 import { FORGOT_PATH } from "@/lib/auth/constants";
 import { isValidEmail } from "@/lib/validation";
-import { fontScale } from "@/theme/tokens";
-import { authFormSx, DashboardAuthShell } from "./DashboardAuthShell";
+import { authFormClass, DashboardAuthShell } from "./DashboardAuthShell";
 import { PasswordField } from "./PasswordField";
 
 const ERROR_TEXT: Record<SignInError, string> = {
@@ -73,32 +72,23 @@ export function DashboardLoginForm({
       title="Bienvenido de nuevo"
       subtitle="Ingresa para gestionar proyectos y verificar pagos."
     >
-      <Box component="form" action={formAction} noValidate sx={authFormSx}>
+      <form action={formAction} noValidate className={authFormClass}>
         {passwordReset && !error && (
-          <Alert
-            severity="success"
-            role="status"
-            sx={{ fontSize: fontScale[13] }}
-          >
+          <Alert severity="success" role="status" className="text-13">
             Tu contraseña se cambió. Ingresa con la nueva.
           </Alert>
         )}
-        <TextField
-          name="email"
-          type="email"
-          label="Correo electrónico"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          fullWidth
-          error={field === "email"}
-          slotProps={{
-            htmlInput: {
-              "aria-describedby": field === "email" ? "login-error" : undefined,
-            },
-          }}
-        />
+        <Field label="Correo electrónico" required error={field === "email"}>
+          <Input
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            aria-describedby={field === "email" ? "login-error" : undefined}
+          />
+        </Field>
         <PasswordField
           name="password"
           label="Contraseña"
@@ -106,14 +96,8 @@ export function DashboardLoginForm({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          fullWidth
           error={field === "password"}
-          slotProps={{
-            htmlInput: {
-              "aria-describedby":
-                field === "password" ? "login-error" : undefined,
-            },
-          }}
+          aria-describedby={field === "password" ? "login-error" : undefined}
         />
 
         {error && (
@@ -121,42 +105,27 @@ export function DashboardLoginForm({
             id="login-error"
             severity="error"
             role="alert"
-            sx={{ fontSize: fontScale[13] }}
+            className="text-13"
           >
             {ERROR_TEXT[error]}
           </Alert>
         )}
 
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 2,
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <Button
             type="submit"
-            variant="contained"
             color="secondary"
             disabled={pending}
             size="large"
-            sx={{ px: 5 }}
+            className="px-5"
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </Button>
-          <MuiLink
-            component={Link}
-            href={FORGOT_PATH}
-            color="text.secondary"
-            underline="always"
-            sx={{ fontSize: fontScale[14] }}
-          >
-            ¿Olvidaste tu contraseña?
-          </MuiLink>
-        </Box>
-      </Box>
+          <Link asChild tone="muted" underline="always" className="text-14">
+            <NextLink href={FORGOT_PATH}>¿Olvidaste tu contraseña?</NextLink>
+          </Link>
+        </div>
+      </form>
     </DashboardAuthShell>
   );
 }

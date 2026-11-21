@@ -1,11 +1,9 @@
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import Typography from "@mui/material/Typography";
-import { visuallyHidden } from "@mui/utils";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { DASHBOARD_CONTENT_CLASS } from "@/components/layout/DashboardShell";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { DashboardStatBand } from "../DashboardStatBand";
 import { SkeletonFrame } from "./SkeletonFrame";
-import { SKELETON_ACTION_HEIGHT } from "./skeletonParts";
+import { SkeletonLine } from "./skeletonParts";
 
 const STATS = [
   { label: "Total recaudado", value: "", accent: true },
@@ -14,123 +12,54 @@ const STATS = [
 ];
 const ROWS = [0, 1, 2, 3] as const;
 
-const cardSx = {
-  border: 1,
-  borderColor: "divider",
-  borderRadius: `${radius.lg}px`,
-  bgcolor: "background.paper",
-  p: { xs: 3, md: 4 },
-} as const;
-
-const cardTitleSx = {
-  fontFamily: typography.fontFamily.heading,
-  fontWeight: 700,
-  fontSize: fontScale[18],
-  color: "text.primary",
-} as const;
+const CARD = "rounded-lg border border-border bg-card p-3 md:p-4";
+const CARD_TITLE = "font-heading text-18 font-bold text-foreground";
 
 /** Esqueleto de `/dashboard`: banda de KPIs y las dos tarjetas del Resumen. */
 export function ResumenSkeleton() {
   return (
     <SkeletonFrame label="el resumen">
-      <Typography component="h1" sx={visuallyHidden}>
-        Resumen del dashboard
-      </Typography>
+      <h1 className="sr-only">Resumen del dashboard</h1>
       <DashboardStatBand loading stats={STATS} />
-      <Box sx={{ px: { xs: 3, md: 5 }, py: 5, maxWidth: 1400, mx: "auto" }}>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1.6fr 1fr" },
-            gap: 3,
-          }}
-        >
-          <Box sx={cardSx}>
-            <Typography sx={{ ...cardTitleSx, mb: 0.75 }}>
-              Próximos cierres
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[13],
-                color: "text.secondary",
-                mb: 3.5,
-              }}
-            >
+      <div className={cn(DASHBOARD_CONTENT_CLASS, "py-5")}>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.6fr_1fr]">
+          <div className={CARD}>
+            <p className={cn(CARD_TITLE, "mb-0.75")}>Próximos cierres</p>
+            <p className="mb-3.5 font-body text-13 text-muted-foreground">
               Proyectos activos ordenados por fecha de cierre.
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
+            </p>
+            <div className="flex flex-col">
               {ROWS.map((row) => (
-                <Box
+                <div
                   key={row}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 3,
-                    py: 2.5,
-                    borderBottom: 1,
-                    borderColor: "divider",
-                    "&:last-of-type": { borderBottom: "none", pb: 0 },
-                  }}
+                  className="flex items-center gap-3 border-b border-border py-2.5 last:border-b-0 last:pb-0"
                 >
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Skeleton
-                      variant="text"
-                      width="50%"
-                      sx={{ fontSize: fontScale[14], mb: 1 }}
-                    />
-                    <Skeleton
-                      variant="rounded"
-                      height={5}
-                      sx={{ borderRadius: `${radius.pill}px` }}
-                    />
-                  </Box>
-                  <Box sx={{ flexShrink: 0, minWidth: 110 }}>
-                    <Skeleton
-                      variant="text"
-                      width="70%"
-                      sx={{ fontSize: fontScale[13], ml: "auto" }}
-                    />
-                    <Skeleton variant="text" sx={{ fontSize: fontScale[12] }} />
-                  </Box>
-                </Box>
+                  <div className="min-w-0 flex-1">
+                    <SkeletonLine size="text-14" className="w-1/2" />
+                    <Skeleton className="mt-1 h-1.25 rounded-pill" />
+                  </div>
+                  <div className="min-w-27.5 shrink-0">
+                    <SkeletonLine size="text-13" className="ml-auto w-7/10" />
+                    <SkeletonLine size="text-12" />
+                  </div>
+                </div>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
 
-          <Box sx={cardSx}>
-            <Typography sx={{ ...cardTitleSx, mb: 2.5 }}>
-              Acciones rápidas
-            </Typography>
-            <Skeleton
-              variant="rounded"
-              height={SKELETON_ACTION_HEIGHT}
-              sx={{ borderRadius: `${radius.sm}px`, mb: 1.5 }}
-            />
-            <Skeleton
-              variant="rounded"
-              height={SKELETON_ACTION_HEIGHT}
-              sx={{ borderRadius: `${radius.sm}px` }}
-            />
-            <Box sx={{ mt: 3.5, pt: 3, borderTop: 1, borderColor: "divider" }}>
-              <Typography
-                sx={{
-                  fontSize: fontScale[12],
-                  color: "text.secondary",
-                  mb: 0.5,
-                }}
-              >
+          <div className={CARD}>
+            <p className={cn(CARD_TITLE, "mb-2.5")}>Acciones rápidas</p>
+            <Skeleton className="mb-1.5 h-12" />
+            <Skeleton className="h-12" />
+            <div className="mt-3.5 border-t border-border pt-3">
+              <p className="mb-0.5 text-12 text-muted-foreground">
                 Meta acumulada
-              </Typography>
-              <Skeleton
-                variant="text"
-                width={120}
-                sx={{ fontSize: fontScale[20] }}
-              />
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+              </p>
+              <SkeletonLine size="text-20" className="w-30" />
+            </div>
+          </div>
+        </div>
+      </div>
     </SkeletonFrame>
   );
 }

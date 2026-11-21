@@ -1,13 +1,11 @@
-import Box from "@mui/material/Box";
-import { visuallyHidden } from "@mui/utils";
 import type { ReactNode } from "react";
+import styles from "./SkeletonFrame.module.css";
 
 /**
  * Envoltorio común de los esqueletos del panel (D102): marca la región como
- * ocupada, anuncia "Cargando <página>…" a lectores de pantalla y apaga el
- * pulso de todos los `Skeleton` de dentro con "reducir movimiento" (solo CSS,
- * así también cubre las piezas reutilizadas de `DashboardStatBand` y
- * `DashboardTable`).
+ * ocupada y anuncia "Cargando <página>…" a lectores de pantalla. El pulso de
+ * los `Skeleton` de shadcn se apaga solo con "reducir movimiento"; la clase
+ * `frame` cubre los de MUI que aún trae `DashboardTable` (ola 4).
  */
 export function SkeletonFrame({
   label,
@@ -18,20 +16,9 @@ export function SkeletonFrame({
   children: ReactNode;
 }) {
   return (
-    <Box
-      aria-busy="true"
-      sx={{
-        "@media (prefers-reduced-motion: reduce)": {
-          "& .MuiSkeleton-root, & .MuiSkeleton-root::after": {
-            animation: "none",
-          },
-        },
-      }}
-    >
-      <Box role="status" sx={visuallyHidden}>
-        Cargando {label}…
-      </Box>
+    <div aria-busy="true" className={styles.frame}>
+      <output className="sr-only">Cargando {label}…</output>
       {children}
-    </Box>
+    </div>
   );
 }

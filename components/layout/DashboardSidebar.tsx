@@ -1,30 +1,18 @@
 "use client";
 
-import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardRounded";
-import { Box } from "@mui/material";
+import { Folder, LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { common, fontScale, primary, radius } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 const DASHBOARD_ITEMS = [
-  { label: "Resumen", href: "/dashboard", icon: SpaceDashboardOutlinedIcon },
-  {
-    label: "Proyectos",
-    href: "/dashboard/proyectos",
-    icon: FolderOutlinedIcon,
-  },
+  { label: "Resumen", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Proyectos", href: "/dashboard/proyectos", icon: Folder },
 ] as const;
 
 export const DASHBOARD_SIDEBAR_WIDTH = 260;
-
-// Blanco fijo: el sidebar es navy sólido permanente (primary[900]) sin
-// importar el modo claro/oscuro activo en el resto del dashboard (D024) —
-// theme.palette.primary.contrastText no sirve acá porque cambia entre modos.
-const ON_DARK = common.white;
 
 export interface DashboardSidebarProps {
   onLogout?: () => void;
@@ -34,43 +22,23 @@ export interface DashboardSidebarProps {
  * Sidebar fijo del dashboard privado (D024): navy sólido permanente
  * (`primary[900]`, no ligado al ThemeToggle), z-index de la capa "sidebar"
  * ya reservada en tokens.ts desde fase 03. Ítem activo con acento izquierdo
- * en `secondary.main` en vez de un fill naranja completo, para no gastar el
+ * en `secondary` en vez de un fill naranja completo, para no gastar el
  * color reservado a CTAs de alta prioridad (D011) en navegación.
+ * Sin uso hoy (lo reemplazó `DashboardTopbar`); migrado a Tailwind igual.
  */
 export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <Box
-      component="aside"
+    <aside
       data-surface="navy"
-      sx={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        bottom: 0,
-        width: DASHBOARD_SIDEBAR_WIDTH,
-        zIndex: (theme) => theme.zIndex.drawer,
-        bgcolor: primary[900],
-        display: "flex",
-        flexDirection: "column",
-        borderRight: "1px solid rgba(255,255,255,0.08)",
-      }}
+      className="fixed inset-y-0 left-0 z-sidebar flex w-65 flex-col border-r border-on-navy-border bg-primary-900"
     >
-      <Box sx={{ px: 3, py: 3 }}>
+      <div className="p-6">
         <Logo tone="inverse" size={40} />
-      </Box>
+      </div>
 
-      <Box
-        component="nav"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 0.5,
-          px: 2,
-          mt: 1,
-        }}
-      >
+      <nav className="mt-3 flex flex-col gap-1 px-4">
         {DASHBOARD_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -78,74 +46,38 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
               (pathname?.startsWith(`${item.href}/`) ?? false));
           const Icon = item.icon;
           return (
-            <Box
+            <Link
               key={item.href}
-              component={Link}
               href={item.href}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                px: 2,
-                py: 1.25,
-                borderRadius: `${radius.md}px`,
-                textDecoration: "none",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[14],
-                color: isActive ? ON_DARK : "rgba(255,255,255,0.65)",
-                bgcolor: isActive ? primary[800] : "transparent",
-                borderLeft: "3px solid",
-                borderLeftColor: isActive ? "secondary.main" : "transparent",
-                transition: (theme) =>
-                  theme.transitions.create(["background-color", "color"], {
-                    duration: theme.transitions.duration.shortest,
-                  }),
-                "&:hover": { color: ON_DARK, bgcolor: primary[800] },
-              }}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md border-l-3 px-2 py-1.25 font-body text-14 font-medium no-underline transition-colors duration-150",
+                "hover:bg-primary-800 hover:text-on-navy",
+                isActive
+                  ? "border-l-secondary bg-primary-800 text-on-navy"
+                  : "border-l-transparent bg-transparent text-on-navy-subtle",
+              )}
             >
-              <Icon sx={{ fontSize: fontScale[20] }} />
+              <Icon className="size-5" aria-hidden="true" />
               {item.label}
-            </Box>
+            </Link>
           );
         })}
-      </Box>
+      </nav>
 
-      <Box sx={{ mt: "auto", px: 2, pb: 3 }}>
-        <Box
-          sx={{
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            pt: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+      <div className="mt-auto px-4 pb-6">
+        <div className="flex items-center justify-between border-t border-on-navy-border pt-4">
           <ThemeToggle size="small" />
-          <Box
-            component="button"
+          <button
             type="button"
             onClick={onLogout}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              fontSize: fontScale[13],
-              color: "rgba(255,255,255,0.65)",
-              p: 0,
-              "&:hover": { color: "secondary.main" },
-            }}
+            className="flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 font-body text-13 font-medium text-on-navy-subtle hover:text-secondary"
           >
-            <LogoutRoundedIcon sx={{ fontSize: fontScale[18] }} />
+            <LogOut className="size-4.5" aria-hidden="true" />
             Salir
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+          </button>
+        </div>
+      </div>
+    </aside>
   );
 }

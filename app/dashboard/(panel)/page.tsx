@@ -1,21 +1,19 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/AddRounded";
-import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
-import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
-import Box from "@mui/material/Box";
-import LinearProgress from "@mui/material/LinearProgress";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { visuallyHidden } from "@mui/utils";
+import { CalendarX, Folder, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { DashboardShell } from "@/components/layout/DashboardShell";
+import {
+  DASHBOARD_CONTENT_CLASS,
+  DashboardShell,
+} from "@/components/layout/DashboardShell";
+import { Button } from "@/components/ui/button";
 import { DashboardStatBand } from "@/components/ui/DashboardStatBand";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Progress } from "@/components/ui/progress";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
 import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
-import { common, fontScale, primary, radius, typography } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 /**
  * Página "Dashboard — Resumen" (`/dashboard`) — Opción B ("Panel Superior"),
@@ -40,8 +38,13 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+const CARD = "rounded-lg border border-border bg-card p-3 md:p-4";
+const CARD_TITLE = "font-heading text-18 font-bold text-foreground";
+// Filas de "Acciones rápidas": misma altura que antes (34,4 px; 36,4 con el borde del enlace), no los 44 px del botón.
+const ACTION_ROW =
+  "min-h-0 w-full justify-start gap-1.25 rounded-sm px-2.25 py-1.5 leading-body";
+
 export default function DashboardResumenPage() {
-  const theme = useTheme();
   const { projects, isLoading } = useDashboardProjects();
   const { openCreate } = useDashboardProjectModal();
 
@@ -71,9 +74,7 @@ export default function DashboardResumenPage() {
     <DashboardShell>
       {/* La página no tiene un título visible (el diseño arranca directo con
           la banda de KPIs); un h1 accesible da el encabezado de la página. */}
-      <Typography component="h1" sx={visuallyHidden}>
-        Resumen del dashboard
-      </Typography>
+      <h1 className="sr-only">Resumen del dashboard</h1>
       <DashboardStatBand
         loading={isLoading}
         stats={[
@@ -90,86 +91,34 @@ export default function DashboardResumenPage() {
         ]}
       />
 
-      <Box sx={{ px: { xs: 3, md: 5 }, py: 5, maxWidth: 1400, mx: "auto" }}>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1.6fr 1fr" },
-            gap: 3,
-          }}
-        >
-          <Box
-            sx={{
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.lg}px`,
-              backgroundColor: theme.palette.background.paper,
-              p: { xs: 3, md: 4 },
-            }}
-          >
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 700,
-                fontSize: fontScale[18],
-                color: theme.palette.text.primary,
-                mb: 0.75,
-              }}
-            >
-              Próximos cierres
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[13],
-                color: theme.palette.text.secondary,
-                mb: 3.5,
-              }}
-            >
+      <div className={cn(DASHBOARD_CONTENT_CLASS, "py-5")}>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.6fr_1fr]">
+          <div className={CARD}>
+            <p className={cn(CARD_TITLE, "mb-0.75")}>Próximos cierres</p>
+            <p className="mb-3.5 font-body text-13 text-muted-foreground">
               Proyectos activos ordenados por fecha de cierre.
-            </Typography>
+            </p>
 
             {isLoading ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <div className="flex flex-col gap-2">
                 {[0, 1, 2].map((key) => (
-                  <Box
-                    key={key}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 3,
-                      py: 1,
-                    }}
-                  >
-                    <Box sx={{ flex: 1 }}>
-                      <Box
-                        sx={{
-                          height: 14,
-                          width: "50%",
-                          mb: 1,
-                          borderRadius: 1,
-                          backgroundColor: theme.palette.action.hover,
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          height: 5,
-                          borderRadius: `${radius.pill}px`,
-                          backgroundColor: theme.palette.action.hover,
-                        }}
-                      />
-                    </Box>
-                  </Box>
+                  <div key={key} className="flex items-center gap-3 py-1">
+                    <div className="flex-1">
+                      <div className="mb-1 h-3.5 w-1/2 rounded-xs bg-muted" />
+                      <div className="h-1.25 rounded-pill bg-muted" />
+                    </div>
+                  </div>
                 ))}
-              </Box>
+              </div>
             ) : stats.proximosCierres.length === 0 ? (
               <EmptyState
                 compact
-                icon={EventBusyRoundedIcon}
+                icon={CalendarX}
                 title="No hay proyectos activos"
                 description="Cuando crees uno, sus próximos cierres van a aparecer acá."
               />
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <div className="flex flex-col">
                 {stats.proximosCierres.map((project) => {
                   const percent = Math.min(
                     Math.round(
@@ -178,93 +127,38 @@ export default function DashboardResumenPage() {
                     100,
                   );
                   return (
-                    <Box
+                    <div
                       key={project.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 3,
-                        py: 2.5,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        "&:last-of-type": { borderBottom: "none", pb: 0 },
-                      }}
+                      className="flex items-center gap-3 border-b border-border py-2.5 last:border-b-0 last:pb-0"
                     >
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                          sx={{
-                            fontFamily: typography.fontFamily.heading,
-                            fontWeight: 600,
-                            fontSize: fontScale[14],
-                            color: theme.palette.text.primary,
-                            mb: 1,
-                          }}
-                        >
+                      <div className="min-w-0 flex-1">
+                        <p className="mb-1 font-heading text-14 font-semibold text-foreground">
                           {project.title}
-                        </Typography>
-                        <LinearProgress
-                          variant="determinate"
+                        </p>
+                        <Progress
                           value={percent}
                           aria-label={`${project.title}: ${percent}% recaudado`}
-                          color="secondary"
-                          sx={{
-                            height: 5,
-                            borderRadius: `${radius.pill}px`,
-                            backgroundColor: theme.palette.action.hover,
-                          }}
+                          className="h-1.25 rounded-pill **:data-[slot=progress-indicator]:bg-secondary"
                         />
-                      </Box>
-                      <Box
-                        sx={{
-                          textAlign: "right",
-                          flexShrink: 0,
-                          minWidth: 110,
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontSize: fontScale[13],
-                            fontWeight: 500,
-                            color: theme.palette.text.primary,
-                          }}
-                        >
+                      </div>
+                      <div className="min-w-27.5 shrink-0 text-right">
+                        <p className="font-medium text-13 text-foreground">
                           {project.deadlineLabel}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: fontScale[12],
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
+                        </p>
+                        <p className="text-12 text-muted-foreground">
                           {formatCurrency(project.currentAmount)} /{" "}
                           {formatCurrency(project.goalAmount)}
-                        </Typography>
-                      </Box>
-                    </Box>
+                        </p>
+                      </div>
+                    </div>
                   );
                 })}
-              </Box>
+              </div>
             )}
-          </Box>
+          </div>
 
-          <Box
-            sx={{
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.lg}px`,
-              backgroundColor: theme.palette.background.paper,
-              p: { xs: 3, md: 4 },
-            }}
-          >
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 700,
-                fontSize: fontScale[18],
-                color: theme.palette.text.primary,
-                mb: 2.5,
-              }}
-            >
-              Acciones rápidas
-            </Typography>
+          <div className={CARD}>
+            <p className={cn(CARD_TITLE, "mb-2.5")}>Acciones rápidas</p>
 
             {/*
               Antes navegaba a `/dashboard/proyectos?new=1` para abrir el
@@ -274,97 +168,44 @@ export default function DashboardResumenPage() {
               montado una sola vez en `app/dashboard/layout.tsx`, D059) y ya
               no navega.
             */}
-            <Box
-              component="button"
-              type="button"
+            {/* Navy fijo (no `primary` por modo, que en oscuro es claro y con
+                blanco da 3.7:1). */}
+            <Button
               onClick={openCreate}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.25,
-                width: "100%",
-                border: "none",
-                // Navy fijo (no `primary.main`, que en oscuro es claro y con
-                // blanco da 3.7:1).
-                backgroundColor: primary[700],
-                color: common.white,
-                borderRadius: `${radius.sm}px`,
-                px: 2.25,
-                py: 1.5,
-                fontSize: fontScale[14],
-                fontFamily: typography.fontFamily.body,
-                fontWeight: 500,
-                cursor: "pointer",
-                mb: 1.5,
-                transition: theme.transitions.create(["background-color"], {
-                  duration: theme.transitions.duration.shortest,
-                }),
-                "&:hover": { backgroundColor: primary[800] },
-              }}
+              className={cn(
+                ACTION_ROW,
+                "mb-1.5 bg-primary-700 hover:bg-primary-800 dark:bg-primary-700 dark:hover:bg-primary-800",
+              )}
             >
-              <AddIcon fontSize="small" />
+              <Plus className="size-5" aria-hidden="true" />
               Nuevo proyecto
-            </Box>
+            </Button>
 
-            <Box
-              component={Link}
-              href="/dashboard/proyectos"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.25,
-                border: `1px solid ${theme.palette.divider}`,
-                color: theme.palette.text.primary,
-                borderRadius: `${radius.sm}px`,
-                px: 2.25,
-                py: 1.5,
-                fontSize: fontScale[14],
-                fontWeight: 500,
-                textDecoration: "none",
-                transition: theme.transitions.create(
-                  ["border-color", "color"],
-                  { duration: theme.transitions.duration.shortest },
-                ),
-                "&:hover": {
-                  borderColor: theme.palette.secondary.main,
-                  color: theme.palette.secondary.main,
-                },
-              }}
+            <Button
+              asChild
+              variant="outlined"
+              className={cn(
+                ACTION_ROW,
+                "border-border text-foreground hover:border-secondary hover:bg-transparent hover:text-secondary dark:hover:bg-transparent",
+              )}
             >
-              <FolderOutlinedIcon fontSize="small" />
-              Ver todos los proyectos
-            </Box>
+              <Link href="/dashboard/proyectos">
+                <Folder className="size-5" aria-hidden="true" />
+                Ver todos los proyectos
+              </Link>
+            </Button>
 
-            <Box
-              sx={{
-                mt: 3.5,
-                pt: 3,
-                borderTop: `1px solid ${theme.palette.divider}`,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: fontScale[12],
-                  color: theme.palette.text.secondary,
-                  mb: 0.5,
-                }}
-              >
+            <div className="mt-3.5 border-t border-border pt-3">
+              <p className="mb-0.5 text-12 text-muted-foreground">
                 Meta acumulada
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: typography.fontFamily.heading,
-                  fontWeight: 800,
-                  fontSize: fontScale[20],
-                  color: theme.palette.text.primary,
-                }}
-              >
+              </p>
+              <p className="font-heading text-20 font-extrabold text-foreground">
                 {formatCurrency(stats.totalMeta)}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </DashboardShell>
   );
 }

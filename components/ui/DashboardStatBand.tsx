@@ -1,11 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import Typography from "@mui/material/Typography";
-import { DASHBOARD_CONTENT_SX } from "@/components/layout/DashboardShell";
-import { patternLayerSx } from "@/theme/patterns";
-import { fontScale, gray, primary } from "@/theme/tokens";
+import { DASHBOARD_CONTENT_CLASS } from "@/components/layout/DashboardShell";
+import { PatternLayer } from "@/components/ui/pattern-layer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export interface DashboardStat {
   label: string;
@@ -28,72 +26,47 @@ export interface DashboardStatBandProps {
  */
 export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
   return (
-    <Box
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        bgcolor: primary[900],
-        py: { xs: 3.5, md: 4.5 },
-      }}
+    <div
+      data-surface="navy"
+      className="relative overflow-hidden bg-primary-900 py-3.5 md:py-4.5"
     >
-      <Box aria-hidden="true" sx={patternLayerSx()} />
-      <Box
-        sx={{
-          ...DASHBOARD_CONTENT_SX,
-          position: "relative",
-          display: "flex",
-          flexWrap: "wrap",
-          rowGap: 3,
-        }}
+      <PatternLayer />
+      <div
+        className={cn(
+          DASHBOARD_CONTENT_CLASS,
+          "relative flex flex-wrap gap-y-3",
+        )}
       >
         {stats.map((stat, index) => (
-          <Box
+          <div
             key={stat.label}
-            sx={{
-              flex: "1 1 200px",
-              pl: index > 0 ? { xs: 0, sm: 4 } : 0,
-              borderLeft:
-                index > 0
-                  ? { xs: "none", sm: "1px solid rgba(255,255,255,0.15)" }
-                  : "none",
-            }}
+            className={cn(
+              "shrink grow basis-50",
+              index > 0 && "sm:border-l sm:border-on-navy-divider sm:pl-4",
+            )}
           >
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[11],
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
-                mb: 1.25,
-              }}
-            >
+            <p className="mb-1.25 font-body text-11 tracking-[0.08em] text-white/55 uppercase">
               {stat.label}
-            </Typography>
+            </p>
             {loading ? (
-              <Skeleton
-                variant="text"
-                width={90}
-                sx={{
-                  fontSize: { xs: 26, md: 34 },
-                  bgcolor: "rgba(245,246,250,0.12)",
-                }}
-              />
+              <div className="font-heading text-26 leading-body md:text-34">
+                <Skeleton className="w-22.5 origin-left scale-y-60 bg-white/12">
+                  &nbsp;
+                </Skeleton>
+              </div>
             ) : (
-              <Typography
-                sx={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 800,
-                  fontSize: { xs: 26, md: 34 },
-                  color: stat.accent ? "secondary.main" : gray[50],
-                }}
+              <p
+                className={cn(
+                  "font-heading text-26 font-extrabold md:text-34",
+                  stat.accent ? "text-secondary" : "text-gray-50",
+                )}
               >
                 {stat.value}
-              </Typography>
+              </p>
             )}
-          </Box>
+          </div>
         ))}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
