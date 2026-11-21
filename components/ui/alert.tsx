@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
  * Alert del proyecto (D118): reemplaza el `Alert` de MUI. `severity` =
  * success | info | warning | error (el mismo vocabulario) y `appearance` =
  * standard (def.: tinte suave del color, como el `standard` de MUI) | filled
- * (relleno sólido; el `filled` de los avisos de éxito). El estado se dice por
+ * (relleno sólido; el `filled` de los avisos de éxito). `action` (D139): un
+ * botón a la derecha, centrado. El estado se dice por
  * el ícono y el rol, no solo por el color. Colores AA ya resueltos por modo en
  * `theme/roles.ts` (`destructive`, `success`…); el éxito relleno usa
  * `success-filled` (blanco 5.3:1).
@@ -85,6 +86,8 @@ type AlertProps = React.ComponentProps<"div"> &
   VariantProps<typeof alertVariants> & {
     /** Sin ícono (p. ej. si el contenido ya trae el suyo). */
     hideIcon?: boolean;
+    /** Ranura a la derecha, centrada en vertical (p. ej. "Reintentar"). */
+    action?: React.ReactNode;
   };
 
 function Alert({
@@ -92,6 +95,7 @@ function Alert({
   severity = "info",
   appearance,
   hideIcon = false,
+  action,
   children,
   ...props
 }: AlertProps) {
@@ -101,11 +105,20 @@ function Alert({
       data-slot="alert"
       data-severity={severity}
       role="alert"
-      className={cn(alertVariants({ severity, appearance }), className)}
+      className={cn(
+        alertVariants({ severity, appearance }),
+        action && "grid-cols-[auto_1fr_auto]",
+        className,
+      )}
       {...props}
     >
       {hideIcon ? null : <Icon aria-hidden="true" />}
       <div className={cn("min-w-0", hideIcon && "col-span-2")}>{children}</div>
+      {action ? (
+        <div data-slot="alert-action" className="ml-3 self-center">
+          {action}
+        </div>
+      ) : null}
     </div>
   );
 }

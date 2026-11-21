@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
  * disabled y foco de D085 (outline 2px, offset 2px, `--focus-ring`, sigue el
  * radio). Variantes con los nombres de MUI para traducir sin pensar:
  * `variant` contained | outlined | text | action (`outlinedActionSx`, D084)
- * | plain (el `IconButton` sin color), `color` primary | secondary.
+ * | plain (el `IconButton` sin color) | link (enlace en línea, como `Link`),
+ * `color` primary | secondary | error (acciones destructivas, D139) | inherit
+ * (hereda el color del padre: botones sobre fondos de color).
  */
 const buttonVariants = cva(
   [
@@ -26,6 +28,9 @@ const buttonVariants = cva(
         contained: "",
         outlined: "border bg-transparent",
         text: "bg-transparent hover:text-secondary-500",
+        // Enlace en línea (D139): el color de `Link tone="primary"`; el resto,
+        // en el `compoundVariants` de abajo (debe ganarle al `size`).
+        link: "bg-transparent",
         // "Seguir" / "Dar like o comentar" (D084): delineado con relleno al hover.
         action: [
           "border border-primary-700 bg-transparent font-semibold text-primary-700",
@@ -39,13 +44,18 @@ const buttonVariants = cva(
           "dark:text-white dark:hover:bg-white/8",
         ],
       },
-      color: { primary: "", secondary: "" },
+      color: { primary: "", secondary: "", error: "", inherit: "" },
       size: {
         small: "px-4 py-2 text-13",
         medium: "min-h-11 px-4.5 py-2.25 text-14",
         large: "min-h-12 px-6 py-3 text-15",
         // `IconButton` (40×40, redondo).
         icon: "size-10 min-w-0 rounded-pill p-2 [&_svg:not([class*='size-'])]:size-6",
+        // `IconButton size="small"` de 30 px y 28 px (D139).
+        "icon-sm":
+          "size-7.5 min-w-0 rounded-pill p-1.25 [&_svg:not([class*='size-'])]:size-5",
+        "icon-xs":
+          "size-7 min-w-0 rounded-pill p-1.25 [&_svg:not([class*='size-'])]:size-5",
       },
     },
     compoundVariants: [
@@ -83,12 +93,52 @@ const buttonVariants = cva(
         ],
       },
       {
+        variant: "contained",
+        color: "error",
+        className:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      },
+      {
+        variant: "outlined",
+        color: "error",
+        className: [
+          "border-destructive/50 text-destructive hover:border-destructive",
+          "hover:bg-destructive/4 dark:hover:bg-destructive/8",
+        ],
+      },
+      {
+        variant: "outlined",
+        color: "inherit",
+        className: [
+          "border-current/50 text-inherit hover:border-current",
+          "hover:bg-accent",
+        ],
+      },
+      {
+        variant: "link",
+        className: [
+          "min-h-0 min-w-0 rounded-xs p-0 font-normal leading-[inherit]",
+          "text-primary underline-offset-2 hover:underline dark:text-primary-300",
+        ],
+      },
+      {
         variant: ["outlined", "text", "action", "plain"],
         className:
           "disabled:border-black/12 disabled:text-black/26 dark:disabled:border-white/12 dark:disabled:text-white/30",
       },
       { variant: "text", color: "primary", className: "text-primary" },
       { variant: "text", color: "secondary", className: "text-secondary" },
+      {
+        variant: "text",
+        color: "error",
+        className:
+          "text-destructive hover:bg-destructive/4 hover:text-destructive dark:hover:bg-destructive/8",
+      },
+      {
+        variant: "text",
+        color: "inherit",
+        className: "text-inherit hover:bg-accent hover:text-inherit",
+      },
     ],
     defaultVariants: {
       variant: "contained",

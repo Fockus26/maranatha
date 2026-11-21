@@ -2,6 +2,7 @@ import {
   fontScale,
   formDrawer,
   layout,
+  proseMeasure,
   radius,
   shadow,
   spacing,
@@ -37,6 +38,9 @@ export const TEXT_SCALE = {
 /** Anchos máximos (`max-w-*`): `layout.contentNarrow` → `narrow`. */
 export const CONTAINERS = {
   narrow: layout.contentNarrow,
+  agenda: layout.agenda,
+  panel: layout.panel,
+  prose: proseMeasure,
   "form-drawer": formDrawer.width,
   ...Object.fromEntries(
     Object.entries(layout.page).map(([k, n]) => [`page-${k}`, n]),
@@ -47,6 +51,7 @@ export const CONTAINERS = {
 export const twNames = {
   text: [...Object.keys(TEXT_SCALE), ...Object.keys(fontScale)],
   leading: Object.keys(typography.lineHeight),
+  tracking: Object.keys(typography.letterSpacing),
   font: ["heading", "body"],
   spacing: Object.keys(spacing),
   container: Object.keys(CONTAINERS),
