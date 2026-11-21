@@ -116,15 +116,17 @@ function GridTable(props: DivProps) {
   return <div role="table" {...props} />;
 }
 function GridRow(props: DivProps) {
-  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: fila de la grilla, sin foco propio.
+  // biome-ignore lint/a11y/useSemanticElements: fila de la grilla, sin foco propio.
+  // biome-ignore lint/a11y/useFocusableInteractive: fila de la grilla, sin foco propio.
   return <div role="row" {...props} />;
 }
 function GridColumnHeader(props: DivProps) {
-  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: cabecera de la grilla; el foco va al botón de orden.
+  // biome-ignore lint/a11y/useSemanticElements: cabecera de la grilla; el foco va al botón de orden.
+  // biome-ignore lint/a11y/useFocusableInteractive: cabecera de la grilla; el foco va al botón de orden.
   return <div role="columnheader" {...props} />;
 }
 function GridCell(props: DivProps) {
-  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: celda de la grilla, sin foco propio.
+  // biome-ignore lint/a11y/useSemanticElements: celda de la grilla (D052).
   return <div role="cell" {...props} />;
 }
 

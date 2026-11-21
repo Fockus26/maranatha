@@ -1,3 +1,8 @@
+"use client";
+
+// Cliente: pasa funciones (`noop`) a `DashboardTable`, que es de cliente; desde
+// un Server Component Next lo rechaza ("Event handlers cannot be passed to
+// Client Component props") y el `loading.tsx` de proyectos fallaba en main.
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardTable } from "../DashboardTable";
 import { SkeletonFrame } from "./SkeletonFrame";
