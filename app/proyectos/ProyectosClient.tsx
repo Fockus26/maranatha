@@ -66,7 +66,7 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
               Proyectos
             </span>
 
-            <h1 className="m-0 mb-2 font-extrabold font-heading text-32 text-foreground leading-[1.15] tracking-[-0.01em] md:text-[44px] wide:text-54">
+            <h1 className="m-0 mb-2 font-extrabold font-heading text-32 text-foreground leading-h2 tracking-[-0.01em] md:text-[44px] wide:text-54">
               Todos los proyectos
             </h1>
 
