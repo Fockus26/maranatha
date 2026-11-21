@@ -1,6 +1,20 @@
 import { describe, expect, test } from "bun:test";
-import { getGlobalStyles } from "@/theme/globalStyles";
-import { scrollbar, selection } from "@/theme/tokens";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { buildTokensCss, chromeVars } from "@/scripts/tokens-css";
+import { scrollbar, secondary, selection } from "@/theme/tokens";
+
+const GLOBALS_CSS = readFileSync(
+  join(import.meta.dir, "..", "..", "app", "globals.css"),
+  "utf8",
+).replace(/\r\n/g, "\n");
+
+/** Cuerpo del primer bloque `selector { … }` del CSS generado. */
+function blockOf(css: string, selector: string) {
+  const start = css.indexOf(`\n${selector} {\n`);
+  if (start < 0) throw new Error(`sin bloque ${selector}`);
+  return css.slice(start, css.indexOf("\n}", start + 1));
+}
 
 // Contraste WCAG 2.1 entre dos hex `#RRGGBB`.
 function luminance(hex: string) {
@@ -39,22 +53,57 @@ describe("barra de scroll", () => {
   });
 });
 
-describe("getGlobalStyles", () => {
+// Scroll, selección y anillo de foco viven en CSS propio desde D141:
+// variables por modo en `app/tokens.css` (generadas) y reglas en
+// `app/globals.css`.
+describe("variables de scroll, selección y foco (app/tokens.css)", () => {
+  const css = buildTokensCss();
+  const light = blockOf(css, ":root");
+  const dark = blockOf(css, '[data-color-mode="dark"]');
+  const navy = blockOf(css, '[data-surface="navy"]');
+
   test("usa el par de selección y el set de scroll del modo", () => {
-    const light = JSON.stringify(getGlobalStyles("light"));
-    const dark = JSON.stringify(getGlobalStyles("dark"));
-    expect(light).toContain(selection.light.bg);
-    expect(light).toContain(scrollbar.light.thumb);
-    expect(dark).toContain(selection.dark.bg);
-    expect(dark).toContain(scrollbar.dark.thumb);
-    // Las piezas navy fijas llevan su set en los dos modos.
-    expect(light).toContain(scrollbar.navy.thumb);
-    expect(dark).toContain(scrollbar.navy.thumb);
+    expect(light).toContain(`--selection-bg: ${selection.light.bg};`);
+    expect(light).toContain(`--sb-thumb: ${scrollbar.light.thumb};`);
+    expect(dark).toContain(`--selection-bg: ${selection.dark.bg};`);
+    expect(dark).toContain(`--sb-thumb: ${scrollbar.dark.thumb};`);
+    // Las piezas navy fijas llevan su set (y la selección oscura) en los dos modos.
+    expect(navy).toContain(`--sb-thumb: ${scrollbar.navy.thumb};`);
+    expect(navy).toContain(`--selection-bg: ${selection.dark.bg};`);
   });
 
+  test("anillo de foco AA por superficie (D085)", () => {
+    expect(light).toContain(`--focus-ring: ${secondary[600]};`);
+    expect(dark).toContain(`--focus-ring: ${secondary[500]};`);
+    expect(navy).toContain(`--focus-ring: ${secondary[500]};`);
+  });
+
+  test("cada superficie define todas las variables que leen las reglas", () => {
+    const names = chromeVars("light").map(([k]) => k);
+    for (const block of [light, dark, navy]) {
+      for (const name of names) expect(block).toContain(`${name}:`);
+    }
+    for (const name of names) expect(GLOBALS_CSS).toContain(`var(${name})`);
+  });
+});
+
+describe("reglas de app/globals.css", () => {
   test("reserva el riel para que el layout no salte", () => {
-    expect(JSON.stringify(getGlobalStyles("light"))).toContain(
-      '"scrollbarGutter":"stable"',
+    expect(GLOBALS_CSS).toContain("scrollbar-gutter: stable;");
+  });
+
+  test("scroll y selección no se pintan en forced-colors", () => {
+    const media = GLOBALS_CSS.indexOf(
+      "@media not all and (forced-colors: active)",
     );
+    expect(media).toBeGreaterThan(-1);
+    expect(GLOBALS_CSS.indexOf("::selection {")).toBeGreaterThan(media);
+    expect(GLOBALS_CSS.indexOf("::-webkit-scrollbar-thumb {")).toBeGreaterThan(
+      media,
+    );
+  });
+
+  test("ningún selector de MUI", () => {
+    expect(GLOBALS_CSS).not.toMatch(/\.Mui[A-Z]/);
   });
 });

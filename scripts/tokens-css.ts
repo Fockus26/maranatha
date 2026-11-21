@@ -6,7 +6,8 @@
  * Salida: el `@theme` de Tailwind con las escalas (colores, tipo, espaciado,
  * radios, sombras, breakpoints, anchos, z-index), los roles por modo como
  * variables CSS (`:root` claro, `[data-color-mode="dark"]`, piezas navy fijas
- * `[data-surface="navy"]`) y su exposición en `@theme inline`.
+ * `[data-surface="navy"]`) y su exposición en `@theme inline`, más el anillo
+ * de foco, el scroll y la selección por modo que lee `app/globals.css` (D141).
  * `tests/unit/tokens-css.test.ts` falla si el archivo no coincide con esto.
  */
 import { writeFileSync } from "node:fs";
@@ -27,7 +28,9 @@ import {
   onNavy,
   primary,
   radius,
+  scrollbar,
   secondary,
+  selection,
   semantic,
   shadow,
   spacing,
@@ -224,6 +227,42 @@ export function navyVars(): [string, string][] {
   ];
 }
 
+/**
+ * Foco (D085), scroll y selección (D077) por modo y en las piezas navy fijas
+ * (D025): variables que pintan las reglas de `app/globals.css` (D141).
+ * Naranja de marca `secondary[500]` da 2.8:1 sobre blanco (< 3:1 de WCAG
+ * 1.4.11): el anillo en claro es `secondary[600]` (3.7:1); en oscuro y sobre
+ * navy, `secondary[500]` (5.8:1 sobre el paper oscuro, 7.1:1 sobre navy).
+ * Navy usa la selección del modo oscuro en los dos modos.
+ */
+export function chromeVars(surface: ColorMode | "navy"): [string, string][] {
+  const sb = scrollbar[surface];
+  const sel = surface === "light" ? selection.light : selection.dark;
+  return [
+    ["--focus-ring", surface === "light" ? secondary[600] : secondary[500]],
+    ["--sb-track", sb.track],
+    ["--sb-thumb", sb.thumb],
+    ["--sb-hover", sb.hover],
+    ["--sb-active", sb.active],
+    ["--selection-bg", sel.bg],
+    ["--selection-text", sel.text],
+  ];
+}
+
+/** Geometría del scroll (`scrollbar.size/inset/minThumb`), igual en todo modo. */
+function scrollbarGeometry(): [string, string][] {
+  const { size, inset, minThumb } = scrollbar;
+  return [
+    ["--sb-size-page", px(size.page)],
+    ["--sb-size-inner", px(size.inner)],
+    ["--sb-inset-page", px(inset.page)],
+    ["--sb-inset-page-hover", px(inset.pageHover)],
+    ["--sb-inset-inner", px(inset.inner)],
+    ["--sb-inset-inner-hover", px(inset.innerHover)],
+    ["--sb-min-thumb", px(minThumb)],
+  ];
+}
+
 function rolesTheme() {
   const names = roleVars("light").map(([k]) => k);
   return block("@theme inline", [
@@ -231,7 +270,7 @@ function rolesTheme() {
       `--color-${k.slice(2)}`,
       `var(${k})`,
     ]),
-    // Anillo de foco de D085: `--focus-ring` lo define `theme/globalStyles.ts`.
+    // Anillo de foco de D085: `--focus-ring` sale de `chromeVars` (por modo).
     ["--color-ring", "var(--focus-ring)"],
   ]);
 }
@@ -242,9 +281,16 @@ export function buildTokensCss() {
     themeBlock(),
     fontBlock(),
     responsiveText(),
-    block(":root", roleVars("light")),
-    block('[data-color-mode="dark"]', roleVars("dark")),
-    block('[data-surface="navy"]', navyVars()),
+    block(":root", [
+      ...roleVars("light"),
+      ...chromeVars("light"),
+      ...scrollbarGeometry(),
+    ]),
+    block('[data-color-mode="dark"]', [
+      ...roleVars("dark"),
+      ...chromeVars("dark"),
+    ]),
+    block('[data-surface="navy"]', [...navyVars(), ...chromeVars("navy")]),
     rolesTheme(),
   ].join("\n\n")}\n`;
 }

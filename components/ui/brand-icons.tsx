@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 /**
  * Íconos de marca (D121). `lucide-react` 1.x ya no trae logos de marcas, y el
  * sitio usa dos (Instagram y YouTube, en el pie, redes y prédicas): se
- * conservan los mismos trazos de `@mui/icons-material` (MIT) como SVG propios,
+ * conservan los mismos trazos que tenían los íconos de Material (MIT) como SVG propios,
  * con la API de un ícono de lucide (`className`, `size-*`; decorativos por
  * defecto, `aria-hidden`).
  */

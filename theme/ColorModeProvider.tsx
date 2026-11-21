@@ -1,17 +1,15 @@
 "use client";
 
-import { CssBaseline, type PaletteMode, ThemeProvider } from "@mui/material";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { MotionConfig } from "framer-motion";
 import * as React from "react";
-import { getTheme } from "./theme";
+import type { ColorMode } from "./roles";
 
 const STORAGE_KEY = "color-mode";
 const COOKIE_KEY = "color-mode";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 año
 
 type ColorModeContextValue = {
-  mode: PaletteMode;
+  mode: ColorMode;
   toggleColorMode: () => void;
 };
 
@@ -22,11 +20,11 @@ const ColorModeContext = React.createContext<ColorModeContextValue | null>(
 export function useColorMode() {
   const ctx = React.useContext(ColorModeContext);
   if (!ctx)
-    throw new Error("useColorMode debe usarse dentro de <ThemeRegistry>");
+    throw new Error("useColorMode debe usarse dentro de <ColorModeProvider>");
   return ctx;
 }
 
-function persistMode(mode: PaletteMode) {
+function persistMode(mode: ColorMode) {
   window.localStorage.setItem(STORAGE_KEY, mode);
   // La cookie es lo que le permite a `app/layout.tsx` resolver el modo en el
   // SERVIDOR (ver ese archivo) — sin ella, el HTML siempre sale en "light" y
@@ -35,7 +33,7 @@ function persistMode(mode: PaletteMode) {
   document.cookie = `${COOKIE_KEY}=${mode}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
-interface ThemeRegistryProps {
+interface ColorModeProviderProps {
   children: React.ReactNode;
   /**
    * Modo ya resuelto en el servidor (`app/layout.tsx`, leyendo la cookie
@@ -45,14 +43,21 @@ interface ThemeRegistryProps {
    * del navbar reportado por el cliente venía de que antes el estado
    * siempre arrancaba en "light" sin importar la preferencia real).
    */
-  initialMode: PaletteMode;
+  initialMode: ColorMode;
 }
 
-export default function ThemeRegistry({
+/**
+ * Modo claro/oscuro del sitio (D053, D140): el toggle manda, no
+ * `prefers-color-scheme`. Publica el modo en `data-color-mode` de `<html>`,
+ * que leen los roles de `app/tokens.css` y la variante `dark:`; los colores,
+ * la tipografía base, el scroll y la selección viven en CSS (`app/globals.css`,
+ * D141), sin tema de JavaScript.
+ */
+export default function ColorModeProvider({
   children,
   initialMode,
-}: ThemeRegistryProps) {
-  const [mode, setMode] = React.useState<PaletteMode>(initialMode);
+}: ColorModeProviderProps) {
+  const [mode, setMode] = React.useState<ColorMode>(initialMode);
 
   // Migración de una sola vez: alguien que ya tenía una preferencia guardada
   // en `localStorage` de antes de este cambio (o cuyo sistema pide oscuro)
@@ -67,10 +72,8 @@ export default function ThemeRegistry({
       .some((c) => c.startsWith(`${COOKIE_KEY}=`));
     if (hasCookie) return;
 
-    const saved = window.localStorage.getItem(
-      STORAGE_KEY,
-    ) as PaletteMode | null;
-    const resolved: PaletteMode =
+    const saved = window.localStorage.getItem(STORAGE_KEY) as ColorMode | null;
+    const resolved: ColorMode =
       saved === "light" || saved === "dark"
         ? saved
         : window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -90,31 +93,24 @@ export default function ThemeRegistry({
   }, []);
 
   // Publica el modo real (no el de `prefers-color-scheme`) como atributo en
-  // `<html>` — lo usa `app/globals.css` para el color del scroll
-  // personalizado, que debe coincidir con el toggle de la app y no solo con
-  // la preferencia del sistema operativo.
+  // `<html>`: de él cuelgan los roles por modo de `app/tokens.css`, la
+  // variante `dark:` y el scroll y la selección de `app/globals.css`.
   React.useEffect(() => {
     document.documentElement.setAttribute("data-color-mode", mode);
   }, [mode]);
 
-  const theme = React.useMemo(() => getTheme(mode), [mode]);
   const contextValue = React.useMemo(
     () => ({ mode, toggleColorMode }),
     [mode, toggleColorMode],
   );
 
   return (
-    <AppRouterCacheProvider options={{ key: "mui" }}>
-      <ColorModeContext.Provider value={contextValue}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {/* `reducedMotion="user"` — respeta `prefers-reduced-motion` en TODA
-              animación de framer-motion sin tener que consultarlo componente
-              por componente (fase QA — cubre los tabs de `/proyectos` y
-              `DashboardTable`, que no lo hacían). */}
-          <MotionConfig reducedMotion="user">{children}</MotionConfig>
-        </ThemeProvider>
-      </ColorModeContext.Provider>
-    </AppRouterCacheProvider>
+    <ColorModeContext.Provider value={contextValue}>
+      {/* `reducedMotion="user"` — respeta `prefers-reduced-motion` en TODA
+          animación de framer-motion sin tener que consultarlo componente
+          por componente (fase QA — cubre los tabs de `/proyectos` y
+          `DashboardTable`, que no lo hacían). */}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </ColorModeContext.Provider>
   );
 }

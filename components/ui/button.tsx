@@ -4,11 +4,11 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Botón del proyecto (D110): `bunx shadcn add button` ajustado para replicar
- * el `MuiButton` de `theme/theme.ts` — mismos colores AA por modo, tamaños,
- * disabled y foco de D085 (outline 2px, offset 2px, `--focus-ring`, sigue el
- * radio). Variantes con los nombres de MUI para traducir sin pensar:
- * `variant` contained | outlined | text | action (`outlinedActionSx`, D084)
+ * Botón del proyecto (D110): `bunx shadcn add button` con los colores AA por
+ * modo de `theme/roles.ts` y `theme/tokens.ts`, tamaños, disabled y foco de
+ * D085 (outline 2px, offset 2px, `--focus-ring`, sigue el radio). Variantes
+ * con los nombres que tenían en MUI (retirado en D143):
+ * `variant` contained | outlined | text | action (contorno de acción, D084)
  * | plain (el `IconButton` sin color) | link (enlace en línea, como `Link`),
  * `color` primary | secondary | error (acciones destructivas, D139) | inherit
  * (hereda el color del padre: botones sobre fondos de color).

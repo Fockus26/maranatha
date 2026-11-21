@@ -3,8 +3,9 @@ import { cn } from "@/lib/utils";
 import { diagonalPattern, PATTERN_TILE } from "@/theme/patternTile";
 
 /**
- * Capa de patrón de líneas diagonales en pan continuo (D120): el
- * `patternLayerSx` de `theme/patterns.ts` sin MUI. Va como primer hijo de un
+ * Capa de patrón de líneas diagonales en pan continuo (D120), con el tile de
+ * `theme/patternTile.ts` y la animación `pattern-pan` de `app/globals.css`.
+ * Va como primer hijo de un
  * contenedor `relative` (modal de diezmo, banda de KPIs, login); cubre todo
  * (`absolute inset-0`), no recibe clics y no se anuncia. El tile es un SVG
  * de `PATTERN_TILE` px y el pan mueve exactamente uno: el bucle no salta.

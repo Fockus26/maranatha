@@ -4,9 +4,8 @@ export type ColorMode = "light" | "dark";
 
 /**
  * Roles de color por modo (D109): la única fuente de los colores semánticos.
- * La leen la paleta de MUI (`theme/theme.ts`) y el generador de CSS
- * (`scripts/tokens-css.ts` → `app/tokens.css`), así los componentes MUI y los
- * de shadcn pintan lo mismo mientras conviven.
+ * Los lee el generador de CSS (`scripts/tokens-css.ts` → `app/tokens.css`),
+ * de donde salen las variables de los componentes (`bg-background`…).
  */
 export function modeRoles(mode: ColorMode) {
   const isLight = mode === "light";
@@ -59,10 +58,8 @@ function withAlpha(hex: string, a: number) {
 
 /**
  * Resaltado de opciones de menú y celdas de calendario (`--accent`, D116):
- * el `action.hover` de MUI — `gray[900]` al 4 % en claro, blanco al 8 % en
- * oscuro — con el texto del modo encima. Fuera de `modeRoles` a propósito:
- * esa función se esparce en la paleta de MUI y un `action` ahí cambiaría el
- * hover de todos los componentes MUI que siguen vivos.
+ * el `action.hover` que tenía MUI — `gray[900]` al 4 % en claro, blanco al 8 %
+ * en oscuro — con el texto del modo encima.
  */
 export function accentRoles(mode: ColorMode) {
   const isLight = mode === "light";

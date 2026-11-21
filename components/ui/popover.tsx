@@ -19,9 +19,9 @@ function PopoverTrigger({
 /**
  * Panel flotante (D115): el `Paper` del `Popper` de MUI — `--popover`, borde
  * `--border`, radio `md`, sombra `md` (la `shadows[8]` del tema) y `z-modal`
- * (sobre el `Dialog`/`Drawer` de MUI). Se porta a `body` salvo que se pase `container`: dentro de un
- * `Dialog`/`Drawer` de MUI va el elemento `role="dialog"` que lo contiene, o
- * su trampa de foco le roba el foco al panel. La animación de entrada se
+ * (sobre los diálogos). Se porta a `body` salvo que se pase `container`: dentro
+ * de un diálogo con trampa de foco propia (no Radix) va el elemento
+ * `role="dialog"` que lo contiene, o esa trampa le roba el foco al panel. La animación de entrada se
  * apaga con `prefers-reduced-motion`.
  */
 function PopoverContent({
