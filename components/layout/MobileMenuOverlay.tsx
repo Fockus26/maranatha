@@ -1,14 +1,12 @@
 "use client";
 
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import { Box, Button, IconButton, useTheme } from "@mui/material";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ExternalLink, House, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { common, fontScale, primary, radius, secondary } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 import type { MobileNavLink } from "./navItems";
 
 export interface MobileMenuOverlayProps {
@@ -50,22 +48,11 @@ export default function MobileMenuOverlay({
   onCtaClick,
   ctaLabel = "Ofrendar",
 }: MobileMenuOverlayProps) {
-  const theme = useTheme();
-  const isLight = theme.palette.mode === "light";
   const reduceMotion = useReducedMotion();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   // Elemento que tenía el foco al abrir — se le devuelve al cerrar (WCAG 2.4.3).
   const openerRef = React.useRef<Element | null>(null);
-
-  const overlayBg = isLight ? theme.palette.background.default : primary[900];
-  const textColor = isLight ? theme.palette.text.primary : common.white;
-  const mutedColor = isLight
-    ? theme.palette.text.secondary
-    : "rgba(255,255,255,0.75)";
-  const dividerColor = isLight
-    ? theme.palette.divider
-    : "rgba(255,255,255,0.24)";
 
   // Cierra con Escape, bloquea el scroll del body, atrapa el foco dentro del
   // overlay mientras está abierto y lo devuelve al abridor al cerrar.
@@ -125,9 +112,8 @@ export default function MobileMenuOverlay({
   return (
     <AnimatePresence>
       {open && (
-        <Box
+        <motion.div
           ref={containerRef}
-          component={motion.div}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -135,54 +121,37 @@ export default function MobileMenuOverlay({
           role="dialog"
           aria-modal="true"
           aria-label="Menú de navegación"
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: theme.zIndex.modal,
-            bgcolor: overlayBg,
-            transition: "background-color 0.2s ease",
-            display: { xs: "flex", md: "none" },
-            flexDirection: "column",
-            // Fase QA (design-qa, crítico): en viewports bajos (teléfono en
-            // horizontal) el CTA "Ofrendar" y el toggle quedaban fuera de
-            // pantalla sin forma de llegar. Ahora el overlay scrollea.
-            overflowY: "auto",
-          }}
+          // Fase QA (design-qa, crítico): en viewports bajos (teléfono en
+          // horizontal) el CTA "Ofrendar" y el toggle quedaban fuera de
+          // pantalla sin forma de llegar. Ahora el overlay scrollea.
+          className="fixed inset-0 z-modal flex flex-col overflow-y-auto bg-background text-foreground transition-colors duration-200 md:hidden dark:bg-primary-900 dark:text-white"
         >
-          <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-            <IconButton
+          <div className="flex justify-end p-2">
+            <Button
               ref={closeButtonRef}
+              variant="plain"
+              size="icon"
               onClick={onClose}
               aria-label="Cerrar menú"
-              sx={{ color: textColor }}
+              className="text-foreground dark:text-white"
             >
-              <CloseRoundedIcon />
-            </IconButton>
-          </Box>
+              <X aria-hidden />
+            </Button>
+          </div>
 
-          <Box
-            component="nav"
+          {/* `justify-center-safe`: centra si entra, pero no recorta el borde
+              superior cuando el contenido es más alto que el viewport. */}
+          <nav
             aria-label="Navegación del menú"
-            sx={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              // `safe center`: centra si entra, pero no recorta el borde
-              // superior cuando el contenido es más alto que el viewport.
-              justifyContent: "safe center",
-              gap: { xs: 2.5, sm: 4 },
-              py: 3,
-            }}
+            className="flex flex-1 flex-col items-center justify-center-safe gap-2.5 py-3 sm:gap-4"
           >
             {links.map((link, index) => {
               const isActive = link.active;
               const key = link.kind === "anchor" ? link.id : link.href;
 
               return (
-                <Box
+                <motion.div
                   key={key}
-                  component={motion.div}
                   initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -191,86 +160,48 @@ export default function MobileMenuOverlay({
                   }}
                 >
                   {link.kind === "anchor" ? (
-                    <Box
-                      component="a"
+                    <a
                       href={`#${link.id}`}
                       onClick={handleAnchorClick(link.id)}
-                      sx={{
-                        fontFamily: "var(--font-heading)",
-                        fontWeight: 700,
-                        fontSize: fontScale[28],
-                        textDecoration: "none",
-                        color: isActive ? "secondary.main" : textColor,
-                        borderBottom: "2px solid",
-                        borderColor: isActive
-                          ? "secondary.main"
-                          : "transparent",
-                        pb: 0.5,
-                      }}
+                      className={cn(
+                        "border-b-2 pb-0.5 font-bold font-heading text-28 no-underline",
+                        isActive
+                          ? "border-secondary text-secondary"
+                          : "border-transparent text-foreground dark:text-white",
+                      )}
                     >
                       {link.label}
-                    </Box>
+                    </a>
                   ) : (
                     // Píldora con ícono — mismo criterio visual que los links
                     // de página en `Navbar`/`PageNavbar` (D023): borde +
                     // ícono en vez de texto plano, para distinguirse de las
                     // anclas de arriba. "Inicio" usa el ícono de casa, el
                     // resto (Proyectos, etc.) el de "abrir en otro lugar".
-                    <Box
-                      component={Link}
+                    <Link
                       href={link.href}
                       onClick={onClose}
-                      sx={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 1,
-                        fontFamily: "var(--font-body)",
-                        fontWeight: isActive ? 600 : 500,
-                        fontSize: fontScale[16],
-                        textDecoration: "none",
-                        color: isActive
-                          ? isLight
-                            ? secondary[700]
-                            : secondary[300]
-                          : mutedColor,
-                        border: "1.5px solid",
-                        borderColor: isActive
-                          ? isLight
-                            ? secondary[700]
-                            : secondary[300]
-                          : dividerColor,
-                        backgroundColor: "transparent",
-                        borderRadius: `${radius.pill}px`,
-                        pl: 2,
-                        pr: 2.5,
-                        py: 1,
-                      }}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-pill border-[1.5px] bg-transparent py-1 pr-2.5 pl-2 font-body text-16 no-underline",
+                        isActive
+                          ? "border-secondary-700 font-semibold text-secondary-700 dark:border-secondary-300 dark:text-secondary-300"
+                          : "border-border font-medium text-muted-foreground dark:border-white/24 dark:text-white/75",
+                      )}
                     >
                       {link.href === "/" ? (
-                        <HomeRoundedIcon sx={{ fontSize: fontScale[16] }} />
+                        <House className="size-4 shrink-0" aria-hidden />
                       ) : (
-                        <OpenInNewRoundedIcon
-                          sx={{ fontSize: fontScale[16] }}
-                        />
+                        <ExternalLink className="size-4 shrink-0" aria-hidden />
                       )}
                       {link.label}
-                    </Box>
+                    </Link>
                   )}
-                </Box>
+                </motion.div>
               );
             })}
-          </Box>
+          </nav>
 
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-              pb: 5,
-              pt: 2,
-            }}
-          >
+          <div className="flex flex-col items-center gap-2 pt-2 pb-5">
             <ThemeToggle
               size="medium"
               className="hover:bg-accent hover:text-foreground dark:text-on-navy-muted dark:hover:text-on-navy"
@@ -280,15 +211,14 @@ export default function MobileMenuOverlay({
                 onClose();
                 onCtaClick();
               }}
-              variant="contained"
               color="secondary"
               size="large"
-              sx={{ px: 5 }}
+              className="px-5"
             >
               {ctaLabel}
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

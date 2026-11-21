@@ -1,26 +1,24 @@
 "use client";
 
-import BuildOutlinedIcon from "@mui/icons-material/BuildRounded";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import ExploreOutlinedIcon from "@mui/icons-material/ExploreRounded";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserRounded";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
-import WifiOffRoundedIcon from "@mui/icons-material/WifiOffRounded";
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Container,
-  Typography,
-} from "@mui/material";
+  Check,
+  Clock,
+  Compass,
+  Copy,
+  LoaderCircle,
+  RefreshCw,
+  ShieldCheck,
+  TriangleAlert,
+  WifiOff,
+  Wrench,
+} from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import { SITE_CONTACT_EMAIL, SITE_NAME } from "@/lib/siteConfig";
-import { gray, radius, secondary } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 import {
   formatReturnAt,
   getStatusCopy,
@@ -32,16 +30,31 @@ import {
  * sin conexión y mantenimiento con y sin hora. Una sola familia: cabecera
  * mínima con el logo, insignia con icono, etiqueta, título, una línea que
  * explica qué pasó, el bloque propio de la variante y las acciones.
+ *
+ * Migrada a shadcn (D122): mismas 7 variantes y props; el spinner de
+ * "Reintentando…" es `LoaderCircle` (quieto con reduced-motion).
  */
 
 const ICONS = {
-  compass: ExploreOutlinedIcon,
-  alert: WarningAmberRoundedIcon,
-  offline: WifiOffRoundedIcon,
-  tools: BuildOutlinedIcon,
+  compass: Compass,
+  alert: TriangleAlert,
+  offline: WifiOff,
+  tools: Wrench,
 } as const;
 
 const COPIED_MS = 2500;
+
+// Naranja del acento por modo (AA sobre el fondo de la insignia).
+const ACCENT = "text-secondary-700 dark:text-secondary-300";
+// Insignia y avisos: `secondary[50]` en claro, `gray[800]` en oscuro.
+const SOFT_BG = "bg-secondary-50 dark:bg-gray-800";
+// Tarjetas de información: papel con borde.
+const BOX =
+  "box-border w-full rounded-lg border border-border bg-card px-3 py-2 text-left";
+// `outlined` primario en oscuro usa `primary.main` (#5B6B9E, 3.8:1 sobre el
+// fondo): aquí va con el color del texto y un borde gray[300] (D079).
+const OUTLINED =
+  "border-primary dark:border-gray-300 dark:text-gray-50 dark:hover:border-gray-300";
 
 interface StatusScreenProps {
   variant: StatusVariant;
@@ -80,286 +93,167 @@ export function StatusScreen({
     titleRef.current?.focus();
   }, []);
 
-  const muted = { color: "text.secondary" } as const;
-  const accent = {
-    color: (t: { palette: { mode: string } }) =>
-      t.palette.mode === "dark" ? secondary[300] : secondary[700],
-  };
-  const boxSx = {
-    width: "100%",
-    boxSizing: "border-box",
-    px: 3,
-    py: 2,
-    borderRadius: `${radius.lg}px`,
-    bgcolor: "background.paper",
-    border: "1px solid",
-    borderColor: "divider",
-    textAlign: "left",
-  } as const;
-
   return (
-    <Box
-      sx={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: "background.default",
-      }}
-    >
+    <div className="flex min-h-dvh flex-col bg-background">
       <title>{`${copy.docTitle} | ${SITE_NAME}`}</title>
 
-      <Box
-        component="header"
-        sx={{
-          height: { xs: 64, sm: 72 },
-          px: { xs: 2, sm: 8 },
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-          bgcolor: (t) =>
-            t.palette.mode === "dark"
-              ? "background.default"
-              : "background.paper",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-        }}
-      >
+      <header className="flex h-16 items-center justify-between gap-2 border-border border-b bg-card px-2 sm:h-18 sm:px-8 dark:bg-background">
         {isMaintenance ? (
           <Logo variant="compact" size={32} />
         ) : (
-          <Box
-            component={Link}
+          <Link
             href="/"
             aria-label={`${SITE_NAME}, ir al inicio`}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              minHeight: 44,
-              borderRadius: `${radius.sm}px`,
-            }}
+            className="flex min-h-11 items-center rounded-sm"
           >
             <Logo variant="compact" size={32} />
-          </Box>
+          </Link>
         )}
         {variant === "404-admin" && (
-          <Typography
-            variant="caption"
-            sx={{ ...muted, display: { xs: "none", sm: "block" } }}
-          >
+          <span className="hidden font-body text-muted-foreground text-small leading-small sm:block">
             Panel de administración
-          </Typography>
+          </span>
         )}
-      </Box>
+      </header>
 
       <Container
-        component="main"
-        id="main-content"
+        asChild
         maxWidth="sm"
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: { xs: "stretch", sm: "center" },
-          textAlign: { xs: "left", sm: "center" },
-          gap: { xs: 3, sm: 4 },
-          pt: { xs: 6, sm: 12 },
-          pb: { xs: 6, sm: 12 },
-          px: { xs: 2, sm: 3 },
-        }}
+        className="flex flex-1 flex-col items-stretch gap-3 pt-6 pb-6 text-left sm:items-center sm:gap-4 sm:pt-12 sm:pb-12 sm:text-center"
       >
-        <Box
-          aria-hidden
-          sx={{
-            width: { xs: 48, sm: 64 },
-            height: { xs: 48, sm: 64 },
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: (t) =>
-              t.palette.mode === "dark" ? gray[800] : secondary[50],
-            ...accent,
-          }}
-        >
-          <Icon sx={{ fontSize: { xs: 24, sm: 32 } }} />
-        </Box>
-
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: { xs: "flex-start", sm: "center" },
-            gap: 1.5,
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              ...accent,
-            }}
-          >
-            {copy.label}
-          </Typography>
-          <Typography
-            ref={titleRef}
-            tabIndex={-1}
-            variant="h1"
-            sx={{
-              color: (t) =>
-                t.palette.mode === "dark" ? "text.primary" : "primary.main",
-              "&:focus": { outline: "none" },
-            }}
-          >
-            {copy.title}
-          </Typography>
-          <Typography variant="body1" sx={{ ...muted, maxWidth: 560 }}>
-            {copy.line}
-          </Typography>
-        </Box>
-
-        {code && <ErrorCode code={code} boxSx={boxSx} />}
-
-        {variant === "offline" && (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: 1.5,
-            }}
-          >
-            <Box sx={boxSx}>
-              <Typography sx={{ fontWeight: 500, mb: 1 }}>
-                Revisa esto:
-              </Typography>
-              <Box component="ul" sx={{ m: 0, pl: 2.5, ...muted }}>
-                <li>Que el wifi o los datos móviles estén activos.</li>
-                <li>Que el modo avión esté apagado.</li>
-                <li>
-                  Si hay poca señal, cambia de red o acércate a una ventana.
-                </li>
-              </Box>
-            </Box>
-            {/* Solo si de verdad hay un borrador guardado: no se promete lo
-                que no pasó. */}
-            {savedDraft && (
-              <Box
-                sx={{
-                  ...boxSx,
-                  border: "none",
-                  display: "flex",
-                  gap: 1.5,
-                  bgcolor: (t) =>
-                    t.palette.mode === "dark" ? gray[800] : secondary[50],
-                }}
-              >
-                <VerifiedUserOutlinedIcon aria-hidden sx={accent} />
-                <Box>
-                  <Typography sx={{ fontWeight: 500 }}>
-                    Lo que estabas llenando está a salvo
-                  </Typography>
-                  <Typography sx={muted}>
-                    Tu reporte de pago quedó guardado en este dispositivo, tal
-                    como lo dejaste. Todavía no se ha enviado: cuando vuelva la
-                    conexión, revísalo y envíalo.
-                  </Typography>
-                </Box>
-              </Box>
+        <main id="main-content">
+          <div
+            aria-hidden
+            className={cn(
+              "flex size-12 items-center justify-center rounded-full sm:size-16",
+              SOFT_BG,
+              ACCENT,
             )}
-          </Box>
-        )}
-
-        {isMaintenance && returnAt && <ReturnAt iso={returnAt} boxSx={boxSx} />}
-
-        {copy.actions.length > 0 && (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              justifyContent: "center",
-              gap: 1.5,
-              mt: 1,
-            }}
           >
-            {copy.actions.map((action) =>
-              action.href ? (
-                <Button
-                  key={action.label}
-                  component={Link}
-                  href={action.href}
-                  size="large"
-                  variant={action.primary ? "contained" : "outlined"}
-                  // CTA principal naranja, igual que /pago/resultado y
-                  // "Ofrendar" (design-qa fase 09).
-                  color={action.primary ? "secondary" : "primary"}
-                  sx={action.primary ? undefined : outlinedSx}
-                >
-                  {action.label}
-                </Button>
-              ) : (
-                <Button
-                  key={action.label}
-                  size="large"
-                  variant="contained"
-                  color="secondary"
-                  disabled={retrying}
-                  onClick={() => startRetry(() => onRetry?.())}
-                  startIcon={
-                    retrying ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <RefreshRoundedIcon />
-                    )
-                  }
-                >
-                  {retrying ? "Reintentando…" : action.label}
-                </Button>
-              ),
-            )}
-          </Box>
-        )}
+            <Icon className="size-6 sm:size-8" />
+          </div>
 
-        {variant === "500" && (
-          <Typography variant="caption" sx={muted}>
-            ¿Necesitas ayuda? Escríbenos a{" "}
-            <Box
-              component="a"
-              href={`mailto:${SITE_CONTACT_EMAIL}`}
-              // Subrayado: el enlace no se distingue solo por color (axe
-              // link-in-text-block, design-qa fase 09). 44px de alto en móvil.
-              sx={{
-                color: "text.primary",
-                textDecoration: "underline",
-                textUnderlineOffset: 3,
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: { xs: 44, sm: "auto" },
-              }}
+          <div className="flex flex-col items-start gap-1.5 sm:items-center">
+            <span
+              className={cn(
+                "font-body font-medium text-small uppercase leading-small tracking-[0.08em]",
+                ACCENT,
+              )}
             >
-              {SITE_CONTACT_EMAIL}
-            </Box>
-          </Typography>
-        )}
+              {copy.label}
+            </span>
+            <h1
+              ref={titleRef}
+              tabIndex={-1}
+              className="m-0 font-extrabold font-heading text-h1 text-primary leading-h1 focus:outline-none dark:text-foreground"
+            >
+              {copy.title}
+            </h1>
+            <p className="m-0 max-w-140 font-body text-body-lg text-muted-foreground leading-body">
+              {copy.line}
+            </p>
+          </div>
+
+          {code && <ErrorCode code={code} />}
+
+          {variant === "offline" && (
+            <div className="flex w-full flex-col gap-1.5">
+              <div className={BOX}>
+                <p className="m-0 mb-1 font-body font-medium text-body-lg leading-body">
+                  Revisa esto:
+                </p>
+                <ul className="m-0 list-disc pl-2.5 text-body text-muted-foreground">
+                  <li>Que el wifi o los datos móviles estén activos.</li>
+                  <li>Que el modo avión esté apagado.</li>
+                  <li>
+                    Si hay poca señal, cambia de red o acércate a una ventana.
+                  </li>
+                </ul>
+              </div>
+              {/* Solo si de verdad hay un borrador guardado: no se promete lo
+                  que no pasó. */}
+              {savedDraft && (
+                <div className={cn(BOX, "flex gap-1.5 border-0", SOFT_BG)}>
+                  <ShieldCheck
+                    aria-hidden
+                    className={cn("size-6 shrink-0", ACCENT)}
+                  />
+                  <div>
+                    <p className="m-0 font-body font-medium text-body-lg leading-body">
+                      Lo que estabas llenando está a salvo
+                    </p>
+                    <p className="m-0 font-body text-body-lg text-muted-foreground leading-body">
+                      Tu reporte de pago quedó guardado en este dispositivo, tal
+                      como lo dejaste. Todavía no se ha enviado: cuando vuelva
+                      la conexión, revísalo y envíalo.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {isMaintenance && returnAt && <ReturnAt iso={returnAt} />}
+
+          {copy.actions.length > 0 && (
+            <div className="mt-1 flex w-full flex-col justify-center gap-1.5 sm:flex-row">
+              {copy.actions.map((action) =>
+                action.href ? (
+                  <Button
+                    key={action.label}
+                    asChild
+                    size="large"
+                    variant={action.primary ? "contained" : "outlined"}
+                    // CTA principal naranja, igual que /pago/resultado y
+                    // "Ofrendar" (design-qa fase 09).
+                    color={action.primary ? "secondary" : "primary"}
+                    className={action.primary ? undefined : OUTLINED}
+                  >
+                    <Link href={action.href}>{action.label}</Link>
+                  </Button>
+                ) : (
+                  <Button
+                    key={action.label}
+                    size="large"
+                    color="secondary"
+                    disabled={retrying}
+                    onClick={() => startRetry(() => onRetry?.())}
+                  >
+                    {retrying ? (
+                      <LoaderCircle
+                        aria-hidden
+                        className="size-5 animate-spin motion-reduce:animate-none"
+                      />
+                    ) : (
+                      <RefreshCw aria-hidden className="size-5" />
+                    )}
+                    {retrying ? "Reintentando…" : action.label}
+                  </Button>
+                ),
+              )}
+            </div>
+          )}
+
+          {variant === "500" && (
+            <p className="m-0 font-body text-muted-foreground text-small leading-small">
+              ¿Necesitas ayuda? Escríbenos a{" "}
+              {/* Subrayado: el enlace no se distingue solo por color (axe
+                  link-in-text-block, design-qa fase 09). 44px de alto en móvil. */}
+              <a
+                href={`mailto:${SITE_CONTACT_EMAIL}`}
+                className="inline-flex min-h-11 items-center text-foreground underline underline-offset-3 sm:min-h-0"
+              >
+                {SITE_CONTACT_EMAIL}
+              </a>
+            </p>
+          )}
+        </main>
       </Container>
-    </Box>
+    </div>
   );
 }
 
-// `outlined` primario en oscuro usa `primary.main` (#5B6B9E, 3.8:1 sobre el
-// fondo): aquí va con el color del texto y un borde gray[300] (D079).
-const outlinedSx = {
-  color: (t: { palette: { mode: string } }) =>
-    t.palette.mode === "dark" ? gray[50] : undefined,
-  borderColor: (t: { palette: { mode: string } }) =>
-    t.palette.mode === "dark" ? gray[300] : "primary.main",
-} as const;
-
-function ErrorCode({ code, boxSx }: { code: string; boxSx: object }) {
+function ErrorCode({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   React.useEffect(() => () => clearTimeout(timer.current), []);
@@ -377,66 +271,33 @@ function ErrorCode({ code, boxSx }: { code: string; boxSx: object }) {
   }
 
   return (
-    <Box
-      sx={{
-        ...boxSx,
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 2,
-      }}
+    <div
+      className={cn(BOX, "flex flex-wrap items-center justify-between gap-2")}
     >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography
-          id="codigo-error"
-          variant="caption"
-          sx={{ color: "text.secondary", display: "block" }}
-        >
+      <div className="min-w-0">
+        <span className="block font-body text-muted-foreground text-small leading-small">
           Código del error
-        </Typography>
-        <Typography
-          variant="h4"
-          component="p"
-          aria-labelledby="codigo-error"
-          sx={{
-            m: 0,
-            letterSpacing: "0.04em",
-            fontVariantNumeric: "tabular-nums",
-            userSelect: "all",
-            overflowWrap: "anywhere",
-          }}
-        >
+        </span>
+        <p className="m-0 select-all wrap-anywhere font-heading font-semibold text-h4 leading-h4 tracking-[0.04em] tabular-nums">
           {code}
-        </Typography>
-      </Box>
-      <Button
-        variant="outlined"
-        onClick={copyCode}
-        startIcon={copied ? <CheckRoundedIcon /> : <ContentCopyRoundedIcon />}
-        sx={{ ...outlinedSx, minHeight: 44 }}
-      >
+        </p>
+      </div>
+      <Button variant="outlined" onClick={copyCode} className={OUTLINED}>
+        {copied ? (
+          <Check aria-hidden className="size-5" />
+        ) : (
+          <Copy aria-hidden className="size-5" />
+        )}
         {copied ? "Copiado" : "Copiar código"}
       </Button>
-      <Box
-        aria-live="polite"
-        sx={{
-          // "1px" y no `1`: en `sx` el 1 es 100% y desbordaba la página
-          // (design-qa fase 09).
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-          clip: "rect(0 0 0 0)",
-        }}
-      >
+      <span aria-live="polite" className="sr-only">
         {copied ? "Código copiado" : ""}
-      </Box>
-    </Box>
+      </span>
+    </div>
   );
 }
 
-function ReturnAt({ iso, boxSx }: { iso: string; boxSx: object }) {
+function ReturnAt({ iso }: { iso: string }) {
   // Se formatea en el cliente, en la zona de quien mira; en el servidor
   // queda vacío para no hidratar con otra zona horaria.
   const [label, setLabel] = React.useState<string | null>(null);
@@ -447,29 +308,22 @@ function ReturnAt({ iso, boxSx }: { iso: string; boxSx: object }) {
   if (!label) return null;
 
   return (
-    <Box sx={{ ...boxSx, display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-      <ScheduleRoundedIcon
-        aria-hidden
-        sx={{
-          mt: 0.25,
-          color: (t) =>
-            t.palette.mode === "dark" ? secondary[300] : secondary[700],
-        }}
-      />
-      <Box>
-        <Typography sx={{ color: "text.secondary" }}>
+    <div className={cn(BOX, "flex items-start gap-1.5")}>
+      <Clock aria-hidden className={cn("mt-px size-6 shrink-0", ACCENT)} />
+      <div>
+        <p className="m-0 font-body text-body-lg text-muted-foreground leading-body">
           Volvemos aproximadamente:
-        </Typography>
-        <Typography variant="h4" component="time" dateTime={iso}>
-          {label}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: "text.secondary", display: "block" }}
+        </p>
+        <time
+          dateTime={iso}
+          className="m-0 font-heading font-semibold text-h4 leading-h4"
         >
+          {label}
+        </time>
+        <span className="block font-body text-muted-foreground text-small leading-small">
           En tu hora local
-        </Typography>
-      </Box>
-    </Box>
+        </span>
+      </div>
+    </div>
   );
 }

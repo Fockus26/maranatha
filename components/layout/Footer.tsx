@@ -1,11 +1,11 @@
 "use client";
 
-import InstagramIcon from "@mui/icons-material/Instagram";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import { Box, Container, IconButton } from "@mui/material";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { fontScale, radius } from "@/theme/tokens";
+import { InstagramIcon, YoutubeIcon } from "@/components/ui/brand-icons";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { cn } from "@/lib/utils";
 
 // Fase 10 (QA): antes solo tenía 3 de las 5 anclas de Home — se completa
 // con Prédicas y Redes para que coincida con `HOME_ANCHOR_ITEMS`
@@ -35,9 +35,13 @@ const SOCIAL_LINKS = [
   {
     label: "YouTube",
     href: "https://www.youtube.com/channel/UCT2A5hFBhTJ5T0CykeCKX7w",
-    icon: YouTubeIcon,
+    icon: YoutubeIcon,
   },
 ] as const;
+
+const linkClass =
+  "inline-flex min-h-11 items-center font-body text-12 text-muted-foreground no-underline hover:text-secondary sm:min-h-0 wide:text-14";
+const titleClass = "font-body font-medium text-12 text-foreground wide:text-14";
 
 function FooterColumn({
   title,
@@ -47,187 +51,72 @@ function FooterColumn({
   links: readonly { label: string; href: string }[];
 }) {
   return (
-    <Box
-      component="nav"
-      aria-label={title}
-      sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
-    >
-      <Box
-        component="span"
-        sx={{
-          fontFamily: "var(--font-body)",
-          fontWeight: 500,
-          fontSize: fontScale[12],
-          "@media (min-width:1920px)": { fontSize: fontScale[14] },
-          color: "text.primary",
-          mb: 0.5,
-        }}
-      >
-        {title}
-      </Box>
-      <Box
-        component="ul"
-        sx={{
-          listStyle: "none",
-          m: 0,
-          p: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: { xs: 0, sm: 0.75 },
-        }}
-      >
+    <nav aria-label={title} className="flex flex-col gap-0.75">
+      <span className={cn(titleClass, "mb-0.5")}>{title}</span>
+      <ul className="m-0 flex list-none flex-col gap-0 p-0 sm:gap-0.75">
         {links.map((link) => (
-          <Box component="li" key={link.href}>
-            <Box
-              component={Link}
-              href={link.href}
-              sx={{
-                // Área táctil de 44px en móvil (design-qa fase 09).
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: { xs: 44, sm: "auto" },
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[12],
-                "@media (min-width:1920px)": { fontSize: fontScale[14] },
-                color: "text.secondary",
-                textDecoration: "none",
-                "&:hover": { color: "secondary.main" },
-              }}
-            >
+          <li key={link.href}>
+            {/* Área táctil de 44px en móvil (design-qa fase 09). */}
+            <Link href={link.href} className={linkClass}>
               {link.label}
-            </Box>
-          </Box>
+            </Link>
+          </li>
         ))}
-      </Box>
-    </Box>
+      </ul>
+    </nav>
   );
 }
 
 export default function Footer() {
   return (
-    <Box
-      component="footer"
-      sx={{
-        bgcolor: "background.default",
-        borderTop: "1px solid",
-        borderColor: "divider",
-      }}
-    >
-      <Container maxWidth="lg" sx={{ py: { xs: 4, lg: 8 } }}>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1.3fr 1fr 1fr 1fr" },
-            gap: { xs: 3, sm: 3 },
-          }}
-        >
-          <Box>
-            <Logo size={40} sx={{ mb: 1.5 }} />
-            <Box
-              component="p"
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[11],
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-                lineHeight: 1.5,
-                color: "text.secondary",
-                m: 0,
-              }}
-            >
+    <footer className="border-border border-t bg-background">
+      <Container maxWidth="lg" className="py-4 lg:py-8">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr]">
+          <div>
+            <Logo size={40} className="mb-1.5" />
+            <p className="m-0 font-body text-11 text-muted-foreground leading-small wide:text-13">
               Una comunidad creciendo en fe y propósito.
-            </Box>
-          </Box>
+            </p>
+          </div>
 
           <FooterColumn title="Navegación" links={NAV_LINKS} />
           <FooterColumn title="Recursos" links={RESOURCE_LINKS} />
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Box
-              component="span"
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[12],
-                "@media (min-width:1920px)": { fontSize: fontScale[14] },
-                color: "text.primary",
-              }}
-            >
-              Conecta
-            </Box>
-            <Box
-              component="a"
-              href="mailto:contacto@iglesia.org"
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: { xs: 44, sm: "auto" },
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[12],
-                "@media (min-width:1920px)": { fontSize: fontScale[14] },
-                color: "text.secondary",
-                textDecoration: "none",
-                "&:hover": { color: "secondary.main" },
-              }}
-            >
+          <div className="flex flex-col gap-1">
+            <span className={titleClass}>Conecta</span>
+            <a href="mailto:contacto@iglesia.org" className={linkClass}>
               contacto@iglesia.org
-            </Box>
-            <Box sx={{ display: "flex", gap: 0.75, mt: 0.5 }}>
+            </a>
+            <div className="mt-0.5 flex gap-0.75">
               {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
-                <IconButton
+                <Button
                   key={label}
-                  component="a"
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${label} (se abre en una pestaña nueva)`}
-                  size="small"
-                  sx={{
-                    width: { xs: 44, sm: 32 },
-                    height: { xs: 44, sm: 32 },
-                    borderRadius: `${radius.xs}px`,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    color: "text.secondary",
-                    "&:hover": {
-                      color: "secondary.main",
-                      borderColor: "secondary.main",
-                    },
-                  }}
+                  asChild
+                  variant="plain"
+                  size="icon"
+                  className="size-11 rounded-xs border border-border text-muted-foreground hover:border-secondary hover:text-secondary sm:size-8 dark:text-muted-foreground"
                 >
-                  <Icon sx={{ fontSize: fontScale[14] }} />
-                </IconButton>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} (se abre en una pestaña nueva)`}
+                  >
+                    <Icon className="size-3.5" />
+                  </a>
+                </Button>
               ))}
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
 
-        <Box
-          sx={{
-            borderTop: "1px solid",
-            borderColor: "divider",
-            mt: { xs: 3, lg: 4 },
-            pt: 1.5,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 1,
-            justifyContent: "space-between",
-            fontFamily: "var(--font-body)",
-            fontSize: fontScale[11],
-            "@media (min-width:1920px)": { fontSize: fontScale[13] },
-            // Fase 10 (QA): `text.muted` no existe en la paleta de MUI/tema
-            // del proyecto (solo `text.primary`/`text.secondary`/`text.disabled`,
-            // ver `theme/theme.ts`) — la barra de copyright se renderizaba con
-            // el color heredado (más oscuro/marcado de lo previsto) en vez de
-            // atenuado. Se corrige a `text.secondary`, el token real más cercano.
-            color: "text.secondary",
-          }}
-        >
-          <Box component="span">
-            © 2026 Iglesia. Todos los derechos reservados.
-          </Box>
-          <Box component="span">Hecho con propósito</Box>
-        </Box>
+        {/* Fase 10 (QA): `text.muted` no existe en el tema del proyecto; la
+            barra de copyright usa `text-muted-foreground` (el secundario). */}
+        <div className="mt-3 flex flex-col justify-between gap-1 border-border border-t pt-1.5 font-body text-11 text-muted-foreground sm:flex-row lg:mt-4 wide:text-13">
+          <span>© 2026 Iglesia. Todos los derechos reservados.</span>
+          <span>Hecho con propósito</span>
+        </div>
       </Container>
-    </Box>
+    </footer>
   );
 }

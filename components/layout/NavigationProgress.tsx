@@ -1,18 +1,10 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { keyframes } from "@mui/material/styles";
 import { usePathname, useSearchParams } from "next/navigation";
 import * as React from "react";
-import { navProgress, zIndex } from "@/theme/tokens";
-
-// Avance asintótico: sube rápido y se frena en ~90 % hasta que llega la página.
-const advance = keyframes`
-  0% { transform: scaleX(0); }
-  20% { transform: scaleX(0.45); }
-  60% { transform: scaleX(0.8); }
-  100% { transform: scaleX(0.92); }
-`;
+import { cn } from "@/lib/utils";
+import { navProgress } from "@/theme/tokens";
+import styles from "./NavigationProgress.module.css";
 
 type Phase = "idle" | "loading" | "done";
 
@@ -121,37 +113,29 @@ function NavigationProgressInner() {
   if (phase === "idle") return null;
 
   return (
-    <Box
+    <div
       role="progressbar"
       aria-label="Cargando página"
       aria-busy={phase === "loading"}
       data-phase={phase}
-      sx={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+      className="pointer-events-none fixed inset-x-0 top-0 z-progress"
+      style={{
         height: navProgress.height,
-        zIndex: zIndex.progress,
-        pointerEvents: "none",
         opacity: phase === "done" ? 0 : 1,
         transition: reduceMotion ? "none" : `opacity ${navProgress.fadeMs}ms`,
       }}
     >
-      <Box
-        sx={{
-          height: "100%",
-          bgcolor: "secondary.main",
-          transformOrigin: "left",
+      <div
+        className={cn(
+          "h-full origin-left bg-secondary",
+          phase === "loading" && !reduceMotion && styles.advancing,
+        )}
+        style={{
           transform: phase === "done" || reduceMotion ? "scaleX(1)" : undefined,
-          animation:
-            phase === "loading" && !reduceMotion
-              ? `${advance} 8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`
-              : "none",
           transition: reduceMotion ? "none" : "transform 150ms ease-out",
         }}
       />
-    </Box>
+    </div>
   );
 }
 

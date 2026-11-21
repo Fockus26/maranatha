@@ -1,0 +1,19 @@
+/* Avance asintótico: sube rápido y se frena en ~92 % hasta que llega la página (D095). */
+@keyframes advance {
+  0% {
+    transform: scaleX(0);
+  }
+  20% {
+    transform: scaleX(0.45);
+  }
+  60% {
+    transform: scaleX(0.8);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+
+.advancing {
+  animation: advance 8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

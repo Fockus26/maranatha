@@ -1,23 +1,11 @@
 "use client";
 
-import InstagramIcon from "@mui/icons-material/Instagram";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import LinearProgress from "@mui/material/LinearProgress";
-import { alpha, useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import {
-  common,
-  fontScale,
-  gray,
-  primary,
-  radius,
-  semantic,
-  typography,
-} from "@/theme/tokens";
-import { outlinedActionSx } from "./outlinedActionSx";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { InstagramIcon } from "@/components/ui/brand-icons";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { initialsOf } from "@/lib/auth/initials";
+import { cn } from "@/lib/utils";
 import type { ProjectStatus } from "./ProjectCard";
 
 export interface Encargado {
@@ -54,199 +42,113 @@ export function ProjectSidebar({
   onCtaClick,
   encargados,
 }: ProjectSidebarProps) {
-  const theme = useTheme();
   const isCompleted = status === "completed";
   const percent = Math.min(Math.round((currentAmount / goalAmount) * 100), 100);
 
   return (
-    <Box
-      sx={{
-        position: "sticky",
-        top: 20,
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: `${radius.lg}px`,
-        backgroundColor: theme.palette.background.paper,
-        p: 4,
-      }}
-    >
-      <Box
-        sx={{
-          display: "inline-block",
-          fontSize: fontScale[11],
-          fontWeight: 700,
-          letterSpacing: "0.03em",
-          borderRadius: `${radius.pill}px`,
-          px: 2.25,
-          py: 0.75,
-          // Navy fijo (no `primary.main`, que en modo oscuro es un azul claro
-          // "lavado" — mismo criterio de fondo fijo que el date block de
-          // Agenda/AgendaItem, D014/D025). Revisión: en modo oscuro el navy
-          // más profundo (`primary[700]`, `#101B45`) queda casi del mismo
-          // valor que la superficie del card (`gray[800]`, `#1D2032`) y no
-          // resaltaba lo suficiente (feedback directo del cliente) — en modo
-          // oscuro sube un peldaño en la escala (`primary[600]`, más claro y
-          // saturado) y se suma un borde sutil claro para marcar el borde del
-          // chip incluso cuando el contraste tonal es bajo. "Completado" se
-          // queda en success (verde), ya lo suficientemente distintivo.
-          backgroundColor: isCompleted
-            ? semantic.successFilled
-            : theme.palette.mode === "dark"
-              ? primary[600]
-              : primary[700],
-          color: isCompleted ? common.white : gray[50],
-          border: isCompleted ? "none" : `1px solid ${alpha(gray[50], 0.14)}`,
-        }}
+    <div className="sticky top-5 rounded-lg border border-border bg-card p-4">
+      {/* Navy fijo (no `primary.main`, que en modo oscuro es un azul claro
+          "lavado" — mismo criterio de fondo fijo que el date block de
+          Agenda/AgendaItem, D014/D025). Revisión: en modo oscuro el navy
+          más profundo (`primary[700]`, `#101B45`) queda casi del mismo
+          valor que la superficie del card (`gray[800]`, `#1D2032`) y no
+          resaltaba lo suficiente (feedback directo del cliente) — en modo
+          oscuro sube un peldaño en la escala (`primary[600]`, más claro y
+          saturado) y se suma un borde sutil claro para marcar el borde del
+          chip incluso cuando el contraste tonal es bajo. "Completado" se
+          queda en success (verde), ya lo suficientemente distintivo. */}
+      <span
+        className={cn(
+          "inline-block rounded-pill px-2.25 py-0.75 font-body font-bold text-11 tracking-[0.03em]",
+          isCompleted
+            ? "bg-success-filled text-white"
+            : "border border-gray-50/14 bg-primary-700 text-gray-50 dark:bg-primary-600",
+        )}
       >
         {isCompleted ? "Completado" : "Activo"}
-      </Box>
+      </span>
 
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.heading,
-          fontWeight: 800,
-          fontSize: fontScale[22],
-          color: theme.palette.text.primary,
-          mt: 3,
-          mb: 0.5,
-        }}
-      >
+      <p className="m-0 mt-3 mb-0.5 font-extrabold font-heading text-22 text-foreground leading-body">
         {formatCurrency(currentAmount)}
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[12],
-          color: theme.palette.text.secondary,
-          mb: 2.5,
-        }}
-      >
+      </p>
+      <p className="m-0 mb-2.5 font-body text-12 text-muted-foreground leading-body">
         recaudado de {formatCurrency(goalAmount)}
-      </Typography>
+      </p>
 
-      <LinearProgress
-        variant="determinate"
+      <Progress
         value={percent}
         aria-label={`${percent}% recaudado de la meta`}
-        color={isCompleted ? "success" : "secondary"}
-        sx={{
-          height: 6,
-          borderRadius: `${radius.pill}px`,
-          mb: 1.5,
-          backgroundColor: theme.palette.action.hover,
-        }}
+        className={cn(
+          "mb-1.5 h-1.5 rounded-pill",
+          isCompleted
+            ? "[&>[data-slot=progress-indicator]]:bg-success"
+            : "[&>[data-slot=progress-indicator]]:bg-secondary",
+        )}
       />
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: fontScale[11],
-          color: theme.palette.text.secondary,
-          mb: 4,
-        }}
-      >
+      <p className="m-0 mb-4 font-body text-11 text-muted-foreground leading-body">
         {percent}% · {deadlineLabel}
-      </Typography>
+      </p>
 
       {/* "Ver proyecto" (completado): mismo tratamiento que el CTA del Hero —
           neutro en reposo, acento azul al interactuar — aplicado también acá
-          (fase 07, ronda de feedback siguiente a D049; antes solo se había
-          actualizado la instancia de `ProjectCard.tsx`, esta quedó pendiente). */}
+          (fase 07, ronda de feedback siguiente a D049); `variant="action"`
+          es el delineado con contraste de D084. */}
       <Button
         onClick={onCtaClick}
-        fullWidth
-        variant={isCompleted ? "outlined" : "contained"}
+        variant={isCompleted ? "action" : "contained"}
         color={isCompleted ? "primary" : "secondary"}
-        sx={{
-          mb: 4.5,
-          ...(isCompleted && {
-            ...outlinedActionSx(theme),
-          }),
-        }}
+        className="mb-4.5 w-full"
       >
         {ctaLabel ?? (isCompleted ? "Ver proyecto" : "Aportar")}
       </Button>
 
       {encargados.length > 0 && (
-        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 3.5 }}>
-          <Typography
-            sx={{
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[11],
-              // Fase QA (a11y): antes `text.disabled` (~2.7:1 sobre `background.paper`)
-              // — es un encabezado de sección real, no texto inhabilitado.
-              color: theme.palette.text.secondary,
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
-              mb: 2.5,
-            }}
-          >
+        <div className="border-border border-t pt-3.5">
+          {/* Fase QA (a11y): antes `text.disabled` (~2.7:1 sobre el papel) —
+              es un encabezado de sección real, no texto inhabilitado. */}
+          <p className="m-0 mb-2.5 font-body text-11 text-muted-foreground uppercase leading-body tracking-[0.04em]">
             Encargados
-          </Typography>
+          </p>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <div className="flex flex-col gap-3">
             {encargados.map((encargado) => (
-              <Box
-                key={encargado.name}
-                sx={{ display: "flex", alignItems: "center", gap: 2.5 }}
-              >
-                <Avatar
-                  src={encargado.imageUrl}
-                  alt={encargado.name}
-                  sx={{ width: 48, height: 48, flexShrink: 0 }}
-                />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: typography.fontFamily.heading,
-                      fontWeight: 600,
-                      fontSize: fontScale[13],
-                      color: theme.palette.text.primary,
-                    }}
-                  >
+              <div key={encargado.name} className="flex items-center gap-2.5">
+                <Avatar className="size-12">
+                  <AvatarImage src={encargado.imageUrl} alt={encargado.name} />
+                  <AvatarFallback>
+                    {initialsOf(encargado.name, "")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="m-0 font-heading font-semibold text-13 text-foreground leading-body">
                     {encargado.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: typography.fontFamily.body,
-                      fontSize: fontScale[11],
-                      color: theme.palette.text.secondary,
-                    }}
-                  >
+                  </p>
+                  <p className="m-0 font-body text-11 text-muted-foreground leading-body">
                     {encargado.role}
-                  </Typography>
-                </Box>
+                  </p>
+                </div>
                 {encargado.instagramUrl && (
-                  <IconButton
-                    component="a"
-                    href={encargado.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Instagram de ${encargado.name}`}
-                    size="small"
-                    sx={{
-                      width: 26,
-                      height: 26,
-                      flexShrink: 0,
-                      borderRadius: `${radius.sm}px`,
-                      border: `1px solid ${theme.palette.divider}`,
-                      color: theme.palette.primary.main,
-                      "&:hover": {
-                        borderColor: theme.palette.secondary.main,
-                        color: theme.palette.secondary.main,
-                        backgroundColor: alpha(
-                          theme.palette.secondary.main,
-                          0.08,
-                        ),
-                      },
-                    }}
+                  <Button
+                    asChild
+                    variant="plain"
+                    size="icon"
+                    className="size-6.5 rounded-sm border border-border text-primary hover:border-secondary hover:bg-secondary/8 hover:text-secondary dark:text-primary dark:hover:bg-secondary/8"
                   >
-                    <InstagramIcon sx={{ fontSize: fontScale[14] }} />
-                  </IconButton>
+                    <a
+                      href={encargado.instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Instagram de ${encargado.name}`}
+                    >
+                      <InstagramIcon className="size-3.5" />
+                    </a>
+                  </Button>
                 )}
-              </Box>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

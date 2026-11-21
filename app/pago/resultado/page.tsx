@@ -1,16 +1,17 @@
-import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
-import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
-import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
-import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import {
+  CircleAlert,
+  CircleCheck,
+  Hourglass,
+  type LucideIcon,
+  Undo2,
+} from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import PageNavbar from "@/components/layout/PageNavbar";
+import { Button } from "@/components/ui/button";
 import type { CheckoutOutcome } from "@/lib/payments/returnPaths";
 import { getProjectBySlug } from "@/lib/projectsData";
-import { fontScale } from "@/theme/tokens";
 
 export const metadata: Metadata = {
   title: "Resultado del aporte",
@@ -20,39 +21,39 @@ export const metadata: Metadata = {
 const CONTENT: Record<
   CheckoutOutcome,
   {
-    icon: typeof CheckCircleOutlineRoundedIcon;
+    icon: LucideIcon;
     color: string;
     title: string;
     body: string;
   }
 > = {
   confirmado: {
-    icon: CheckCircleOutlineRoundedIcon,
-    color: "success.main",
+    icon: CircleCheck,
+    color: "text-success",
     title: "¡Gracias por tu aporte!",
     body: "Recibimos tu pago. PayPal te enviará el comprobante a tu correo.",
   },
   suscrito: {
-    icon: CheckCircleOutlineRoundedIcon,
-    color: "success.main",
+    icon: CircleCheck,
+    color: "text-success",
     title: "¡Tu aporte mensual quedó activo!",
     body: "PayPal hará el cobro cada mes y te enviará un comprobante por correo. Puedes cancelarlo cuando quieras desde tu cuenta PayPal (Configuración → Pagos automáticos).",
   },
   pendiente: {
-    icon: HourglassEmptyRoundedIcon,
-    color: "warning.main",
+    icon: Hourglass,
+    color: "text-warning",
     title: "Tu pago está en revisión",
     body: "PayPal está procesando el cobro. Cuando se acredite quedará registrado automáticamente; no necesitas hacer nada más.",
   },
   cancelado: {
-    icon: UndoRoundedIcon,
-    color: "text.secondary",
+    icon: Undo2,
+    color: "text-muted-foreground",
     title: "Cancelaste el pago",
     body: "No se realizó ningún cobro. Puedes intentarlo de nuevo cuando quieras, con PayPal u otro método.",
   },
   error: {
-    icon: ErrorOutlineRoundedIcon,
-    color: "error.main",
+    icon: CircleAlert,
+    color: "text-destructive",
     title: "No pudimos completar el pago",
     body: "El cobro no se realizó (por ejemplo, la tarjeta fue rechazada). Puedes intentarlo de nuevo o elegir otro método de pago.",
   },
@@ -104,49 +105,26 @@ export default async function PagoResultadoPage({
   return (
     <>
       <PageNavbar />
-      <Box
-        component="main"
+      <main
         id="main-content"
-        sx={{
-          minHeight: "60vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-          py: { xs: 8, md: 12 },
-        }}
+        className="flex min-h-[60vh] items-center justify-center px-2 py-8 md:py-12"
       >
-        <Box sx={{ maxWidth: 480, textAlign: "center" }}>
+        <div className="max-w-120 text-center">
           <Icon
-            sx={{ fontSize: fontScale[56], color, mb: 2 }}
+            className={`mb-2 inline-block size-14 ${color}`}
             aria-hidden="true"
           />
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              fontSize: { xs: 26, md: 32 },
-              mb: 1.5,
-            }}
-          >
+          <h1 className="m-0 mb-1.5 font-extrabold font-heading text-26 md:text-32">
             {title}
-          </Typography>
-          <Typography
-            sx={{
-              color: "text.secondary",
-              fontSize: fontScale[16],
-              lineHeight: 1.6,
-              mb: 4,
-            }}
-          >
+          </h1>
+          <p className="m-0 mb-4 font-body text-16 text-muted-foreground leading-body">
             {body}
-          </Typography>
-          <Button href={backHref} variant="contained" color="secondary">
-            {backLabel}
+          </p>
+          <Button asChild color="secondary">
+            <Link href={backHref}>{backLabel}</Link>
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </main>
       <Footer />
     </>
   );

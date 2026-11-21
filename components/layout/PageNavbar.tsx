@@ -1,28 +1,19 @@
 "use client";
 
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Toolbar,
-  useScrollTrigger,
-  useTheme,
-} from "@mui/material";
+import { ExternalLink, House, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import { Logo } from "@/components/brand/Logo";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { SITE_NAME } from "@/lib/siteConfig";
 import { useTitheModal } from "@/lib/titheModalStore";
-import { fontScale, radius, secondary } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 import MobileMenuOverlay from "./MobileMenuOverlay";
 import { type MobileNavLink, PAGE_NAV_ITEMS } from "./navItems";
+import { useScrolled } from "./useScrolled";
 
 /**
  * Variante simplificada de `Navbar` para toda página pública que no sea Home
@@ -32,50 +23,35 @@ import { type MobileNavLink, PAGE_NAV_ITEMS } from "./navItems";
  *
  * El CTA "Ofrendar" abre el modal de ofrenda (`TitheModal`), igual que en Home.
  */
+
+// Píldora de link de página — mismo tratamiento que el Navbar de Home
+// (Opción 1 del comparador de navbar, /design): borde + ícono en vez de
+// texto plano, para que se lea como "esto te lleva a otro lugar" y no
+// como una ancla de la página actual. El estado activo (la página en la
+// que ya estás) usa el mismo naranja apagado que el tab seleccionado de
+// `/proyectos` (`secondary[700]`, D051) en vez del naranja vivo — mismo
+// criterio: como estado persistente (no un hover pasajero), el naranja
+// vivo se siente demasiado intenso.
+// Naranja del estado activo contrastado según el modo (en oscuro
+// `secondary[700]` sobre navy da 3.7:1 → `secondary[300]`). Sin relleno
+// translúcido: sobre él el texto quedaba en 4.4:1; el borde ya marca el activo.
+function pillClass(active: boolean) {
+  return cn(
+    "inline-flex items-center gap-0.75 rounded-pill border bg-transparent py-0.75 pr-1.75 pl-1.5 font-body text-13 no-underline wide:text-15",
+    active
+      ? "border-secondary-700 font-semibold text-secondary-700 dark:border-secondary-300 dark:text-secondary-300"
+      : "border-border font-medium text-muted-foreground hover:border-secondary hover:text-secondary",
+  );
+}
+
 export default function PageNavbar() {
-  const theme = useTheme();
   const pathname = usePathname();
-  const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 8 });
+  const scrolled = useScrolled(8);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { openTithe } = useTitheModal();
 
   const isActive = (href: string) =>
     pathname === href || (pathname?.startsWith(`${href}/`) ?? false);
-
-  // Píldora de link de página — mismo tratamiento que el Navbar de Home
-  // (Opción 1 del comparador de navbar, /design): borde + ícono en vez de
-  // texto plano, para que se lea como "esto te lleva a otro lugar" y no
-  // como una ancla de la página actual. El estado activo (la página en la
-  // que ya estás) usa el mismo naranja apagado que el tab seleccionado de
-  // `/proyectos` (`secondary[700]`, D051) en vez del naranja vivo — mismo
-  // criterio: como estado persistente (no un hover pasajero), el naranja
-  // vivo se siente demasiado intenso.
-  // Naranja del estado activo contrastado según el modo (en oscuro
-  // `secondary[700]` sobre navy da 3.7:1). Sin relleno translúcido: sobre él
-  // el texto quedaba en 4.4:1; el borde ya marca el activo.
-  const activeOrange =
-    theme.palette.mode === "dark" ? secondary[300] : secondary[700];
-  const pillSx = (active: boolean) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 0.75,
-    fontFamily: "var(--font-body)",
-    fontWeight: active ? 600 : 500,
-    fontSize: fontScale[13],
-    "@media (min-width:1920px)": { fontSize: fontScale[15] },
-    textDecoration: "none",
-    color: active ? activeOrange : "text.secondary",
-    border: "1px solid",
-    borderColor: active ? activeOrange : "divider",
-    backgroundColor: "transparent",
-    borderRadius: `${radius.pill}px`,
-    pl: 1.5,
-    pr: 1.75,
-    py: 0.75,
-    ...(!active && {
-      "&:hover": { color: "secondary.main", borderColor: "secondary.main" },
-    }),
-  });
 
   // "Inicio" también se agrega al menú mobile por la misma razón que en
   // escritorio — antes el overlay mobile de páginas internas tampoco tenía
@@ -92,47 +68,23 @@ export default function PageNavbar() {
 
   return (
     <>
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          zIndex: theme.zIndex.appBar,
-          backgroundColor: "background.default",
-          color: "text.primary",
-          borderBottom: `1px solid ${scrolled ? "transparent" : theme.palette.divider}`,
-          boxShadow: scrolled ? theme.shadows[1] : "none",
-          transition: theme.transitions.create(
-            ["box-shadow", "border-bottom"],
-            {
-              duration: theme.transitions.duration.shortest,
-            },
-          ),
-        }}
+      <header
+        className={cn(
+          "sticky top-0 z-navbar box-border flex w-full flex-col border-b bg-background text-foreground transition-[box-shadow,border-color] duration-150",
+          scrolled ? "border-transparent shadow-sm" : "border-border",
+        )}
       >
-        <Container maxWidth="lg" disableGutters={false}>
-          <Toolbar
-            disableGutters
-            sx={{
-              justifyContent: "space-between",
-              py: 1.5,
-              minHeight: "auto",
-            }}
-          >
+        <Container maxWidth="lg">
+          <div className="relative flex items-center justify-between py-3">
             {/* Logo (design-qa fase 09: el mismo `<Logo>` que Inicio, antes
                 era un cuadrado de relleno con "Iglesia"). */}
-            <Box
-              component={Link}
+            <Link
               href="/"
               aria-label={`${SITE_NAME}, ir al inicio`}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                minHeight: 44,
-                textDecoration: "none",
-              }}
+              className="flex min-h-11 items-center no-underline"
             >
               <Logo variant="responsive" size={{ xs: 32, sm: 40 }} />
-            </Box>
+            </Link>
 
             {/* Links de escritorio: solo páginas, sin anclas (esta página no
                 tiene secciones). Antes solo mostraba el link de página
@@ -141,71 +93,55 @@ export default function PageNavbar() {
                 era suficientemente explícito. Se agrega "Inicio" siempre
                 primero, con el mismo tratamiento de píldora que el resto
                 (Opción 1 del comparador de navbar, /design). */}
-            <Box
-              component="nav"
+            <nav
               aria-label="Principal"
-              sx={{
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                gap: 1.25,
-              }}
+              className="hidden items-center gap-1.25 md:flex"
             >
-              <Box component={Link} href="/" sx={pillSx(false)}>
-                <HomeRoundedIcon sx={{ fontSize: fontScale[13] }} />
+              <Link href="/" className={pillClass(false)}>
+                <House className="size-3.25 shrink-0" aria-hidden />
                 Inicio
-              </Box>
+              </Link>
               {PAGE_NAV_ITEMS.map((item) => {
                 const active = isActive(item.href);
                 return (
-                  <Box
+                  <Link
                     key={item.href}
-                    component={Link}
                     href={item.href}
-                    sx={pillSx(active)}
+                    className={pillClass(active)}
                   >
-                    <OpenInNewRoundedIcon sx={{ fontSize: fontScale[13] }} />
+                    <ExternalLink className="size-3.25 shrink-0" aria-hidden />
                     {item.label}
-                  </Box>
+                  </Link>
                 );
               })}
-            </Box>
+            </nav>
 
             {/* Theme toggle + CTA (escritorio) / hamburguesa (mobile) */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Box
-                sx={{
-                  display: { xs: "none", md: "flex" },
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
+            <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-3 md:flex">
                 <ThemeToggle />
                 <Button
                   onClick={openTithe}
-                  variant="contained"
                   color="secondary"
                   size="small"
-                  sx={{ borderRadius: `${radius.sm}px`, px: 2 }}
+                  className="rounded-sm px-2"
                 >
                   Ofrendar
                 </Button>
-              </Box>
-              <IconButton
+              </div>
+              <Button
+                variant="plain"
+                size="icon"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Abrir menú"
-                sx={{
-                  display: { xs: "inline-flex", md: "none" },
-                  width: 44,
-                  height: 44,
-                  color: "text.primary",
-                }}
+                className="size-11 text-foreground md:hidden dark:text-foreground"
               >
-                <MenuRoundedIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
+                <Menu aria-hidden />
+              </Button>
+            </div>
+          </div>
         </Container>
-      </AppBar>
+      </header>
 
       <MobileMenuOverlay
         open={mobileOpen}

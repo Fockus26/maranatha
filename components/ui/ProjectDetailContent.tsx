@@ -1,10 +1,7 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import Image from "next/image";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 export interface BudgetLine {
   label: string;
@@ -32,20 +29,9 @@ export function ProjectDetailContent({
   imageUrl,
   budget,
 }: ProjectDetailContentProps) {
-  const theme = useTheme();
-
   return (
-    <Box>
-      <Box
-        sx={{
-          position: "relative",
-          height: 320,
-          borderRadius: `${radius.lg}px`,
-          overflow: "hidden",
-          mb: 5,
-          backgroundColor: theme.palette.primary.dark,
-        }}
-      >
+    <div>
+      <div className="relative mb-5 h-80 overflow-hidden rounded-lg bg-primary-dark">
         {imageUrl && (
           <Image
             src={imageUrl}
@@ -53,79 +39,39 @@ export function ProjectDetailContent({
             fill
             priority
             sizes="(max-width: 900px) 100vw, 1000px"
-            style={{ objectFit: "cover" }}
+            className="object-cover"
           />
         )}
-      </Box>
+      </div>
 
-      <Typography
-        component="h1"
-        sx={{
-          fontFamily: typography.fontFamily.heading,
-          fontWeight: 700,
-          fontSize: fontScale[22],
-          color: theme.palette.text.primary,
-          mb: 2,
-        }}
-      >
+      <h1 className="m-0 mb-2 font-bold font-heading text-22 text-foreground">
         {title}
-      </Typography>
+      </h1>
 
-      <Typography
-        sx={{
-          fontFamily: typography.fontFamily.body,
-          fontSize: theme.typography.body1.fontSize,
-          lineHeight: 1.6,
-          color: theme.palette.text.secondary,
-          mb: 5,
-          // Medida de lectura (design-qa fase 09): sin tope llegaba a ~117
-          // caracteres por línea desde 1920px.
-          maxWidth: "70ch",
-        }}
-      >
+      {/* Medida de lectura (design-qa fase 09): sin tope llegaba a ~117
+          caracteres por línea desde 1920px. */}
+      <p className="m-0 mb-5 max-w-[70ch] font-body text-body-lg text-muted-foreground leading-body">
         {description}
-      </Typography>
+      </p>
 
-      <Box
-        sx={{
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: `${radius.md}px`,
-          backgroundColor: theme.palette.background.paper,
-          p: 3.5,
-        }}
-      >
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 600,
-            fontSize: fontScale[13],
-            color: theme.palette.text.primary,
-            mb: 2,
-          }}
-        >
+      <div className="rounded-md border border-border bg-card p-3.5">
+        <p className="m-0 mb-2 font-heading font-semibold text-13 text-foreground leading-body">
           Presupuesto
-        </Typography>
+        </p>
 
         {budget.map((line, index) => (
-          <Box
+          <div
             key={line.label}
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: fontScale[12],
-              color: theme.palette.text.secondary,
-              py: 1.25,
-              borderBottom:
-                index < budget.length - 1
-                  ? `1px solid ${theme.palette.divider}`
-                  : "none",
-            }}
+            className={cn(
+              "flex justify-between py-1.25 text-12 text-muted-foreground",
+              index < budget.length - 1 && "border-border border-b",
+            )}
           >
             <span>{line.label}</span>
             <span>{formatCurrency(line.amount)}</span>
-          </Box>
+          </div>
         ))}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
