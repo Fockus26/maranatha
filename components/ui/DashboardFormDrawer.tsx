@@ -68,9 +68,14 @@ export function DashboardFormDrawer({
             // El foco va al primer campo del formulario, no al botón Cerrar
             // de la cabecera (el primero del orden de tabulación).
             openerRef.current = document.activeElement as HTMLElement | null;
-            const first = bodyRef.current?.querySelector<HTMLElement>(
-              "input:not([type=hidden]):not([disabled]),textarea,[role=radio][data-state=checked]",
-            );
+            // Los `input` con `aria-hidden` son los nativos de Radix
+            // (radio, select) que acompañan a su botón: no reciben foco.
+            const body = bodyRef.current;
+            const first =
+              body?.querySelector<HTMLElement>("[data-autofocus]") ??
+              body?.querySelector<HTMLElement>(
+                "input:not([type=hidden]):not([aria-hidden=true]):not([disabled]),textarea",
+              );
             if (first) {
               event.preventDefault();
               first.focus();

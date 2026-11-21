@@ -1,29 +1,26 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/AddRounded";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import EditOutlinedIcon from "@mui/icons-material/EditRounded";
-import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormLabel from "@mui/material/FormLabel";
-import IconButton from "@mui/material/IconButton";
-import MenuItem from "@mui/material/MenuItem";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import Snackbar from "@mui/material/Snackbar";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
+import { CalendarX, Pencil, Plus, Trash2 } from "lucide-react";
 import { type FormEvent, useId, useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
   type AgendaActionError,
   createAgendaEvent,
   editAgendaEvent,
   removeAgendaEvent,
 } from "@/app/actions/adminAgenda";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   type AgendaEvent,
   type AgendaEventKind,
@@ -34,14 +31,6 @@ import {
   WEEKDAY_NAMES,
 } from "@/lib/agenda/schema";
 import type { PanelVersion } from "@/lib/panelFreshness";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import {
-  common,
-  fontScale,
-  radius,
-  semantic,
-  typography,
-} from "@/theme/tokens";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardFormDrawer, DrawerSection } from "./DashboardFormDrawer";
 import { DateField } from "./DateField";
@@ -135,6 +124,12 @@ function toInput(form: FormState) {
     : { kind: "one_time" as const, eventDate: form.eventDate, ...common };
 }
 
+/** Aviso de resultado (antes `Snackbar` + `Alert filled`): éxito o error. */
+function notify(message: string, ok: boolean) {
+  if (ok) toast.success(message);
+  else toast.error(message);
+}
+
 function AgendaEventDialog({
   open,
   initial,
@@ -182,69 +177,86 @@ function AgendaEventDialog({
       submitLabel={editing ? "Guardar cambios" : "Crear evento"}
       onClose={onClose}
     >
-      <Box component="form" id={formId} noValidate onSubmit={handleSubmit}>
+      <form id={formId} noValidate onSubmit={handleSubmit}>
         <DrawerSection title="Evento" first>
-          <Box component="fieldset" sx={{ border: 0, p: 0, m: 0 }}>
-            <FormLabel
-              component="legend"
+          <fieldset className="m-0 border-0 p-0">
+            <legend
               id={kindLabelId}
-              sx={{ fontSize: typography.size.small }}
+              className="mb-1 p-0 text-14 leading-body text-muted-foreground"
             >
               Tipo de evento
-            </FormLabel>
+            </legend>
             <RadioGroup
-              row
               aria-labelledby={kindLabelId}
               value={form.kind}
-              onChange={(e) => set("kind", e.target.value as AgendaEventKind)}
+              onValueChange={(v) => set("kind", v as AgendaEventKind)}
+              className="flex flex-wrap gap-x-4 gap-y-2"
             >
-              <FormControlLabel
-                value="recurring"
-                control={<Radio size="small" />}
-                label="Cada semana"
-              />
-              <FormControlLabel
-                value="one_time"
-                control={<Radio size="small" />}
-                label="Fecha única"
-              />
+              <div className="flex items-center gap-2">
+                <RadioGroupItem
+                  value="recurring"
+                  id={`${kindLabelId}-recurring`}
+                />
+                <label
+                  htmlFor={`${kindLabelId}-recurring`}
+                  className="cursor-pointer text-small"
+                >
+                  Cada semana
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem
+                  value="one_time"
+                  id={`${kindLabelId}-one-time`}
+                />
+                <label
+                  htmlFor={`${kindLabelId}-one-time`}
+                  className="cursor-pointer text-small"
+                >
+                  Fecha única
+                </label>
+              </div>
             </RadioGroup>
-          </Box>
+          </fieldset>
 
-          <TextField
-            size="small"
+          <Field
             label="Nombre"
             required
-            autoFocus
-            fullWidth
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            error={touched && !titleValid}
-            helperText={
+            error={
               touched && !titleValid ? "El nombre es obligatorio." : undefined
             }
-            slotProps={{ htmlInput: { maxLength: 120 } }}
-            sx={SMALL_FIELD_SX}
-          />
+          >
+            <Input
+              required
+              data-autofocus=""
+              maxLength={120}
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+            />
+          </Field>
         </DrawerSection>
 
         <DrawerSection title="Cuándo">
           {form.kind === "recurring" ? (
-            <TextField
-              select
-              size="small"
-              label="Día de la semana"
-              fullWidth
-              value={form.weekday}
-              onChange={(e) => set("weekday", Number(e.target.value))}
-              sx={SMALL_FIELD_SX}
-            >
-              {WEEKDAY_NAMES.map((name, i) => (
-                <MenuItem key={name} value={i}>
-                  {name}
-                </MenuItem>
-              ))}
-            </TextField>
+            <Field label="Día de la semana">
+              {(control) => (
+                <Select
+                  value={String(form.weekday)}
+                  onValueChange={(v) => set("weekday", Number(v))}
+                >
+                  <SelectTrigger {...control}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {WEEKDAY_NAMES.map((name, i) => (
+                      <SelectItem key={name} value={String(i)}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
           ) : (
             <DateField
               label="Fecha"
@@ -270,22 +282,22 @@ function AgendaEventDialog({
         </DrawerSection>
 
         <DrawerSection title="Dónde">
-          <TextField
-            size="small"
+          <Field
             label="Lugar"
             required
-            fullWidth
-            value={form.location}
-            onChange={(e) => set("location", e.target.value)}
-            error={touched && !locationValid}
-            helperText={
+            error={
               touched && !locationValid ? "El lugar es obligatorio." : undefined
             }
-            slotProps={{ htmlInput: { maxLength: 120 } }}
-            sx={SMALL_FIELD_SX}
-          />
+          >
+            <Input
+              required
+              maxLength={120}
+              value={form.location}
+              onChange={(e) => set("location", e.target.value)}
+            />
+          </Field>
         </DrawerSection>
-      </Box>
+      </form>
     </DashboardFormDrawer>
   );
 }
@@ -299,7 +311,6 @@ function EventRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const theme = useTheme();
   const isPast =
     event.kind === "one_time" &&
     event.eventDate !== null &&
@@ -310,61 +321,37 @@ function EventRow({
       : DATE_FORMATTER.format(parseLocalDate(event.eventDate ?? todayValue()));
 
   return (
-    <Box
-      component="li"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 2,
-        px: { xs: 2, sm: 3 },
-        py: 2,
-        "&:not(:last-of-type)": {
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        },
-      }}
-    >
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: typography.size.body,
-            color: theme.palette.text.primary,
-            overflowWrap: "anywhere",
-          }}
-        >
+    <li className="flex items-center gap-2 px-2 py-2 not-last:border-b not-last:border-border sm:px-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-16 leading-body font-semibold text-foreground wrap-anywhere">
           {event.title}
           {isPast && (
-            <Typography
-              component="span"
-              sx={{
-                ml: 1,
-                fontSize: typography.size.small,
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-              }}
-            >
+            <span className="ml-1 text-14 font-medium text-muted-foreground">
               (ya pasó)
-            </Typography>
+            </span>
           )}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: typography.size.small,
-            color: theme.palette.text.secondary,
-            overflowWrap: "anywhere",
-            "&::first-letter": { textTransform: "uppercase" },
-          }}
-        >
+        </p>
+        <p className="text-14 leading-body text-muted-foreground wrap-anywhere first-letter:uppercase">
           {when} · {formatStartTime(event.startTime)} · {event.location}
-        </Typography>
-      </Box>
-      <IconButton aria-label={`Editar ${event.title}`} onClick={onEdit}>
-        <EditOutlinedIcon fontSize="small" />
-      </IconButton>
-      <IconButton aria-label={`Eliminar ${event.title}`} onClick={onDelete}>
-        <DeleteOutlineRoundedIcon fontSize="small" />
-      </IconButton>
-    </Box>
+        </p>
+      </div>
+      <Button
+        variant="plain"
+        size="icon"
+        aria-label={`Editar ${event.title}`}
+        onClick={onEdit}
+      >
+        <Pencil aria-hidden="true" className="size-5" />
+      </Button>
+      <Button
+        variant="plain"
+        size="icon"
+        aria-label={`Eliminar ${event.title}`}
+        onClick={onDelete}
+      >
+        <Trash2 aria-hidden="true" className="size-5" />
+      </Button>
+    </li>
   );
 }
 
@@ -381,35 +368,20 @@ function EventGroup({
   onEdit: (event: AgendaEvent) => void;
   onDelete: (event: AgendaEvent) => void;
 }) {
-  const theme = useTheme();
   const headingId = useId();
   return (
-    <Box component="section" aria-labelledby={headingId} sx={{ mb: 5 }}>
-      <Typography
+    <section aria-labelledby={headingId} className="mb-5">
+      <h2
         id={headingId}
-        component="h2"
-        sx={{
-          fontFamily: typography.fontFamily.heading,
-          fontWeight: 700,
-          fontSize: typography.size.h4.mobile,
-          color: theme.palette.text.primary,
-          mb: 1.5,
-        }}
+        className="mb-1.5 font-heading text-18 font-bold text-foreground"
       >
         {title}
-      </Typography>
-      <Box
-        sx={{
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: `${radius.lg}px`,
-          backgroundColor: theme.palette.background.paper,
-          overflow: "hidden",
-        }}
-      >
+      </h2>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
         {events.length === 0 ? (
-          <EmptyState icon={EventBusyRoundedIcon} title={emptyText} compact />
+          <EmptyState icon={CalendarX} title={emptyText} compact />
         ) : (
-          <Box component="ul" sx={{ listStyle: "none", m: 0, p: 0 }}>
+          <ul className="m-0 list-none p-0">
             {events.map((event) => (
               <EventRow
                 key={event.id}
@@ -418,10 +390,10 @@ function EventGroup({
                 onDelete={() => onDelete(event)}
               />
             ))}
-          </Box>
+          </ul>
         )}
-      </Box>
-    </Box>
+      </div>
+    </section>
   );
 }
 
@@ -435,16 +407,12 @@ export function DashboardAgenda({
   /** Versión de los datos con la que se renderizó (D104); null si no se leyó. */
   version: PanelVersion | null;
 }) {
-  const theme = useTheme();
   const [pending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<{
     key: number;
     editing: AgendaEvent | null;
   } | null>(null);
   const [deleting, setDeleting] = useState<AgendaEvent | null>(null);
-  const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(
-    null,
-  );
 
   const recurring = events.filter((e) => e.kind === "recurring");
   const oneTime = events.filter((e) => e.kind === "one_time");
@@ -463,18 +431,18 @@ export function DashboardAgenda({
       );
       // El diálogo queda abierto con lo escrito: el admin puede reintentar.
       if (!result) {
-        setToast({ ok: false, message: NETWORK_ERROR_TEXT });
+        notify(NETWORK_ERROR_TEXT, false);
         return;
       }
       if (result.ok) setDialog(null);
-      setToast({
-        ok: result.ok,
-        message: result.ok
+      notify(
+        result.ok
           ? editing
             ? "Evento actualizado."
             : "Evento creado."
           : ACTION_ERROR_TEXT[result.error],
-      });
+        result.ok,
+      );
     });
   }
 
@@ -484,75 +452,42 @@ export function DashboardAgenda({
     startTransition(async () => {
       const result = await callAction(() => removeAgendaEvent(target.id));
       if (!result) {
-        setToast({ ok: false, message: NETWORK_ERROR_TEXT });
+        notify(NETWORK_ERROR_TEXT, false);
         return;
       }
       setDeleting(null);
-      setToast({
-        ok: result.ok,
-        message: result.ok
-          ? "Evento eliminado."
-          : ACTION_ERROR_TEXT[result.error],
-      });
+      notify(
+        result.ok ? "Evento eliminado." : ACTION_ERROR_TEXT[result.error],
+        result.ok,
+      );
     });
   }
 
   return (
-    <Box
-      sx={{
-        px: { xs: 3, md: 5 },
-        pt: { xs: "32px", md: "48px" },
-        pb: 5,
-        maxWidth: 1000,
-        mx: "auto",
-      }}
-    >
+    <div className="mx-auto w-full max-w-[1000px] px-3 pt-8 pb-5 md:px-5 md:pt-12">
       <PanelFreshness scope="agenda" version={version} />
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 4,
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: typography.fontFamily.heading,
-              fontWeight: 800,
-              fontSize: fontScale[26],
-              color: theme.palette.text.primary,
-              mb: 0.5,
-            }}
-          >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="mb-0.5 font-heading text-26 font-extrabold text-foreground">
             Agenda
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: fontScale[13],
-              color: theme.palette.text.secondary,
-            }}
-          >
+          </h1>
+          <p className="text-13 leading-body text-muted-foreground">
             Lo que se muestra en la sección «Agenda» de la página de inicio.
-          </Typography>
-        </Box>
+          </p>
+        </div>
         <Button
           variant="contained"
           color="primary"
-          startIcon={<AddIcon />}
           onClick={() => openDialog(null)}
           disabled={loadError}
         >
+          <Plus aria-hidden="true" className="size-5" />
           Nuevo evento
         </Button>
-      </Box>
+      </div>
 
       {loadError ? (
-        <Alert severity="error" role="alert">
+        <Alert severity="error">
           No se pudo cargar la agenda. Recarga la página en unos minutos.
         </Alert>
       ) : (
@@ -601,31 +536,6 @@ export function DashboardAgenda({
         onClose={() => setDeleting(null)}
         pending={pending}
       />
-
-      <Snackbar
-        open={Boolean(toast)}
-        autoHideDuration={5000}
-        onClose={() => setToast(null)}
-      >
-        <Alert
-          onClose={() => setToast(null)}
-          severity={toast?.ok ? "success" : "error"}
-          variant="filled"
-          sx={
-            toast?.ok
-              ? {
-                  bgcolor: semantic.successFilled,
-                  color: common.white,
-                  "& .MuiAlert-icon, & .MuiAlert-action": {
-                    color: common.white,
-                  },
-                }
-              : undefined
-          }
-        >
-          {toast?.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </div>
   );
 }

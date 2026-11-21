@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUp, Folder, Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type ComponentProps, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -105,6 +105,29 @@ function progressOf(row: DashboardProjectRow) {
 
 const SKELETON_ROWS = [0, 1, 2];
 
+/*
+ * Piezas de la "tabla" de grilla: `div` con los roles de tabla (D052; un
+ * `<table>` real rompe la animación de filas). Ninguna es interactiva: el
+ * foco lo llevan los botones de dentro.
+ */
+type DivProps = ComponentProps<"div">;
+function GridTable(props: DivProps) {
+  // biome-ignore lint/a11y/useSemanticElements: grilla con rol de tabla (D052).
+  return <div role="table" {...props} />;
+}
+function GridRow(props: DivProps) {
+  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: fila de la grilla, sin foco propio.
+  return <div role="row" {...props} />;
+}
+function GridColumnHeader(props: DivProps) {
+  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: cabecera de la grilla; el foco va al botón de orden.
+  return <div role="columnheader" {...props} />;
+}
+function GridCell(props: DivProps) {
+  // biome-ignore lint/a11y/useSemanticElements lint/a11y/useFocusableInteractive: celda de la grilla, sin foco propio.
+  return <div role="cell" {...props} />;
+}
+
 /** Línea de texto en gris (el `Skeleton variant="text"` de MUI: 60 % del alto). */
 function SkeletonText({ className }: { className: string }) {
   return (
@@ -182,13 +205,11 @@ export function DashboardTable({
         opciones (tarjetas / scroll horizontal / columnas ocultas) vistas en
         un comparador visual. Desde `sm` en adelante esta tabla no cambia.
       */}
-      <div
-        role="table"
+      <GridTable
         aria-label="Proyectos"
         className="relative hidden overflow-hidden rounded-lg border border-border bg-card sm:block"
       >
-        <div
-          role="row"
+        <GridRow
           className={cn(
             GRID_COLUMNS,
             "border-b border-border bg-black/4 px-3 py-1 dark:bg-white/2",
@@ -199,9 +220,8 @@ export function DashboardTable({
             const direction = active ? sortDirection : "asc";
             const Arrow = direction === "asc" ? ArrowUp : ArrowDown;
             return (
-              <div
+              <GridColumnHeader
                 key={column}
-                role="columnheader"
                 aria-sort={
                   active
                     ? sortDirection === "asc"
@@ -232,16 +252,13 @@ export function DashboardTable({
                     )}
                   />
                 </button>
-              </div>
+              </GridColumnHeader>
             );
           })}
-          <div
-            role="columnheader"
-            className="text-right text-13 font-medium text-muted-foreground"
-          >
+          <GridColumnHeader className="text-right text-13 font-medium text-muted-foreground">
             Acciones
-          </div>
-        </div>
+          </GridColumnHeader>
+        </GridRow>
 
         {loading ? (
           // Fase 09 (D067) — patrón de loading elegido por el cliente:
@@ -250,32 +267,31 @@ export function DashboardTable({
           // chip, barra+%, fecha, acciones) para que el salto al llegar el
           // contenido real sea mínimo.
           SKELETON_ROWS.map((key) => (
-            <div
+            <GridRow
               key={key}
-              role="row"
               className={cn(
                 GRID_COLUMNS,
                 "border-b border-border px-3 py-2 last:border-b-0",
               )}
             >
-              <div role="cell" className="pr-2">
+              <GridCell className="pr-2">
                 <SkeletonText className="h-5 w-7/10" />
-              </div>
-              <div role="cell">
+              </GridCell>
+              <GridCell>
                 <Skeleton className="h-5 w-16 rounded-pill" />
-              </div>
-              <div role="cell" className="flex items-center gap-2">
+              </GridCell>
+              <GridCell className="flex items-center gap-2">
                 <Skeleton className="h-1.25 w-20 rounded-pill" />
                 <SkeletonText className="h-4 w-6" />
-              </div>
-              <div role="cell">
+              </GridCell>
+              <GridCell>
                 <SkeletonText className="h-4 w-3/5" />
-              </div>
-              <div role="cell" className="flex justify-end gap-1">
+              </GridCell>
+              <GridCell className="flex justify-end gap-1">
                 <Skeleton className="size-7" />
                 <Skeleton className="size-7" />
-              </div>
-            </div>
+              </GridCell>
+            </GridRow>
           ))
         ) : (
           <AnimatePresence mode="popLayout" initial={false}>
@@ -297,13 +313,10 @@ export function DashboardTable({
                     "border-b border-border px-3 py-2 last:border-b-0",
                   )}
                 >
-                  <div
-                    role="cell"
-                    className="truncate pr-2 text-14 font-medium text-foreground"
-                  >
+                  <GridCell className="truncate pr-2 text-14 font-medium text-foreground">
                     {row.title}
-                  </div>
-                  <div role="cell">
+                  </GridCell>
+                  <GridCell>
                     <span
                       className={cn(
                         statusPillClass(isCompleted),
@@ -312,8 +325,8 @@ export function DashboardTable({
                     >
                       {isCompleted ? "Completado" : "Activo"}
                     </span>
-                  </div>
-                  <div role="cell">
+                  </GridCell>
+                  <GridCell>
                     <div className="flex items-center gap-2">
                       <Progress
                         value={percent}
@@ -324,11 +337,11 @@ export function DashboardTable({
                         {Math.round(percent)}%
                       </span>
                     </div>
-                  </div>
-                  <div role="cell" className="text-13 text-muted-foreground">
+                  </GridCell>
+                  <GridCell className="text-13 text-muted-foreground">
                     {row.deadlineLabel}
-                  </div>
-                  <div role="cell">
+                  </GridCell>
+                  <GridCell>
                     <div className="flex justify-end gap-1">
                       {/* Un proyecto completado ya no se puede editar — pedido
                           del cliente; Eliminar sigue disponible en cualquier
@@ -354,13 +367,13 @@ export function DashboardTable({
                         <Trash2 aria-hidden="true" className="size-5" />
                       </Button>
                     </div>
-                  </div>
+                  </GridCell>
                 </motion.div>
               );
             })}
           </AnimatePresence>
         )}
-      </div>
+      </GridTable>
 
       {/* Vista mobile — tarjetas apiladas (Opción A del comparador de /design,
           elegida por el cliente). Mismos datos/acciones que la tabla de
@@ -368,8 +381,7 @@ export function DashboardTable({
           barra de progreso, fecha de cierre, acciones. Antes sus botones de
           ícono no tenían nombre (crítico de axe a 320 px): ahora llevan el
           mismo `aria-label` que los de la tabla. */}
-      <div
-        role="table"
+      <GridTable
         aria-label="Proyectos"
         className="relative flex flex-col gap-2 sm:hidden"
       >
@@ -409,24 +421,20 @@ export function DashboardTable({
                   className="rounded-md border border-border bg-card p-3"
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
-                    <div
-                      role="cell"
-                      className="min-w-0 text-14 font-semibold text-foreground"
-                    >
+                    <GridCell className="min-w-0 text-14 font-semibold text-foreground">
                       {row.title}
-                    </div>
-                    <div
-                      role="cell"
+                    </GridCell>
+                    <GridCell
                       className={cn(
                         statusPillClass(isCompleted),
                         "shrink-0 px-1.75 py-0.5 text-10.5",
                       )}
                     >
                       {isCompleted ? "Completado" : "Activo"}
-                    </div>
+                    </GridCell>
                   </div>
 
-                  <div role="cell" className="mb-1.5 flex items-center gap-2">
+                  <GridCell className="mb-1.5 flex items-center gap-2">
                     <Progress
                       value={percent}
                       aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
@@ -435,13 +443,13 @@ export function DashboardTable({
                     <span className="shrink-0 text-11 text-muted-foreground">
                       {Math.round(percent)}%
                     </span>
-                  </div>
+                  </GridCell>
 
-                  <div role="cell" className="mb-2 text-12 text-muted-foreground">
+                  <GridCell className="mb-2 text-12 text-muted-foreground">
                     Cierre: {row.deadlineLabel}
-                  </div>
+                  </GridCell>
 
-                  <div role="cell" className="flex justify-end gap-1">
+                  <GridCell className="flex justify-end gap-1">
                     {!isCompleted && (
                       <Button
                         variant="plain"
@@ -462,13 +470,13 @@ export function DashboardTable({
                     >
                       <Trash2 aria-hidden="true" className="size-5" />
                     </Button>
-                  </div>
+                  </GridCell>
                 </motion.div>
               );
             })}
           </AnimatePresence>
         )}
-      </div>
+      </GridTable>
 
       <ConfirmDialog
         open={deleteTarget !== null}
