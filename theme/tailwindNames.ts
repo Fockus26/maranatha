@@ -2,8 +2,8 @@ import {
   fontScale,
   formDrawer,
   layout,
-  proseMeasure,
   radius,
+  readingMeasure,
   shadow,
   spacing,
   typography,
@@ -40,7 +40,7 @@ export const CONTAINERS = {
   narrow: layout.contentNarrow,
   agenda: layout.agenda,
   panel: layout.panel,
-  prose: proseMeasure,
+  reading: readingMeasure,
   "form-drawer": formDrawer.width,
   ...Object.fromEntries(
     Object.entries(layout.page).map(([k, n]) => [`page-${k}`, n]),

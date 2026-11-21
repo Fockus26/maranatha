@@ -262,14 +262,14 @@ export const largeScreen = 1920;
 export const layout = {
   contentNarrow: 960,
   // `max-w-agenda` (la lista de reuniones) y `max-w-panel` (el contenido del
-  // dashboard), D137. `max-w-prose` es `proseMeasure` (la medida de lectura).
+  // dashboard), D137. `max-w-reading` es `readingMeasure` (la medida de lectura).
   agenda: 1000,
   panel: 1400,
   page: { xs: 444, sm: 600, md: 900, lg: 1200, xl: 1440, wide: 1600 },
 } as const;
 
-// Medida de lectura de los textos largos (`max-w-prose`, D137).
-export const proseMeasure = "70ch";
+// Medida de lectura de los textos largos (`max-w-reading`, D137).
+export const readingMeasure = "70ch";
 
 // Panel lateral de formularios del dashboard (D096): ancho desde `md`.
 export const formDrawer = {

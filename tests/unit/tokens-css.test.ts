@@ -38,7 +38,7 @@ describe("app/tokens.css", () => {
     expect(css).toContain(`--container-narrow: ${layout.contentNarrow}px;`);
     expect(css).toContain(`--container-agenda: ${layout.agenda}px;`);
     expect(css).toContain(`--container-panel: ${layout.panel}px;`);
-    expect(css).toContain("--container-prose: 70ch;");
+    expect(css).toContain("--container-reading: 70ch;");
   });
 
   test("los nombres de Tailwind por defecto de tracking no sobreviven (D137)", () => {
