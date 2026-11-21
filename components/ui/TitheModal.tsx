@@ -92,6 +92,10 @@ function AnimatedFamiliesCounter({ active }: { active: boolean }) {
 
 export function TitheModal() {
   const { open, closeTithe } = useTitheModal();
+  // Sin `DialogTrigger` (lo abre el store desde tres menús), Radix no sabe a
+  // quién devolver el foco al cerrar: se guarda el elemento enfocado al abrir,
+  // como hacía el `Dialog` de MUI ("Ofrendar" del menú).
+  const openerRef = useRef<HTMLElement | null>(null);
   // Paso 2 (método de pago). `null` = el donante sigue en el formulario.
   const [contribution, setContribution] =
     useState<PaymentStepContribution | null>(null);
@@ -138,12 +142,25 @@ export function TitheModal() {
     >
       <DialogContent
         showCloseButton={false}
+        // Radix lo llama antes de mover el foco adentro: el activo es el botón
+        // que abrió el modal.
+        onOpenAutoFocus={() => {
+          openerRef.current = document.activeElement as HTMLElement | null;
+        }}
+        onCloseAutoFocus={(event) => {
+          const opener = openerRef.current;
+          openerRef.current = null;
+          if (opener?.isConnected) {
+            event.preventDefault();
+            opener.focus();
+          }
+        }}
         // Sin descripción: el párrafo se oculta en móvil.
         aria-describedby={undefined}
         // Pantalla completa: anula la caja centrada de 444 px del `dialog`
         // (posición, ancho, radio, sombra, padding, grid y su scroll) y el
         // zoom de entrada; queda el fundido, como el `Fade` del Dialog de MUI.
-        className="inset-0 top-0 left-0 block h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none bg-primary-900 p-0 shadow-none sm:max-w-none data-open:zoom-in-100 data-closed:zoom-out-100"
+        className="inset-0 top-0 left-0 block h-auto max-h-none w-auto max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none bg-primary-900 p-0 shadow-none sm:max-w-none data-open:zoom-in-100 data-closed:zoom-out-100"
       >
         {/* Patrón geométrico en pan continuo — mismo "efecto wow" de D048. */}
         <PatternLayer />
