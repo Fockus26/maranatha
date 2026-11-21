@@ -1,5 +1,26 @@
 # maranatha
 
+## 0.10.0
+
+### Minor Changes
+
+- 8fac6c8: Panel más rápido: volver a una página o a un filtro de Pagos o Agenda visitado hace poco se muestra al instante, sin recargar. Si los datos cambiaron por fuera (un pago confirmado por PayPal o Binance, otro admin), la página se actualiza sola al volver a la pestaña o a la ventana.
+- 262bff4: Interfaz completa sobre shadcn/ui: se retira MUI.
+- f8eef9a: Al cambiar de página en el panel, el esqueleto de carga ahora tiene la forma de cada página (Resumen, Proyectos, Pagos y Agenda) en vez de un bloque único a todo el ancho.
+
+### Patch Changes
+
+- 3516a62: Primitivas y tokens de la interfaz completados
+- 43c7d78: Interfaz migrada a shadcn: estados vacíos y transiciones.
+- 93bff0b: Interfaz migrada a shadcn en pagos, agenda y proyectos del panel
+- 1b1419a: Interfaz migrada a shadcn en las secciones de la página de inicio.
+- b293847: Interfaz migrada a shadcn: selector segmentado y botón de modo
+- 4815122: Interfaz migrada a shadcn en los formularios de diezmo y aporte
+- 34d0306: Interfaz migrada a shadcn: diálogo de confirmación
+- 4947eed: Interfaz migrada a shadcn en el marco del sitio y las páginas de proyectos.
+- 5dd74b3: Interfaz migrada a shadcn: campos de fecha y hora
+- d28aecc: Interfaz migrada a shadcn en el acceso y el marco del panel
+
 ## 0.9.0
 
 ### Minor Changes
