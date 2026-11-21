@@ -1,9 +1,6 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { alpha, useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 export interface AgendaItemProps {
   day: string;
@@ -14,8 +11,6 @@ export interface AgendaItemProps {
   onClick?: () => void;
 }
 
-const DATE_BLOCK_WIDTH = 72;
-
 export function AgendaItem({
   day,
   month,
@@ -24,119 +19,41 @@ export function AgendaItem({
   location,
   onClick,
 }: AgendaItemProps) {
-  const theme = useTheme();
-  const onPrimary = theme.palette.primary.contrastText;
-
-  const fillTransition = theme.transitions.create("transform", {
-    duration: 400,
-    easing: theme.transitions.easing.easeInOut, // cubic-bezier(0.4, 0, 0.2, 1)
-  });
-  const colorTransition = theme.transitions.create("color", {
-    duration: theme.transitions.duration.short,
-    easing: theme.transitions.easing.easeInOut,
-    delay: 50,
-  });
-
   return (
-    <Box
+    // biome-ignore lint/a11y/noStaticElementInteractions: tarjeta decorativa de lista; `onClick` es opcional y ningún consumidor lo pasa hoy
+    // biome-ignore lint/a11y/useKeyWithClickEvents: ídem
+    <div
       onClick={onClick}
-      sx={{
-        position: "relative",
-        display: "flex",
-        overflow: "hidden",
-        borderRadius: `${radius.md}px`,
-        border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.background.paper,
-        cursor: onClick ? "pointer" : "default",
-        // Fill: arranca en el borde derecho del date block, nunca desde 0
-        "& .agenda-fill": {
-          position: "absolute",
-          top: 0,
-          bottom: 0,
-          left: DATE_BLOCK_WIDTH,
-          right: 0,
-          backgroundColor: theme.palette.primary.main,
-          transform: "scaleX(0)",
-          transformOrigin: "left",
-          transition: fillTransition,
-          zIndex: 0,
-        },
-        "&:hover .agenda-fill": { transform: "scaleX(1)" },
-        "&:hover .agenda-title": { color: onPrimary },
-        "&:hover .agenda-meta": { color: alpha(onPrimary, 0.75) },
-      }}
+      className={cn(
+        "group relative flex overflow-hidden rounded-md border border-border bg-card",
+        onClick ? "cursor-pointer" : "cursor-default",
+      )}
     >
       {/* Date block — fondo navy siempre fijo, no animado */}
-      <Box
-        sx={{
-          position: "relative",
-          zIndex: 2,
-          width: DATE_BLOCK_WIDTH,
-          flexShrink: 0,
-          backgroundColor: theme.palette.primary.main,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 800,
-            fontSize: fontScale[26],
-            lineHeight: 1,
-            color: onPrimary,
-          }}
-        >
+      <div className="relative z-2 flex w-18 shrink-0 flex-col items-center justify-center bg-primary">
+        <span className="font-extrabold font-heading text-26 text-primary-foreground leading-none">
           {day}
-        </Typography>
-        <Typography
-          component="span"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: theme.typography.caption.fontSize,
-            color: alpha(onPrimary, 0.7),
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            mt: 0.25, // ~1px de ajuste óptico, no es un paso de la escala — intencional
-          }}
-        >
+        </span>
+        <span className="mt-px font-body text-primary-foreground/70 text-small uppercase tracking-[0.05em]">
           {month}
-        </Typography>
-      </Box>
+        </span>
+      </div>
 
-      {/* Fill animado */}
-      <Box className="agenda-fill" />
+      {/* Fill animado: arranca en el borde derecho del date block, nunca desde 0 */}
+      <div
+        aria-hidden
+        className="absolute inset-y-0 right-0 left-18 z-0 origin-left scale-x-0 bg-primary transition-transform duration-400 ease-in-out group-hover:scale-x-100 motion-reduce:transition-none"
+      />
 
       {/* Contenido — padding alineado a la escala: base (16px) / md (12px) */}
-      <Box sx={{ position: "relative", zIndex: 1, py: 3, px: 4, flex: 1 }}>
-        <Typography
-          className="agenda-title"
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 600,
-            fontSize: fontScale[16],
-            color: theme.palette.text.primary,
-            mb: 1, // xs (4px)
-            transition: colorTransition,
-          }}
-        >
+      <div className="relative z-1 flex-1 px-4 py-3">
+        <p className="mb-1 font-heading font-semibold text-16 text-foreground transition-colors delay-50 duration-250 ease-in-out group-hover:text-primary-foreground">
           {title}
-        </Typography>
-        <Typography
-          className="agenda-meta"
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: theme.typography.body2.fontSize,
-            color: theme.palette.text.secondary,
-            transition: colorTransition,
-          }}
-        >
+        </p>
+        <p className="font-body text-body text-muted-foreground transition-colors delay-50 duration-250 ease-in-out group-hover:text-primary-foreground/75">
           {schedule} &nbsp;·&nbsp; {location}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   );
 }

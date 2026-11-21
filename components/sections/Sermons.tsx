@@ -1,21 +1,20 @@
 "use client";
 
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import Dialog from "@mui/material/Dialog";
-import IconButton from "@mui/material/IconButton";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { useState } from "react";
-import { outlinedActionSx } from "@/components/ui/outlinedActionSx";
+import { X } from "lucide-react";
+import { useRef, useState } from "react";
+import { YoutubeIcon } from "@/components/ui/brand-icons";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Reveal } from "@/components/ui/Reveal";
 import { YoutubeEmbedCard } from "@/components/ui/YoutubeEmbedCard";
 import { YOUTUBE_CHANNEL_URL } from "@/lib/siteConfig";
 import type { SermonVideo } from "@/lib/youtube";
-import { common, fontScale, radius } from "@/theme/tokens";
 
 /**
  * Sección "Prédicas" — los 3 últimos videos vienen del feed RSS del canal
@@ -45,93 +44,44 @@ const FALLBACK_SERMONS: SermonVideo[] = [
 ];
 
 export function Sermons({ videos }: { videos?: SermonVideo[] }) {
-  const theme = useTheme();
   const sermons = videos && videos.length > 0 ? videos : FALLBACK_SERMONS;
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const activeSermon = sermons.find((s) => s.videoId === activeVideoId);
+  // Radix solo devuelve el foco a su `DialogTrigger`; el modal se controla por
+  // estado y se abre desde la tarjeta: se guarda quien lo abrió.
+  const openerRef = useRef<HTMLElement | null>(null);
 
   return (
-    <Box component="section" id="predicas" sx={{ py: { xs: 8, md: 12 } }}>
+    <section id="predicas" className="py-8 md:py-12">
       <Container maxWidth="lg">
         <Reveal>
-          <Box
-            sx={{
-              maxWidth: 640,
-              mx: { xs: "auto", md: 0 },
-              textAlign: { xs: "center", md: "left" },
-              mb: { xs: 5, md: 7 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-              }}
-            >
+          <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
               Prédicas
-            </Typography>
+            </span>
 
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: fontScale[46] },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
               Vive cada mensaje, donde estés
-            </Typography>
+            </h2>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                "@media (min-width:1920px)": { fontSize: fontScale[19] },
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="font-body text-16 text-muted-foreground leading-body wide:text-19">
               Revive nuestros últimos servicios y prédicas directamente desde
               nuestro canal de YouTube.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(3, 1fr)",
-              },
-              gap: "24px",
-              mb: { xs: 5, md: 6 },
-            }}
-          >
+          <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mb-6 md:grid-cols-3">
             {sermons.map((sermon, index) => (
               // Con 3 videos y grid de 2 columnas en `sm`, el último queda
               // solo en su fila — se estira a ancho completo para no dejar
               // hueco. Desde `md` (3 columnas) vuelve a ocupar 1.
-              <Box
+              <div
                 key={sermon.videoId}
-                sx={
+                className={
                   index === sermons.length - 1
-                    ? { gridColumn: { sm: "1 / -1", md: "auto" } }
+                    ? "sm:col-[1/-1] md:col-auto"
                     : undefined
                 }
               >
@@ -141,74 +91,66 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
                   publishedAt={sermon.publishedAt}
                   onPlay={setActiveVideoId}
                 />
-              </Box>
+              </div>
             ))}
-          </Box>
+          </div>
 
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: { xs: "center", md: "flex-start" },
-            }}
-          >
+          <div className="flex justify-center md:justify-start">
             {/* Mismo botón outlined con contraste que "Seguir" y "Ver
-                proyecto" (D084, `outlinedActionSx`): César pidió unificar
+                proyecto" (D084, `variant="action"`): César pidió unificar
                 todos los botones del estilo neutro anterior (2026-11-10). */}
-            <Button
-              variant="outlined"
-              size="large"
-              component="a"
-              href={YOUTUBE_CHANNEL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              startIcon={<YouTubeIcon />}
-              sx={outlinedActionSx(theme)}
-            >
-              Ver canal de YouTube
+            <Button asChild variant="action" size="large">
+              <a
+                href={YOUTUBE_CHANNEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <YoutubeIcon aria-hidden className="size-5" />
+                Ver canal de YouTube
+              </a>
             </Button>
-          </Box>
+          </div>
         </Reveal>
       </Container>
 
       <Dialog
         open={activeVideoId !== null}
-        onClose={() => setActiveVideoId(null)}
-        maxWidth="md"
-        fullWidth
-        aria-label={
-          activeSermon ? `Video: ${activeSermon.title}` : "Reproductor de video"
-        }
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: "background.paper",
-              borderRadius: `${radius.lg}px`,
-            },
-          },
+        onOpenChange={(next) => {
+          if (!next) setActiveVideoId(null);
         }}
       >
-        <Box sx={{ position: "relative", p: 0 }}>
-          <IconButton
-            onClick={() => setActiveVideoId(null)}
-            aria-label="Cerrar"
-            sx={{
-              position: "absolute",
-              top: -44,
-              right: 0,
-              color: "common.white",
-            }}
-          >
-            <CloseRoundedIcon />
-          </IconButton>
+        <DialogContent
+          showCloseButton={false}
+          aria-describedby={undefined}
+          onOpenAutoFocus={() => {
+            openerRef.current = document.activeElement as HTMLElement | null;
+          }}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            openerRef.current?.focus();
+          }}
+          // `overflow-visible`: el botón de cerrar vive encima del video (-top-11).
+          className="gap-0 overflow-visible rounded-lg p-0 sm:max-w-page-md"
+        >
+          <DialogTitle className="sr-only">
+            {activeSermon
+              ? `Video: ${activeSermon.title}`
+              : "Reproductor de video"}
+          </DialogTitle>
+
+          <DialogClose asChild>
+            <Button
+              variant="plain"
+              size="icon"
+              aria-label="Cerrar"
+              className="absolute -top-11 right-0 text-white hover:bg-white/8 dark:text-white"
+            >
+              <X aria-hidden className="size-6" />
+            </Button>
+          </DialogClose>
 
           {activeVideoId && (
-            <Box
-              sx={{
-                position: "relative",
-                aspectRatio: "16 / 9",
-                backgroundColor: common.black,
-              }}
-            >
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
               <iframe
                 src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1`}
                 title={
@@ -216,18 +158,12 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
                 }
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: 0,
-                }}
+                className="absolute inset-0 size-full border-0"
               />
-            </Box>
+            </div>
           )}
-        </Box>
+        </DialogContent>
       </Dialog>
-    </Box>
+    </section>
   );
 }

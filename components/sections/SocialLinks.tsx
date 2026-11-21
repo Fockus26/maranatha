@@ -1,17 +1,10 @@
 "use client";
 
-import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded";
-import CollectionsRoundedIcon from "@mui/icons-material/CollectionsRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import PlayCircleRoundedIcon from "@mui/icons-material/PlayCircleRounded";
-import Box from "@mui/material/Box";
-import ButtonBase from "@mui/material/ButtonBase";
-import Container from "@mui/material/Container";
-import { alpha } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { CirclePlay, Heart, Images, MessageCircle } from "lucide-react";
+import { type CSSProperties, useState } from "react";
+import { InstagramIcon } from "@/components/ui/brand-icons";
+import { Container } from "@/components/ui/container";
 import {
   formatCount,
   InstagramPostDialog,
@@ -19,7 +12,8 @@ import {
 import { Reveal } from "@/components/ui/Reveal";
 import { SocialLinkCard } from "@/components/ui/SocialLinkCard";
 import type { InstagramFeed, InstagramPost } from "@/lib/instagram";
-import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
+import { gray, primary, secondary } from "@/theme/tokens";
 
 /**
  * Sección "Redes Sociales" (fase 06) — componente + datos en un solo
@@ -52,10 +46,8 @@ import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
 /** 2 columnas en móvil, 4 desde md, dentro de `Container lg` (1200 px). */
 const COVER_SIZES = "(min-width: 1200px) 280px, (min-width: 900px) 23vw, 50vw";
 
-const overlayIconSx = {
-  color: gray[50],
-  filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
-} as const;
+/** Íconos sueltos sobre la portada: blanco con sombra para leerse sobre cualquier foto. */
+const OVERLAY_ICON = "text-gray-50 drop-shadow-[0_1px_3px_rgb(0_0_0/0.5)]";
 
 const IG = "https://www.instagram.com";
 
@@ -113,138 +105,53 @@ export function SocialLinks({
   const [openPost, setOpenPost] = useState<InstagramPost | null>(null);
 
   return (
-    <Box component="section" id="redes" sx={{ py: { xs: 8, md: 12 } }}>
+    <section id="redes" className="py-8 md:py-12">
       <Container maxWidth="lg">
         <Reveal>
-          <Box
-            sx={{
-              maxWidth: 640,
-              mx: { xs: "auto", md: 0 },
-              textAlign: { xs: "center", md: "left" },
-              mb: { xs: 5, md: 6 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-              }}
-            >
+          <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-6 md:text-left">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
               Redes sociales
-            </Typography>
+            </span>
 
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: fontScale[46] },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
               Síguenos en cada cuenta
-            </Typography>
+            </h2>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                "@media (min-width:1920px)": { fontSize: fontScale[19] },
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="font-body text-16 text-muted-foreground leading-body wide:text-19">
               Elige una cuenta para ver sus últimas publicaciones y seguirla
               desde ahí.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <Box
-            sx={{
-              mb: { xs: 4, md: 5 },
-              maxWidth: 480,
-              mx: { xs: "auto", md: 0 },
-              borderRadius: `${radius.xl}px`,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                backgroundColor: (t) =>
-                  t.palette.mode === "light"
-                    ? t.palette.grey[100]
-                    : alpha(t.palette.common.white, 0.04),
-              }}
-            >
+          <div className="mx-auto mb-4 max-w-120 overflow-hidden rounded-xl border border-border md:mx-0 md:mb-5">
+            <div className="flex bg-gray-100 dark:bg-white/4">
               {ACCOUNTS.map((account) => {
                 const isActive = account.id === activeId;
                 return (
-                  <ButtonBase
+                  <button
                     key={account.id}
+                    type="button"
                     onClick={() => setActiveId(account.id)}
                     // Cuenta elegida expuesta a lectores de pantalla y a alto
                     // contraste (design-qa fase 09: solo se veía por color).
                     aria-pressed={isActive}
-                    sx={{
-                      display: "flex",
-                      minHeight: 44,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 0.6,
-                      flexGrow: isActive ? 1.3 : 1,
-                      flexBasis: 0,
-                      minWidth: 0,
-                      py: 1.4,
-                      px: 0.75,
-                      backgroundColor: isActive
-                        ? "background.paper"
-                        : "transparent",
-                      color: isActive ? "text.primary" : "text.secondary",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: isActive ? 600 : 500,
-                      fontSize: fontScale[12],
-                      borderTopLeftRadius: isActive ? "14px" : 0,
-                      borderTopRightRadius: isActive ? "14px" : 0,
-                      transition:
-                        "flex-grow 0.3s ease, background-color 0.3s ease, color 0.2s ease",
-                    }}
+                    className={cn(
+                      "flex min-h-11 min-w-0 basis-0 cursor-pointer items-center justify-center gap-0.6 px-0.75 py-1.4 font-body text-12 transition-[flex-grow,background-color,color] duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                      isActive
+                        ? "grow-[1.3] rounded-t-[14px] bg-card font-semibold text-foreground"
+                        : "grow bg-transparent font-medium text-muted-foreground",
+                    )}
                   >
-                    <InstagramIcon
-                      sx={{ fontSize: fontScale[15], flexShrink: 0 }}
-                    />
-                    <Box
-                      component="span"
-                      sx={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {account.label}
-                    </Box>
-                  </ButtonBase>
+                    <InstagramIcon className="size-3.75 shrink-0" />
+                    <span className="truncate">{account.label}</span>
+                  </button>
                 );
               })}
-            </Box>
+            </div>
 
-            <Box sx={{ backgroundColor: "background.paper", p: 2 }}>
+            <div className="bg-card p-2">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active.id}
@@ -269,25 +176,17 @@ export function SocialLinks({
                   />
                 </motion.div>
               </AnimatePresence>
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           <AnimatePresence mode="wait">
-            <Box
+            <motion.div
               key={active.id}
-              component={motion.div}
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.18 }}
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "repeat(2, 1fr)",
-                  md: "repeat(4, 1fr)",
-                },
-                gap: "16px",
-              }}
+              className="grid grid-cols-2 gap-4 md:grid-cols-4"
             >
               {posts.length > 0
                 ? posts.map((post) => {
@@ -302,8 +201,9 @@ export function SocialLinks({
                       post.likeCount !== undefined ||
                       post.commentsCount !== undefined;
                     return (
-                      <ButtonBase
+                      <button
                         key={post.id}
+                        type="button"
                         onClick={() => setOpenPost(post)}
                         aria-haspopup="dialog"
                         aria-label={
@@ -311,171 +211,94 @@ export function SocialLinks({
                             ? `${kind} de Instagram: ${post.caption.slice(0, 80)}`
                             : `${kind} de Instagram de ${active.label}`
                         }
-                        sx={{
-                          position: "relative",
-                          display: "block",
-                          width: "100%",
-                          aspectRatio: "4 / 5",
-                          borderRadius: `${radius.md}px`,
-                          overflow: "hidden",
-                          border: "1px solid",
-                          borderColor: "divider",
-                          backgroundColor: post.placeholder ?? "action.hover",
-                          transition: "border-color 0.2s ease",
-                          "&:hover, &.Mui-focusVisible": {
-                            borderColor: "secondary.main",
-                          },
-                          "&.Mui-focusVisible": {
-                            outline: "2px solid",
-                            outlineColor: "secondary.main",
-                            outlineOffset: "2px",
-                          },
-                          "&:hover .ig-stats, &.Mui-focusVisible .ig-stats": {
-                            opacity: 1,
-                          },
-                        }}
+                        style={
+                          post.placeholder
+                            ? ({
+                                backgroundColor: post.placeholder,
+                              } as CSSProperties)
+                            : undefined
+                        }
+                        className={cn(
+                          "group relative block aspect-4/5 w-full cursor-pointer overflow-hidden rounded-md border border-border transition-[border-color] duration-200 hover:border-secondary focus-visible:border-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                          !post.placeholder && "bg-accent",
+                        )}
                       >
-                        <Box
-                          component="img"
+                        {/* biome-ignore lint/performance/noImgElement: portada con `srcSet` remoto del CDN de Instagram (Behold) */}
+                        <img
                           src={post.cover.src}
                           srcSet={post.cover.srcSet || undefined}
                           sizes={post.cover.srcSet ? COVER_SIZES : undefined}
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          sx={{
-                            position: "absolute",
-                            inset: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
+                          className="absolute inset-0 size-full object-cover"
                         />
                         {post.isVideo && (
-                          <PlayCircleRoundedIcon
-                            sx={{
-                              ...overlayIconSx,
-                              position: "absolute",
-                              top: 8,
-                              right: 8,
-                              fontSize: fontScale[20],
-                            }}
+                          <CirclePlay
+                            aria-hidden
+                            className={cn(
+                              OVERLAY_ICON,
+                              "absolute top-2 right-2 size-5",
+                            )}
                           />
                         )}
                         {post.isCarousel && (
-                          <CollectionsRoundedIcon
-                            sx={{
-                              ...overlayIconSx,
-                              position: "absolute",
-                              top: 8,
-                              right: 8,
-                              fontSize: fontScale[18],
-                            }}
+                          <Images
+                            aria-hidden
+                            className={cn(
+                              OVERLAY_ICON,
+                              "absolute top-2 right-2 size-4.5",
+                            )}
                           />
                         )}
-                        <Box
-                          className="ig-stats"
+                        <div
                           aria-hidden
-                          sx={{
-                            position: "absolute",
-                            insetInline: 0,
-                            bottom: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1.5,
-                            px: 1.25,
-                            pt: 3,
-                            pb: 1,
-                            color: gray[50],
-                            fontSize: fontScale[13],
-                            fontWeight: 600,
-                            background:
-                              "linear-gradient(to top, rgba(6,10,29,0.75), transparent)",
-                            opacity: hasStats ? { xs: 1, md: 0 } : 1,
-                            transition: "opacity 0.2s ease",
-                            "@media (hover: none)": { opacity: 1 },
-                          }}
+                          className={cn(
+                            "absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-linear-to-t from-primary-900/75 to-transparent px-1.25 pt-3 pb-1 font-semibold text-13 text-gray-50 transition-opacity duration-200",
+                            // Con contadores: visibles al pasar el cursor o enfocar
+                            // (siempre en móvil y en pantallas sin hover).
+                            hasStats
+                              ? "opacity-100 group-focus-visible:opacity-100 group-hover:opacity-100 md:opacity-0 [@media(hover:none)]:opacity-100"
+                              : "opacity-100",
+                          )}
                         >
                           {post.likeCount !== undefined && (
-                            <Box
-                              component="span"
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0.5,
-                              }}
-                            >
-                              <FavoriteRoundedIcon
-                                sx={{ fontSize: fontScale[16] }}
-                              />
+                            <span className="flex items-center gap-0.5">
+                              <Heart className="size-4 fill-current" />
                               {formatCount(post.likeCount)}
-                            </Box>
+                            </span>
                           )}
                           {post.commentsCount !== undefined && (
-                            <Box
-                              component="span"
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0.5,
-                              }}
-                            >
-                              <ChatBubbleRoundedIcon
-                                sx={{ fontSize: fontScale[15] }}
-                              />
+                            <span className="flex items-center gap-0.5">
+                              <MessageCircle className="size-3.75 fill-current" />
                               {formatCount(post.commentsCount)}
-                            </Box>
+                            </span>
                           )}
                           <InstagramIcon
-                            sx={{
-                              ...overlayIconSx,
-                              fontSize: fontScale[16],
-                              ml: "auto",
-                            }}
+                            className={cn(OVERLAY_ICON, "ml-auto size-4")}
                           />
-                        </Box>
-                      </ButtonBase>
+                        </div>
+                      </button>
                     );
                   })
                 : active.gradients.map((gradient, i) => (
-                    <Box
+                    <a
                       key={`${active.id}-${i}`}
-                      component="a"
                       href={active.href}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Abrir el perfil de Instagram de ${active.label} (pestaña nueva)`}
-                      sx={{
-                        position: "relative",
-                        display: "block",
-                        aspectRatio: "4 / 5",
-                        borderRadius: `${radius.md}px`,
-                        overflow: "hidden",
-                        border: "1px solid",
-                        borderColor: "divider",
-                        transition: "border-color 0.2s ease",
-                        "&:hover": { borderColor: "secondary.main" },
-                      }}
+                      className="relative block aspect-4/5 overflow-hidden rounded-md border border-border transition-[border-color] duration-200 hover:border-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          background: gradient,
-                        }}
+                      <div
+                        aria-hidden
+                        className="absolute inset-0"
+                        style={{ background: gradient }}
                       />
-                      <InstagramIcon
-                        sx={{
-                          position: "absolute",
-                          bottom: 8,
-                          right: 8,
-                          fontSize: fontScale[16],
-                          color: "rgba(245,246,250,0.85)",
-                        }}
-                      />
-                    </Box>
+                      <InstagramIcon className="absolute right-2 bottom-2 size-4 text-gray-50/85" />
+                    </a>
                   ))}
-            </Box>
+            </motion.div>
           </AnimatePresence>
         </Reveal>
       </Container>
@@ -487,6 +310,6 @@ export function SocialLinks({
         profile={profile}
         onClose={() => setOpenPost(null)}
       />
-    </Box>
+    </section>
   );
 }
