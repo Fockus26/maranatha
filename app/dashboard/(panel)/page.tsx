@@ -40,8 +40,9 @@ function formatCurrency(value: number) {
 
 const CARD = "rounded-lg border border-border bg-card p-3 md:p-4";
 const CARD_TITLE = "font-heading text-18 font-bold text-foreground";
-// Filas de "Acciones rápidas": 44 px del botón, texto de 14 px, alineadas a la izquierda.
-const ACTION_ROW = "w-full justify-start gap-1.25 rounded-sm px-2.25 py-1.5";
+// Filas de "Acciones rápidas": misma altura que antes (34,4 px; 36,4 con el borde del enlace), no los 44 px del botón.
+const ACTION_ROW =
+  "min-h-0 w-full justify-start gap-1.25 rounded-sm px-2.25 py-1.5 leading-body";
 
 export default function DashboardResumenPage() {
   const { projects, isLoading } = useDashboardProjects();
