@@ -1,17 +1,14 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
+import { cn } from "@/lib/utils";
 import { isValidEmail } from "@/lib/validation";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { fontScale, radius, typography } from "@/theme/tokens";
 import { AmountSelector } from "./AmountSelector";
+import { Button } from "./button";
 import { DonationFormCard } from "./DonationFormCard";
+import { Field } from "./field";
+import { Input } from "./input";
 
 export interface ProjectContributionFormValues {
   amount: number;
@@ -44,7 +41,6 @@ export function ProjectContributionForm({
   presetAmounts = [25, 50, 100],
   onSubmit,
 }: ProjectContributionFormProps) {
-  const theme = useTheme();
   const basePct = Math.min((currentAmount / goalAmount) * 100, 100);
 
   const [amount, setAmount] = useState(0);
@@ -98,186 +94,104 @@ export function ProjectContributionForm({
     onSubmit({ amount, name: name.trim(), email: email.trim() });
   }
 
-  const barTransition = theme.transitions.create(
-    ["width", "background-color"],
-    {
-      duration: 600,
-      easing: theme.transitions.easing.easeInOut,
-    },
-  );
-  const numberTransition = theme.transitions.create(["color", "font-size"], {
-    duration: 300,
-    easing: theme.transitions.easing.easeInOut,
-  });
-
   return (
-    <Box component="form" noValidate onSubmit={handleSubmit}>
+    <form noValidate onSubmit={handleSubmit}>
       <DonationFormCard>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2.5,
-            alignItems: "center",
-            pb: 4,
-            mb: 4.5,
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Box
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: `${radius.md}px`,
-              flexShrink: 0,
-              backgroundImage: projectImageUrl
-                ? `url(${projectImageUrl})`
-                : undefined,
-              backgroundColor: projectImageUrl
-                ? undefined
-                : theme.palette.primary.dark,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
+        <div className="mb-4.5 flex items-center gap-2.5 border-b border-border pb-4">
+          <div
+            className={cn(
+              "size-11 shrink-0 rounded-md bg-cover bg-center",
+              !projectImageUrl && "bg-primary-dark",
+            )}
+            style={
+              projectImageUrl
+                ? { backgroundImage: `url(${projectImageUrl})` }
+                : undefined
+            }
           />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 600,
-                fontSize: fontScale[13],
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
+          <div className="min-w-0 flex-1">
+            <p className="mb-0.5 font-heading text-13 font-semibold leading-body text-foreground">
               {projectTitle}
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: typography.fontFamily.body,
-                fontSize: fontScale[11],
-                color: theme.palette.text.secondary,
-              }}
-            >
+            </p>
+            <p className="font-body text-11 leading-body text-muted-foreground">
               {formatCurrency(currentAmount)} de {formatCurrency(goalAmount)}
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
 
-        <Box
-          sx={{
-            position: "relative",
-            height: 8,
-            borderRadius: `${radius.pill}px`,
-            backgroundColor: theme.palette.action.hover,
-            overflow: "hidden",
-            mb: 1.5,
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              borderRadius: `${radius.pill}px`,
-              width: `${displayPct}%`,
-              backgroundColor: highlighted
-                ? theme.palette.success.main
-                : theme.palette.secondary.main,
-              transition: barTransition,
-            }}
+        <div className="relative mb-1.5 h-2 overflow-hidden rounded-pill bg-accent">
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 rounded-pill transition-[width,background-color] duration-600 ease-in-out",
+              highlighted ? "bg-success" : "bg-secondary",
+            )}
+            style={{ width: `${displayPct}%` }}
           />
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            mb: 4.5,
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: typography.fontFamily.heading,
-              fontWeight: 700,
-              fontSize: highlighted ? "22px" : "15px",
-              color: highlighted
-                ? theme.palette.success.main
-                : theme.palette.text.primary,
-              transition: numberTransition,
-            }}
+        </div>
+        <div className="mb-4.5 flex items-baseline justify-between">
+          <p
+            className={cn(
+              "font-heading font-bold leading-body transition-[color,font-size] duration-300 ease-in-out",
+              highlighted ? "text-22 text-success" : "text-15 text-foreground",
+            )}
           >
             {displayPct.toFixed(2)}%
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[11],
-              color: theme.palette.text.secondary,
-            }}
-          >
+          </p>
+          <p className="font-body text-11 leading-body text-muted-foreground">
             recaudado
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            fontWeight: 500,
-            color: theme.palette.text.primary,
-            mb: 2,
-          }}
-        >
+        <p className="mb-2 font-body text-12 font-medium leading-body text-foreground">
           Monto a aportar
-        </Typography>
-        <Box sx={{ mb: 3.5 }}>
+        </p>
+        <div className="mb-3.5">
           <AmountSelector
             presets={presetAmounts}
             onChange={setAmount}
             error={touched && !amountValid}
             helperText="Elige un monto entre US$ 1 y US$ 10.000."
           />
-        </Box>
+        </div>
 
-        <Box
-          sx={{ display: "flex", flexDirection: "column", gap: 3.5, mb: 4.5 }}
-        >
-          <TextField
+        <div className="mb-4.5 flex flex-col gap-3.5">
+          <Field
             label="Nombre completo"
-            fullWidth
-            size="small"
-            sx={SMALL_FIELD_SX}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={touched && !nameValid}
-            helperText={
+            required
+            error={
               touched && !nameValid ? "Ingresa tu nombre completo." : undefined
             }
-          />
-          <TextField
+          >
+            <Input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Field>
+          <Field
             label="Correo electrónico"
-            type="email"
-            fullWidth
-            size="small"
-            sx={SMALL_FIELD_SX}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={touched && !emailValid}
-            helperText={
+            required
+            error={
               touched && !emailValid
                 ? "Ingresa un correo electrónico válido."
                 : undefined
             }
-          />
-        </Box>
+          >
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Field>
+        </div>
 
-        <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 4.5 }}>
-          <Button fullWidth type="submit" variant="contained" color="secondary">
+        <div className="border-t border-border pt-4.5">
+          <Button type="submit" color="secondary" className="w-full">
             Continuar al pago
           </Button>
-        </Box>
+        </div>
       </DonationFormCard>
-    </Box>
+    </form>
   );
 }
