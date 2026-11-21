@@ -1,30 +1,31 @@
 "use client";
 
-import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import IconButton from "@mui/material/IconButton";
-import Link from "@mui/material/Link";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Heart,
+  MessageCircle,
+  X,
+} from "lucide-react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { InstagramIcon } from "@/components/ui/brand-icons";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Link } from "@/components/ui/link";
 import type {
   InstagramMedia,
   InstagramPost,
   InstagramProfile,
 } from "@/lib/instagram";
-import { fontScale, gray, primary, radius } from "@/theme/tokens";
-import { outlinedActionSx } from "./outlinedActionSx";
+import { cn } from "@/lib/utils";
 
 /**
  * Visor de una publicación de Instagram (feed de Behold, ver
@@ -40,6 +41,8 @@ import { outlinedActionSx } from "./outlinedActionSx";
  * - Reels y videos: se reproducen aquí con los controles nativos (sin
  *   autoplay). Si el `.mp4` del CDN de Instagram ya caducó, se ofrece abrir
  *   el post en Instagram.
+ * - Sobre el `dialog` de shadcn (D126): pantalla completa bajo `md` con clases
+ *   (`max-md:`), sin `useMediaQuery`, y el foco vuelve a la celda que lo abrió.
  * - Likes y comentarios: solo los contadores. Behold es de solo lectura, así
  *   que dar like o comentar se hace en Instagram (botón al pie).
  */
@@ -92,8 +95,8 @@ function MediaSlide({
   if (media.type === "video" && media.videoUrl && !failed) {
     return (
       // Los videos de Instagram no traen subtítulos; el texto del post va al lado.
-      <Box
-        component="video"
+      // biome-ignore lint/a11y/useMediaCaption: ídem
+      <video
         key={media.id}
         src={media.videoUrl}
         poster={media.image.src}
@@ -102,63 +105,39 @@ function MediaSlide({
         preload="metadata"
         aria-label={label}
         onError={() => setFailed(true)}
-        sx={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
+        className="block size-full object-contain"
       />
     );
   }
 
   return (
-    <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
-      <Box
-        component="img"
+    <div className="relative size-full">
+      {/* biome-ignore lint/performance/noImgElement: `srcSet` remoto del CDN de Instagram (Behold) */}
+      <img
         key={media.id}
         src={media.image.src}
         srcSet={media.image.srcSet || undefined}
         sizes={media.image.srcSet ? imageSizes(stageAspect) : undefined}
         alt={label}
         draggable={false}
-        sx={{
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-        }}
+        className="block size-full object-contain"
       />
       {failed && (
-        <Box
-          sx={{
-            position: "absolute",
-            insetInline: 0,
-            bottom: 0,
-            p: 2,
-            textAlign: "center",
-            backgroundColor: "rgba(6, 10, 29, 0.8)",
-            color: gray[50],
-          }}
-        >
-          <Typography sx={{ fontSize: fontScale[14], mb: 1 }}>
+        <div className="absolute inset-x-0 bottom-0 bg-primary-900/80 p-2 text-center text-gray-50">
+          <p className="mb-1 text-14">
             Este video ya no se puede reproducir aquí.
-          </Typography>
+          </p>
           <Link
             href={permalink}
             target="_blank"
             rel="noopener noreferrer"
-            sx={{
-              color: "secondary.light",
-              fontWeight: 600,
-              fontSize: fontScale[14],
-            }}
+            className="font-semibold text-14 text-secondary-light dark:text-secondary-light"
           >
             Verlo en Instagram (pestaña nueva)
           </Link>
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }
 
@@ -177,14 +156,15 @@ export function InstagramPostDialog({
   profile,
   onClose,
 }: InstagramPostDialogProps) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const reduceMotion = useReducedMotion();
   // `direction`: 1 avanza, -1 retrocede — decide hacia dónde se desliza.
   const [[index, direction], setSlide] = useState<[number, number]>([0, 0]);
   const [prevPostId, setPrevPostId] = useState(post?.id);
   const [stageEl, setStageEl] = useState<HTMLDivElement | null>(null);
   const goRef = useRef<(delta: number) => void>(() => {});
+  // Radix solo devuelve el foco a su `DialogTrigger`; aquí el visor se controla
+  // por estado y se abre desde una celda: se guarda quien lo abrió.
+  const openerRef = useRef<HTMLElement | null>(null);
   const total = post?.media.length ?? 0;
 
   // Al abrir otro post, vuelve a la primera diapositiva.
@@ -233,7 +213,8 @@ export function InstagramPostDialog({
     };
   }, [stageEl, total]);
 
-  if (!post) return <Dialog open={false} onClose={onClose} />;
+  // Radix no monta el contenido cerrado: sin publicación no hay diálogo.
+  if (!post) return null;
 
   const current = post.media[Math.min(index, total - 1)];
   const kind = post.isReel ? "Reel" : post.isVideo ? "Video" : "Publicación";
@@ -251,56 +232,51 @@ export function InstagramPostDialog({
       ? `${kind} de ${accountLabel}, elemento ${index + 1} de ${total}`
       : `${kind} de ${accountLabel}`;
 
+  const stageStyle = {
+    aspectRatio: aspect,
+    ...(current.placeholder ? { backgroundColor: current.placeholder } : {}),
+  } as CSSProperties;
+
   return (
     <Dialog
       open
-      onClose={onClose}
-      fullScreen={fullScreen}
-      maxWidth={false}
-      aria-labelledby="ig-post-title"
-      onKeyDown={(e) => {
-        if (total < 2) return;
-        // No robar las flechas al reproductor de video.
-        if ((e.target as HTMLElement).tagName === "VIDEO") return;
-        if (e.key === "ArrowLeft") go(-1);
-        if (e.key === "ArrowRight") go(1);
-      }}
-      slotProps={{
-        paper: {
-          sx: {
-            borderRadius: fullScreen ? 0 : `${radius.xl}px`,
-            overflow: "hidden",
-            backgroundImage: "none",
-          },
-        },
+      onOpenChange={(next) => {
+        if (!next) onClose();
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          height: { md: stageHeight },
-          minHeight: { xs: "100%", md: "auto" },
+      <DialogContent
+        showCloseButton={false}
+        aria-describedby={undefined}
+        onOpenAutoFocus={() => {
+          openerRef.current = document.activeElement as HTMLElement | null;
         }}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          openerRef.current?.focus();
+        }}
+        onKeyDown={(e) => {
+          if (total < 2) return;
+          // No robar las flechas al reproductor de video.
+          if ((e.target as HTMLElement).tagName === "VIDEO") return;
+          if (e.key === "ArrowLeft") go(-1);
+          if (e.key === "ArrowRight") go(1);
+        }}
+        // Pantalla completa bajo `md` por CSS (sin salto de hidratación); desde
+        // `md` el ancho sale del escenario (alto × proporción) + panel de 360.
+        className="top-0 left-0 flex h-dvh max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-card p-0 sm:max-w-none md:top-1/2 md:left-1/2 md:h-(--stage-h) md:w-max md:max-w-[calc(100%-4rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:flex-row md:rounded-xl"
+        style={{ "--stage-h": stageHeight } as CSSProperties}
       >
         {/* Escenario del medio */}
-        <Box
+        <div
           ref={setStageEl}
-          sx={{
-            position: "relative",
-            flexShrink: 0,
-            overflow: "hidden",
-            aspectRatio: aspect,
-            width: { xs: "100%", md: "auto" },
-            // En móvil el alto sale de la proporción, con tope para que el
-            // panel de texto siga a la vista.
-            maxHeight: { xs: "60dvh", md: "none" },
-            // Altura explícita (no 100%) para que el ancho intrínseco del diálogo
-            // salga del aspect-ratio.
-            height: { md: stageHeight },
-            backgroundColor: current.placeholder ?? primary[900],
-            transition: "background-color 0.3s ease",
-          }}
+          style={stageStyle}
+          // En móvil el alto sale de la proporción, con tope para que el panel
+          // de texto siga a la vista. En md+ la altura es explícita (no 100%)
+          // para que el ancho intrínseco del diálogo salga del aspect-ratio.
+          className={cn(
+            "relative w-full shrink-0 overflow-hidden transition-colors duration-300 ease-in-out max-md:max-h-[60dvh] md:h-(--stage-h) md:w-auto",
+            !current.placeholder && "bg-primary-900",
+          )}
         >
           <AnimatePresence initial={false} custom={direction}>
             <motion.div
@@ -347,134 +323,84 @@ export function InstagramPostDialog({
           {total > 1 && (
             <>
               {index > 0 && (
-                <IconButton
+                <Button
+                  variant="plain"
+                  size="icon"
                   onClick={() => go(-1)}
                   aria-label="Anterior"
-                  sx={navButtonSx("left")}
+                  className={navButtonClass("left-2")}
                 >
-                  <ChevronLeftRoundedIcon />
-                </IconButton>
+                  <ChevronLeft aria-hidden className="size-6" />
+                </Button>
               )}
               {index < total - 1 && (
-                <IconButton
+                <Button
+                  variant="plain"
+                  size="icon"
                   onClick={() => go(1)}
                   aria-label="Siguiente"
-                  sx={navButtonSx("right")}
+                  className={navButtonClass("right-2")}
                 >
-                  <ChevronRightRoundedIcon />
-                </IconButton>
+                  <ChevronRight aria-hidden className="size-6" />
+                </Button>
               )}
-              <Box
+              <div
                 aria-live="polite"
-                sx={{
-                  position: "absolute",
-                  top: 12,
-                  left: 12,
-                  zIndex: 1,
-                  px: 1.25,
-                  py: 0.25,
-                  borderRadius: `${radius.pill}px`,
-                  backgroundColor: "rgba(6, 10, 29, 0.7)",
-                  color: gray[50],
-                  fontSize: fontScale[12],
-                  fontWeight: 600,
-                }}
+                className="absolute top-3 left-3 z-1 rounded-pill bg-primary-900/70 px-1.25 py-px font-semibold text-12 text-gray-50"
               >
                 {index + 1} / {total}
-              </Box>
+              </div>
             </>
           )}
-        </Box>
+        </div>
 
         {/* Panel de texto */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            minWidth: 0,
-            width: { md: 360 },
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              p: 2,
-              borderBottom: "1px solid",
-              borderColor: "divider",
-            }}
-          >
-            <Avatar
-              src={profile?.profilePictureUrl}
-              alt=""
-              sx={{ width: 36, height: 36 }}
-            >
-              <InstagramIcon fontSize="small" />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col md:w-90 md:flex-none">
+          <div className="flex items-center gap-1.5 border-border border-b p-2">
+            <Avatar className="size-9">
+              <AvatarImage src={profile?.profilePictureUrl} alt="" />
+              <AvatarFallback className="bg-gray-400">
+                <InstagramIcon className="size-5" />
+              </AvatarFallback>
             </Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
+            <div className="min-w-0 flex-1">
+              <DialogTitle
                 id="ig-post-title"
-                component="h2"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: fontScale[14],
-                  lineHeight: 1.3,
-                }}
-                noWrap
+                className="truncate font-body font-semibold text-14 leading-[1.3]"
               >
                 {accountLabel}
-              </Typography>
-              <Typography
-                sx={{ fontSize: fontScale[12], color: "text.secondary" }}
-                noWrap
-              >
+              </DialogTitle>
+              <p className="truncate text-12 text-muted-foreground">
                 {handle}
                 {date && ` · ${date}`}
-              </Typography>
-            </Box>
-            <IconButton
-              onClick={onClose}
-              aria-label="Cerrar"
-              sx={{ width: 44, height: 44, mr: 0.5 }}
-            >
-              <CloseRoundedIcon />
-            </IconButton>
-          </Box>
+              </p>
+            </div>
+            <DialogClose asChild>
+              <Button
+                variant="plain"
+                size="icon"
+                aria-label="Cerrar"
+                className="mr-0.5 size-11"
+              >
+                <X aria-hidden className="size-6" />
+              </Button>
+            </DialogClose>
+          </div>
 
-          <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+          <div className="flex-1 overflow-y-auto p-2">
             {post.caption ? (
-              <Typography
-                sx={{
-                  fontSize: fontScale[14],
-                  lineHeight: 1.6,
-                  whiteSpace: "pre-line",
-                  overflowWrap: "anywhere",
-                }}
-              >
+              <p className="wrap-anywhere whitespace-pre-line text-14 leading-body">
                 {post.caption}
-              </Typography>
+              </p>
             ) : (
-              <Typography
-                sx={{ fontSize: fontScale[14], color: "text.secondary" }}
-              >
+              <p className="text-14 text-muted-foreground">
                 Publicación sin texto.
-              </Typography>
+              </p>
             )}
             {post.hashtags.length > 0 && (
-              <Box
-                component="ul"
+              <ul
                 aria-label="Hashtags"
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 1,
-                  listStyle: "none",
-                  p: 0,
-                  m: 0,
-                  mt: 2,
-                }}
+                className="m-0 mt-2 flex list-none flex-wrap gap-1 p-0"
               >
                 {post.hashtags.map((tag) => (
                   <li key={tag}>
@@ -482,98 +408,61 @@ export function InstagramPostDialog({
                       href={`https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      sx={{
-                        fontSize: fontScale[14],
-                        fontWeight: 500,
-                        // primary.main oscuro no llega a 4.5:1 sobre el paper oscuro.
-                        color: (t) =>
-                          t.palette.mode === "light"
-                            ? "primary.main"
-                            : "primary.light",
-                      }}
+                      className="font-medium text-14"
                     >
                       #{tag}
                     </Link>
                   </li>
                 ))}
-              </Box>
+              </ul>
             )}
-          </Box>
+          </div>
 
-          <Box
-            sx={{
-              p: 2,
-              borderTop: "1px solid",
-              borderColor: "divider",
-            }}
-          >
+          <div className="border-border border-t p-2">
             {(post.likeCount !== undefined ||
               post.commentsCount !== undefined) && (
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2.5,
-                  mb: 1.5,
-                  color: "text.secondary",
-                }}
-              >
+              <div className="mb-1.5 flex gap-2.5 text-muted-foreground">
                 {post.likeCount !== undefined && (
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-                  >
-                    <FavoriteBorderRoundedIcon
-                      sx={{ fontSize: fontScale[20] }}
-                      aria-hidden
-                    />
-                    <Typography sx={{ fontSize: fontScale[14] }}>
+                  <div className="flex items-center gap-0.75">
+                    <Heart aria-hidden className="size-5" />
+                    <span className="text-14">
                       {formatCount(post.likeCount)} me gusta
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 )}
                 {post.commentsCount !== undefined && (
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-                  >
-                    <ChatBubbleOutlineRoundedIcon
-                      sx={{ fontSize: fontScale[20] }}
-                      aria-hidden
-                    />
-                    <Typography sx={{ fontSize: fontScale[14] }}>
+                  <div className="flex items-center gap-0.75">
+                    <MessageCircle aria-hidden className="size-5" />
+                    <span className="text-14">
                       {formatCount(post.commentsCount)}{" "}
                       {post.commentsCount === 1 ? "comentario" : "comentarios"}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 )}
-              </Box>
+              </div>
             )}
-            <Button
-              href={post.permalink}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Dar like o comentar en Instagram (pestaña nueva)"
-              variant="outlined"
-              fullWidth
-              endIcon={<OpenInNewRoundedIcon />}
-              sx={(t) => ({ ...outlinedActionSx(t), minHeight: 44 })}
-            >
-              Dar like o comentar
+            <Button asChild variant="action" className="w-full">
+              <a
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Dar like o comentar en Instagram (pestaña nueva)"
+              >
+                Dar like o comentar
+                <ExternalLink aria-hidden className="size-5" />
+              </a>
             </Button>
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </DialogContent>
     </Dialog>
   );
 }
 
-function navButtonSx(side: "left" | "right") {
-  return {
-    position: "absolute",
-    top: "50%",
-    [side]: 8,
-    transform: "translateY(-50%)",
-    zIndex: 1,
-    backgroundColor: "rgba(6, 10, 29, 0.6)",
-    color: gray[50],
-    "&:hover": { backgroundColor: "rgba(6, 10, 29, 0.85)" },
-  } as const;
+/** Flecha del carrusel: botón redondo navy translúcido sobre el medio. */
+function navButtonClass(side: "left-2" | "right-2") {
+  return cn(
+    "absolute top-1/2 z-1 -translate-y-1/2 bg-primary-900/60 text-gray-50 hover:bg-primary-900/85 dark:bg-primary-900/60 dark:text-gray-50 dark:hover:bg-primary-900/85",
+    side,
+  );
 }

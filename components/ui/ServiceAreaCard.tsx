@@ -1,8 +1,6 @@
 "use client";
 
-import Typography from "@mui/material/Typography";
 import type { ReactNode } from "react";
-import { fontScale, gray } from "@/theme/tokens";
 import { PhotoOverlayCard } from "./PhotoOverlayCard";
 
 /**
@@ -34,29 +32,12 @@ export function ServiceAreaCard({
       onClick={onClick}
       bottomSlot={
         <>
-          <Typography
-            component="p"
-            sx={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: fontScale[19],
-              color: gray[50],
-              mb: 0.5,
-              letterSpacing: "-0.01em",
-            }}
-          >
+          <p className="mb-0.5 font-bold font-heading text-19 text-gray-50 tracking-[-0.01em]">
             {name}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: "var(--font-body)",
-              fontSize: fontScale[13],
-              color: gray[200],
-              lineHeight: 1.4,
-            }}
-          >
+          </p>
+          <p className="font-body text-13 text-gray-200 leading-[1.4]">
             {description}
-          </Typography>
+          </p>
         </>
       }
     />

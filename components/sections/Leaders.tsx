@@ -1,11 +1,8 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
+import { Container } from "@/components/ui/container";
 import { LeaderCard } from "@/components/ui/LeaderCard";
 import { Reveal } from "@/components/ui/Reveal";
-import { fontScale } from "@/theme/tokens";
 
 /**
  * Sección "Liderazgo" (fase 06) — componente + datos en un solo archivo,
@@ -56,82 +53,32 @@ const LEADERS = [
 
 export function Leaders() {
   return (
-    <Box component="section" id="liderazgo" sx={{ py: { xs: 8, md: 12 } }}>
+    <section id="liderazgo" className="py-8 md:py-12">
       <Container maxWidth="lg">
         <Reveal>
-          <Box
-            sx={{
-              maxWidth: 640,
-              mx: { xs: "auto", md: 0 },
-              textAlign: { xs: "center", md: "left" },
-              mb: { xs: 5, md: 7 },
-            }}
-          >
-            <Typography
-              component="span"
-              sx={{
-                display: "block",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: fontScale[11],
-                "@media (min-width:1920px)": { fontSize: fontScale[13] },
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: "secondary.main",
-                mb: 1.5,
-              }}
-            >
+          <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
               Nuestro equipo
-            </Typography>
+            </span>
 
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: { xs: "28px", md: "38px" },
-                "@media (min-width:1920px)": { fontSize: fontScale[46] },
-                lineHeight: 1.2,
-                letterSpacing: "-0.01em",
-                color: "text.primary",
-                mb: 2,
-              }}
-            >
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
               Personas que lideran con propósito
-            </Typography>
+            </h2>
 
-            <Typography
-              sx={{
-                fontFamily: "var(--font-body)",
-                fontSize: fontScale[16],
-                "@media (min-width:1920px)": { fontSize: fontScale[19] },
-                lineHeight: 1.6,
-                color: "text.secondary",
-              }}
-            >
+            <p className="font-body text-16 text-muted-foreground leading-body wide:text-19">
               Un equipo comprometido con acompañarte en cada etapa de tu fe.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </Reveal>
 
         <Reveal delay={0.12}>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                lg: "repeat(4, 1fr)",
-              },
-              gap: "24px",
-            }}
-          >
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {LEADERS.map((leader) => (
               <LeaderCard key={leader.name} {...leader} />
             ))}
-          </Box>
+          </div>
         </Reveal>
       </Container>
-    </Box>
+    </section>
   );
 }

@@ -1,0 +1,25 @@
+/*
+ * Barra de progreso del slide activo del Hero (D125). Antes era un `keyframes`
+ * de Emotion; ahora vive en un CSS Module del componente. La duración
+ * (`AUTOPLAY_MS`) llega por `animation-duration` en línea para tener una sola
+ * fuente. `.paused` congela la barra donde está y al reanudar sigue desde ahí.
+ */
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.fill {
+  animation-name: progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+
+.paused {
+  animation-play-state: paused;
+}

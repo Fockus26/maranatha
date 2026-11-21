@@ -1,9 +1,7 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { fontScale, primary, secondary, typography } from "@/theme/tokens";
+import type { CSSProperties } from "react";
+import { primary, secondary } from "@/theme/tokens";
 
 export interface TimelineItemProps {
   year: string;
@@ -58,61 +56,30 @@ export function TimelineItem({
   description,
   progress,
 }: TimelineItemProps) {
-  const theme = useTheme();
-  const yearColor = rampColor(
-    theme.palette.mode === "light" ? RAMP_LIGHT : RAMP_DARK,
-    progress,
-  );
+  // Los dos colores del año se calculan aquí y el modo lo elige CSS (`dark:`),
+  // así no hace falta leer el tema en JS.
+  const yearVars = {
+    "--year-light": rampColor(RAMP_LIGHT, progress),
+    "--year-dark": rampColor(RAMP_DARK, progress),
+  } as CSSProperties;
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        gap: 5,
-        py: 4,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        "&:last-of-type": { borderBottom: "none" },
-      }}
-    >
-      <Typography
-        component="p"
-        sx={{
-          fontFamily: typography.fontFamily.heading,
-          fontWeight: 800,
-          fontSize: fontScale[40],
-          lineHeight: 1,
-          width: 120,
-          flexShrink: 0,
-          color: yearColor,
-        }}
+    <div className="flex gap-5 border-border border-b py-4 last-of-type:border-b-0">
+      <p
+        style={yearVars}
+        className="w-30 shrink-0 font-extrabold font-heading text-40 text-(color:--year-light) leading-none dark:text-(color:--year-dark)"
       >
         {year}
-      </Typography>
+      </p>
 
-      <Box sx={{ pt: 1.5 }}>
-        <Typography
-          component="p"
-          sx={{
-            fontFamily: typography.fontFamily.heading,
-            fontWeight: 600,
-            fontSize: theme.typography.body2.fontSize,
-            color: theme.palette.text.primary,
-            mb: 1,
-          }}
-        >
+      <div className="pt-1.5">
+        <p className="mb-1 font-heading font-semibold text-body text-foreground">
           {title}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: theme.typography.caption.fontSize,
-            color: theme.palette.text.secondary,
-            maxWidth: 340,
-          }}
-        >
+        </p>
+        <p className="max-w-85 font-body text-muted-foreground text-small leading-body">
           {description}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   );
 }

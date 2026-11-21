@@ -1,10 +1,6 @@
 "use client";
 
-import InstagramIcon from "@mui/icons-material/Instagram";
-import IconButton from "@mui/material/IconButton";
-import { alpha } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { fontScale, gray, primary, radius, secondary } from "@/theme/tokens";
+import { InstagramIcon } from "@/components/ui/brand-icons";
 import { PhotoOverlayCard } from "./PhotoOverlayCard";
 
 export interface LeaderCardProps {
@@ -25,55 +21,25 @@ export function LeaderCard({
       imageUrl={imageUrl}
       topRightSlot={
         instagramUrl && (
-          <IconButton
-            component="a"
+          <a
             href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Instagram de ${name}`}
-            size="small"
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: `${radius.md}px`,
-              backgroundColor: alpha(primary[700], 0.55),
-              border: `1px solid ${alpha(gray[50], 0.25)}`,
-              color: gray[50],
-              "&:hover": {
-                backgroundColor: alpha(secondary[500], 0.85),
-                borderColor: secondary[500],
-              },
-            }}
+            className="inline-flex size-11 items-center justify-center rounded-md border border-gray-50/25 bg-primary-700/55 text-gray-50 transition-colors hover:border-secondary-500 hover:bg-secondary-500/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            <InstagramIcon sx={{ fontSize: fontScale[20] }} />
-          </IconButton>
+            <InstagramIcon className="size-5" />
+          </a>
         )
       }
       bottomSlot={
         <>
-          <Typography
-            component="p"
-            sx={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 700,
-              fontSize: fontScale[18],
-              color: gray[50],
-              mb: 0.25,
-              letterSpacing: "-0.01em",
-            }}
-          >
+          <p className="mb-px font-bold font-heading text-18 text-gray-50 tracking-[-0.01em]">
             {name}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: "var(--font-body)",
-              fontSize: fontScale[13],
-              fontWeight: 500,
-              color: secondary[300],
-            }}
-          >
+          </p>
+          <p className="font-body font-medium text-13 text-secondary-300">
             {role}
-          </Typography>
+          </p>
         </>
       }
     />
