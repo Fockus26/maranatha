@@ -56,7 +56,7 @@ export function YoutubeEmbedCard({
           importar cuántas líneas ocupe el título real; `line-clamp-2` recorta
           y agrega "…" si excede.
         */}
-        <p className="line-clamp-2 h-9.1 overflow-hidden font-heading font-semibold text-14 text-foreground leading-[1.3]">
+        <p className="line-clamp-2 h-[2.6em] overflow-hidden font-heading font-semibold text-14 text-foreground leading-[1.3]">
           {title}
         </p>
         <p className="mt-0.75 font-body text-12 text-muted-foreground">

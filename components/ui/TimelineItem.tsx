@@ -76,7 +76,7 @@ export function TimelineItem({
         <p className="mb-1 font-heading font-semibold text-body text-foreground">
           {title}
         </p>
-        <p className="max-w-85 font-body text-muted-foreground text-small">
+        <p className="max-w-85 font-body text-muted-foreground text-small leading-body">
           {description}
         </p>
       </div>
