@@ -86,11 +86,11 @@ export function Projects() {
               Proyectos
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-[1.2] tracking-[-0.01em] md:text-[38px]">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px]">
               Construimos juntos lo que la comunidad necesita
             </h2>
 
-            <p className="font-body text-16 text-muted-foreground leading-[1.6]">
+            <p className="font-body text-16 text-muted-foreground leading-body">
               Cada proyecto es una necesidad real de la iglesia — tu aporte hace
               la diferencia.
             </p>

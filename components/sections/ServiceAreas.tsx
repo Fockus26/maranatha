@@ -93,11 +93,11 @@ export function ServiceAreas() {
               Cómo servimos
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-[1.2] tracking-[-0.01em] md:text-[38px] wide:text-46">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
               Encuentra tu lugar para servir
             </h2>
 
-            <p className="font-body text-16 text-muted-foreground leading-[1.6] wide:text-19">
+            <p className="font-body text-16 text-muted-foreground leading-body wide:text-19">
               Cada área es una forma distinta de vivir la fe en comunidad —
               súmate a la que resuene contigo.
             </p>

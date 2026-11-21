@@ -67,11 +67,11 @@ export function History() {
               Nuestra historia
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-[1.2] tracking-[-0.01em] md:text-[38px] wide:text-46">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
               Once años de fe, en unos pocos pasos
             </h2>
 
-            <p className="font-body text-16 text-muted-foreground leading-[1.6] wide:text-19">
+            <p className="font-body text-16 text-muted-foreground leading-body wide:text-19">
               De un grupo pequeño a una familia que crece cada año, en cinco
               áreas de servicio y una sola comunidad.
             </p>

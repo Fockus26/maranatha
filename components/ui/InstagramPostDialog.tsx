@@ -389,7 +389,7 @@ export function InstagramPostDialog({
 
           <div className="flex-1 overflow-y-auto p-2">
             {post.caption ? (
-              <p className="wrap-anywhere whitespace-pre-line text-14 leading-[1.6]">
+              <p className="wrap-anywhere whitespace-pre-line text-14 leading-body">
                 {post.caption}
               </p>
             ) : (

@@ -265,7 +265,7 @@ export function Hero() {
                   contiene también se ensancha (ver arriba). `min-h`: altura
                   reservada para el headline más largo — evita que el CTA/stats
                   salten de posición al cambiar de slide. */}
-              <h1 className="mb-4 min-h-[3.45em] font-extrabold font-heading text-[34px] text-gray-50 leading-[1.15] tracking-[-0.02em] md:text-[52px] xl:min-h-[2.7em] xl:text-[58px] wide:text-64">
+              <h1 className="mb-4 min-h-[3.45em] font-extrabold font-heading text-34 text-gray-50 leading-h2 tracking-[-0.02em] md:text-[52px] xl:min-h-[2.7em] xl:text-[58px] wide:text-64">
                 {slide.headline}
               </h1>
 
