@@ -24,7 +24,7 @@ Unidad base: 4px
 | Token | Valor | Uso |
 |---|---|---|
 | radius.xs | 4px | detalles pequeños |
-| radius.sm | 6px | `shape.borderRadius` de MUI (inputs, botones) |
+| radius.sm | 6px | `rounded-sm`: botones (era el `shape.borderRadius` de MUI) |
 | radius.md | 8px | cards |
 | radius.lg | 12px | modales, bloques destacados |
 | radius.xl | 16px | superficies grandes |

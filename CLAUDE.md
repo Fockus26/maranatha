@@ -39,7 +39,7 @@ las agrupadas (D037–D039) viven en el archivo del último ID (`grep -rl "D038"
 ## Stack
 
 - Next.js 16 (App Router) + **TypeScript** estricto + React Compiler
-- **Librería de componentes:** migrando de MUI 9 a shadcn/ui (fase en `context/plans/phase-migracion-shadcn.md`)
+- **Librería de componentes:** shadcn/ui (Radix + Tailwind) en `components/ui/`, íconos `lucide-react`; MUI retirado en D143
 - **Estilos nuevos:** Tailwind con los tokens de `theme/tokens.ts` generados a `app/tokens.css` (`bun scripts/tokens-css.ts`, D109–D110)
 - **bun** para todo — nunca npm, yarn ni pnpm
 - Postgres del VPS con Drizzle (`lib/db/`) + Better Auth del dashboard + correo por Brevo SMTP (D082) · PayPal (único y mensual) + métodos manuales · DolarApi (tasas)
@@ -115,7 +115,7 @@ el QA de versión · `design-qa` solo en el QA de versión (fase 09 / PR de rele
 - **Cero lorem ipsum.** Placeholder realista, en español, con la longitud del texto final.
 - **WCAG 2.1 AA** mínimo: 4.5:1 texto, foco visible, ningún estado solo por color, sin
   scroll horizontal a 320 px.
-- **MUI antes que reimplementar** un primitivo.
+- **shadcn/ui antes que reimplementar** un primitivo (`bunx shadcn@latest add`).
 - **Pagos:** todo lo que llega del cliente se revalida en el servidor (`app/actions/`); la
   base solo desde código `server-only` (`lib/db/`), y cada acción de admin con `getAdminStrict()`.
 - **Migraciones** en `drizzle/` (`bun run db:generate`; SQL a mano con `drizzle-kit generate --custom`). `supabase/migrations/` es historial, ya no se toca. Aplicarlas en preview y producción es acción manual de César
