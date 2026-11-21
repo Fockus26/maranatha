@@ -3,7 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useColorMode } from "@/theme/ThemeRegistry";
+import { useColorMode } from "@/theme/ColorModeProvider";
 
 type ThemeToggleProps = {
   /** `large` agranda el ícono (24 px); `small`/`medium` usan 20 px. */

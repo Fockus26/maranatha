@@ -27,6 +27,45 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Base del documento (D141): lo que hacía el `CssBaseline` de MUI y la
+ * preflight de Tailwind no trae. Fondo y texto por modo con los roles de
+ * `app/tokens.css`; texto del cuerpo = el `body1` de antes (`text-body-lg`,
+ * que sube a 20 px desde 1920 px, e interlineado `body`). La familia la pone
+ * la preflight en `html` (`--font-sans` = la del cuerpo); márgenes,
+ * `box-sizing` y `text-size-adjust` también son suyos.
+ */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: var(--text-body-lg);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--leading-body);
+  }
+
+  body::backdrop {
+    background-color: var(--background);
+  }
+
+  /* `bolder` de la preflight daría 900 sobre un 600; MUI fijaba 700. */
+  b,
+  strong {
+    font-weight: var(--font-weight-bold);
+  }
+
+  @media print {
+    body {
+      background-color: var(--color-white);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -39,11 +78,10 @@ html {
  * 1. Skip link (WCAG 2.4.1). Fuera de pantalla hasta recibir foco por
  *    teclado; ahí baja a la esquina superior izquierda por encima del
  *    navbar sticky (z-index del modal). Contraste navy/blanco = AA.
- * 2. Anillo de foco de respaldo (WCAG 2.4.7) para los elementos
- *    interactivos que NO son componentes de MUI (varios `Box component="a"`
- *    / `Box component="button"` del sitio) — MUI ya trae su propio
- *    `focus-visible`, esto cubre el resto sin depender del outline del
- *    navegador, que algunos resets aplanan.
+ * 2. Anillo de foco (WCAG 2.4.7, D085): 2 px con `--focus-ring` (por modo y
+ *    sobre navy, de `app/tokens.css`) y 2 px de separación en todo elemento
+ *    interactivo, sin depender del outline del navegador, que algunos resets
+ *    aplanan. Las primitivas que lo cambian lo hacen con sus clases.
  */
 .skip-link {
   position: fixed;
@@ -72,14 +110,13 @@ html {
 a:focus-visible,
 button:focus-visible,
 [role="button"]:focus-visible,
-[tabindex]:focus-visible,
-.MuiButtonBase-root:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--color-secondary-500));
+[tabindex]:focus-visible {
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
-/* Campos de shadcn (`components/ui/input.tsx`, D114): como los de MUI (D085),
-   el foco vive en el borde del propio campo, sin outline exterior. Quita el
+/* Campos (`components/ui/input.tsx`, D114, D085): el foco vive en el borde
+   del propio campo, sin outline exterior. Quita el
    anillo de arriba a los disparadores que son `<button>` (selector, fecha,
    hora). */
 [data-field-control]:focus-visible {
@@ -100,8 +137,6 @@ button:focus-visible,
  * sistema los devuelve a ser controles reconocibles.
  */
 @media (forced-colors: active) {
-  .MuiButton-contained,
-  .MuiButton-outlined,
   button[type="submit"],
   button[type="button"] {
     border: 1px solid ButtonText;
@@ -132,50 +167,33 @@ button:focus-visible,
     color: HighlightText;
   }
 
-  /* Foco de campos de texto: sin outline exterior; el fieldset se pinta con
-     colores de sistema y el grosor de 2px marca el foco (D085). */
-  .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+  /* Foco de campos de texto (D085, D086): sin outline exterior; el borde se
+     pinta con colores de sistema y el grosor de 2px marca el foco. La barra
+     de `Progress` trae su propio `forced-colors:` (`components/ui/progress.tsx`). */
   [data-field-control]:focus-visible,
   [data-field-control][data-state="open"] {
     border-color: Highlight;
     border-width: 2px;
   }
-
-  .MuiLinearProgress-root {
-    border: 1px solid CanvasText;
-    forced-color-adjust: none;
-    background-color: Canvas;
-  }
-  .MuiLinearProgress-bar {
-    background-color: Highlight;
-  }
 }
 
 /*
  * Transición del toggle claro/oscuro (fase 09, D067) — antes el cambio de
- * modo era instantáneo (MUI recalcula la paleta y React re-pinta de golpe).
+ * modo era instantáneo (los roles cambian con `data-color-mode` de golpe).
  * El cliente eligió, entre 3 direcciones (fade cross-fade global / circular
  * reveal desde el ícono / sin transición), un fade parejo y sutil en vez de
  * un efecto "wow" con protagonismo propio — coherente con el resto de
  * easings del sitio, que priorizan transiciones discretas sobre las que
  * llaman la atención por sí mismas.
  *
- * Acotado a las superficies reales de color (fondo/texto/borde de las
- * clases de MUI más comunes) en vez de un `*` universal — un selector
+ * Acotado a `body` y `<html>` (el texto hereda el color en transición) en
+ * vez de un `*` universal — un selector
  * universal chocaría con elementos que ya animan su propio
  * background-color vía framer-motion (el fill de hover de `AgendaItem`,
  * el patrón animado de `TitheModal`/`DashboardStatBand`), duplicando la
  * transición sobre la misma propiedad.
  */
 body,
-.MuiPaper-root,
-.MuiAppBar-root,
-.MuiButton-root,
-.MuiChip-root,
-.MuiCard-root,
-.MuiDialog-paper,
-.MuiTableCell-root,
-.MuiInputBase-root,
 [data-color-mode] {
   transition:
     background-color 280ms ease,
@@ -185,24 +203,92 @@ body,
 
 @media (prefers-reduced-motion: reduce) {
   body,
-  .MuiPaper-root,
-  .MuiAppBar-root,
-  .MuiButton-root,
-  .MuiChip-root,
-  .MuiCard-root,
-  .MuiDialog-paper,
-  .MuiTableCell-root,
-  .MuiInputBase-root,
   [data-color-mode] {
     transition: none;
   }
 }
 
 /*
- * Scroll personalizado y `::selection`: viven en `theme/globalStyles.ts`
- * (MuiCssBaseline) para leer los tokens de `theme/tokens.ts` y seguir el modo
- * real del toggle (D053). Ver la adenda de diseño en el HANDOFF.
+ * Scroll personalizado y `::selection` (adenda de diseño, D077, D141). Los
+ * colores son variables de `app/tokens.css` (`chromeVars` del generador, desde
+ * `scrollbar` y `selection` de `theme/tokens.ts`) por modo real del toggle
+ * (D053) y redefinidas en las piezas navy fijas (D025); la geometría,
+ * `--sb-size-*` / `--sb-inset-*`. En `forced-colors` no se pinta nada: manda
+ * el sistema.
  */
+@media not all and (forced-colors: active) {
+  html {
+    /* Reserva el riel siempre: el layout no salta cuando aparece. */
+    scrollbar-gutter: stable;
+  }
+
+  html::-webkit-scrollbar {
+    width: var(--sb-size-page);
+    height: var(--sb-size-page);
+  }
+  /* Cajas internas (tablas, modales, sidebar): riel más fino. */
+  body *::-webkit-scrollbar {
+    width: var(--sb-size-inner);
+    height: var(--sb-size-inner);
+  }
+
+  html::-webkit-scrollbar-track,
+  html::-webkit-scrollbar-corner,
+  body *::-webkit-scrollbar-track,
+  body *::-webkit-scrollbar-corner {
+    background-color: var(--sb-track);
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body *::-webkit-scrollbar-thumb {
+    background-color: var(--sb-thumb);
+    background-clip: padding-box;
+    min-height: var(--sb-min-thumb);
+  }
+  html::-webkit-scrollbar-thumb {
+    border: var(--sb-inset-page) solid transparent;
+    border-radius: var(--radius-sm);
+  }
+  body *::-webkit-scrollbar-thumb {
+    border: var(--sb-inset-inner) solid transparent;
+    border-radius: var(--radius-xs);
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sb-hover);
+  }
+  html::-webkit-scrollbar-thumb:active,
+  body *::-webkit-scrollbar-thumb:active {
+    background-color: var(--sb-active);
+  }
+  html::-webkit-scrollbar-thumb:hover,
+  html::-webkit-scrollbar-thumb:active {
+    border-width: var(--sb-inset-page-hover);
+  }
+  body *::-webkit-scrollbar-thumb:hover,
+  body *::-webkit-scrollbar-thumb:active {
+    border-width: var(--sb-inset-inner-hover);
+  }
+
+  ::selection {
+    background-color: var(--selection-bg);
+    color: var(--selection-text);
+  }
+
+  /* Firefox: solo `scrollbar-color` / `scrollbar-width`. Va dentro de
+     `@supports` porque Chrome 121+ ignora las reglas -webkit si ve estas. */
+  @supports not selector(::-webkit-scrollbar) {
+    html {
+      scrollbar-color: var(--sb-thumb) var(--sb-track);
+      scrollbar-width: auto;
+    }
+    body * {
+      scrollbar-color: var(--sb-thumb) var(--sb-track);
+      scrollbar-width: thin;
+    }
+  }
+}
 
 /*
  * Animaciones de las primitivas de `components/ui/` (D119, D120): pan de un

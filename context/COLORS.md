@@ -1,6 +1,6 @@
 # Colors — Iglesia Maranatha
 
-> Fuente: `theme/tokens.ts` (escalas) y `theme/theme.ts` (roles por modo). Ratios calculados
+> Fuente: `theme/tokens.ts` (escalas) y `theme/roles.ts` (roles por modo). Ratios calculados
 > el 2026-09-26 con la fórmula de luminancia de WCAG 2.1.
 
 ## Light mode

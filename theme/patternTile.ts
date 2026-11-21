@@ -1,6 +1,5 @@
 /**
- * Tile SVG del patrón de líneas diagonales (D120). Sin dependencias de MUI:
- * lo leen `theme/patterns.ts` (los `sx` de las zonas sin migrar) y
+ * Tile SVG del patrón de líneas diagonales (D120). Lo lee
  * `components/ui/pattern-layer.tsx`.
  *
  * Antes era un `repeating-linear-gradient(135deg, …40px)` animado 160px: el

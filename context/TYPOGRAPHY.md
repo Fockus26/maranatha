@@ -13,7 +13,7 @@ Ambas con `next/font/google`, `display: swap`, subset latin.
 
 El tamaño mobile aplica por debajo de `sm` (600px); desde `sm` va el de desktop.
 
-| Nivel | Variante MUI | xs (< 600px) | ≥ 600px | Peso | Line-height |
+| Nivel | Clase (`text-*`) | xs (< 600px) | ≥ 600px | Peso | Line-height |
 |---|---|---|---|---|---|
 | h1 | `h1` | 36px | 60px | 800 | 1.1 |
 | h2 | `h2` | 28px | 44px | 700 | 1.15 |

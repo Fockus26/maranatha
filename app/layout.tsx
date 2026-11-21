@@ -16,8 +16,8 @@ import {
 } from "@/lib/siteConfig";
 import { TitheModalProvider } from "@/lib/titheModalStore";
 import { gray, primary } from "@/theme/tokens";
+import ColorModeProvider from "../theme/ColorModeProvider";
 import { ibmPlexSans, sora } from "../theme/fonts";
-import ThemeRegistry from "../theme/ThemeRegistry";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -81,7 +81,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sora.variable} ${ibmPlexSans.variable}`}
       // El modo ya resuelto llega en el HTML del servidor: la variante
       // `dark:` de Tailwind y los roles de `app/tokens.css` lo leen sin
-      // esperar al cliente (D109). `ThemeRegistry` lo actualiza al cambiar.
+      // esperar al cliente (D109). `ColorModeProvider` lo actualiza al cambiar.
       data-color-mode={initialMode}
       suppressHydrationWarning
     >
@@ -89,13 +89,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main-content" className="skip-link">
           Saltar al contenido principal
         </a>
-        <ThemeRegistry initialMode={initialMode}>
+        <ColorModeProvider initialMode={initialMode}>
           <TitheModalProvider>
             {children}
             <TitheModal />
           </TitheModalProvider>
           <NavigationProgress />
-        </ThemeRegistry>
+        </ColorModeProvider>
         <Toaster />
         <ServiceWorkerRegister />
         {/* Solo en Vercel: fuera de ahí el script `/_vercel/insights` da 404. */}

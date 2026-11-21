@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
  * `null`) = indeterminada, con la barra recorriendo la pista (con
  * `prefers-reduced-motion` queda quieta). Radix pone `role="progressbar"`:
  * el nombre accesible lo da quien la usa (`aria-label`). En `forced-colors`
- * pista y barra con colores de sistema (el `.MuiLinearProgress` de
- * `globals.css`).
+ * pista y barra con colores de sistema (sus clases `forced-colors:`).
  *
  * `color` = primary (def.) | secondary | success: el color de la barra (D139).
  *

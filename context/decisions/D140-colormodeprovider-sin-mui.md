@@ -1,0 +1,5 @@
+# D140 · Tema · `ThemeRegistry` → `theme/ColorModeProvider.tsx`: contexto de modo + `MotionConfig`, sin tema de JS · Implementado
+
+**Decisión:** el proveedor raíz pierde `AppRouterCacheProvider`, `ThemeProvider` y `CssBaseline` y se renombra a `theme/ColorModeProvider.tsx` (export por defecto `ColorModeProvider`, hook `useColorMode`). Conserva entera la lógica de D053: estado inicial resuelto en el servidor, cookie `color-mode` + `localStorage`, migración de una vez desde `localStorage`/`prefers-color-scheme`, `data-color-mode` en `<html>` y `MotionConfig reducedMotion="user"`. El tipo de modo es `ColorMode` de `theme/roles.ts` (antes `PaletteMode` de MUI). `app/global-error.tsx` pone `data-color-mode` en su propio `<html>` e importa `app/globals.css` (Next no le pasa el CSS del layout raíz).
+**Por qué:** sin MUI no hay tema que proveer; el nombre `ThemeRegistry` era el del registro de Emotion. Los tres consumidores (`app/layout.tsx`, `app/global-error.tsx`, `ThemeToggle`) cambian una línea cada uno.
+**Alternativa descartada:** conservar el nombre `ThemeRegistry`: menos diff, pero describe algo que ya no hace.

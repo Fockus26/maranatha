@@ -53,9 +53,12 @@ PENDIENTE (no quedó registrado).
 
 - Framework: Next.js 16 (App Router), React 19 + React Compiler
 - Lenguaje: TypeScript estricto
-- Componentes: MUI 9 (+ Emotion) — theming claro/oscuro completo y componentes accesibles
-- Estilos: `sx`/`styled` de MUI con `theme/tokens.ts`. Tailwind 4 está instalado
-  (`app/globals.css`) pero no es el sistema de estilos: no se usa en código nuevo.
+- Componentes: shadcn/ui (Radix) en `components/ui/`, íconos `lucide-react`. MUI y Emotion
+  retirados al cerrar la fase de migración (D143; `tests/unit/sin-mui.test.ts` lo vigila)
+- Estilos: Tailwind 4 con los tokens de `theme/tokens.ts` y los roles de `theme/roles.ts`,
+  generados a `app/tokens.css` (`bun scripts/tokens-css.ts`, D109). Modo claro/oscuro por
+  `data-color-mode` en `<html>`, resuelto en el servidor (`theme/ColorModeProvider.tsx`, D140);
+  base del documento, foco, scroll y selección en `app/globals.css` (D141)
 - Animación: framer-motion (`Reveal`, `PageTransition`), respetando reduced-motion
 - Gestor de paquetes: **bun**
 - Documentación: **Context7** antes de usar la API de cualquier librería

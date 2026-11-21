@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Diálogo del proyecto (D117): `shadcn add dialog` ajustado para replicar el
- * `MuiDialog` de `theme/theme.ts` (papel de 444 px, radio `xl`, sombra `lg`,
+ * Diálogo del proyecto (D117): `shadcn add dialog` con el aspecto del diálogo
+ * MUI de antes (papel de 444 px, radio `xl`, sombra `lg` de `theme/tokens.ts`,
  * backdrop negro al 50 %). Fondo `bg-card` sólido: sin el velo blanco que MUI
  * suma al papel oscuro por elevación (D057/D058). Se monta solo al abrirse
  * (D099: Radix no renderiza el contenido cerrado).

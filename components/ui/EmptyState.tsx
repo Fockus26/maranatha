@@ -14,10 +14,8 @@ import { cn } from "@/lib/utils";
  * cierres" del Resumen sin proyectos activos) en vez de resolver cada caso
  * con texto suelto.
  *
- * Migrado a shadcn (D119–D121): `icon` acepta un ícono de lucide y, mientras
- * convivan, uno de `@mui/icons-material` (los consumidores sin migrar siguen
- * pasando íconos MUI). Su tamaño va con `!` (`size-7!`) porque el `font-size`
- * de MUI (Emotion, sin capa) le gana a la utilidad de Tailwind.
+ * Migrado a shadcn (D119–D121): `icon` es un ícono de lucide (o de
+ * `brand-icons.tsx`), dimensionado con `size-*`.
  *
  * `compact` reduce el padding/tamaño de ícono para contextos donde el
  * empty state vive dentro de una tarjeta ya angosta (ej. "Próximos
@@ -59,7 +57,7 @@ export function EmptyState({
           compact ? "mb-1.5 size-10" : "mb-2.5 size-14",
         )}
       >
-        <Icon aria-hidden className={compact ? "size-5!" : "size-7!"} />
+        <Icon aria-hidden className={compact ? "size-5" : "size-7"} />
       </div>
       <p
         className={cn(

@@ -33,7 +33,7 @@ Casos que fallan una y otra vez en este proyecto, verifícalos explícitamente:
 
 ## Breakpoints
 
-Los de MUI, definidos en `theme/tokens.ts`:
+Definidos en `theme/tokens.ts` (los que tenía MUI; variantes `sm:`…`xl:` y `wide:` ≥ 1920 de Tailwind):
 
 | Nombre | Ancho | Notas |
 |---|---|---|
@@ -49,19 +49,21 @@ Los de MUI, definidos en `theme/tokens.ts`:
 ## Tokens
 
 - **Cero valores mágicos.** Todo color, espaciado, radio, sombra y tamaño de fuente sale de
-  `theme/tokens.ts` (vía `theme.palette`, `theme.spacing` o importando el token). Si aparece
-  un hex o un px suelto, o el token existe y no se usó, o falta un token y eso es una
+  `theme/tokens.ts` (vía las clases de Tailwind generadas a `app/tokens.css`, las variables
+  de rol como `bg-background`, o importando el token). Si aparece un hex o un px suelto, o el token existe y no se usó, o falta un token y eso es una
   decisión que hay que registrar.
 - Unidad base de espaciado: **4px** (`spacing.xs`); la escala está en `DESIGN_TOKENS.md`.
-- Estilos compartidos ya resueltos: `theme/fieldStyles.ts` (campos compactos),
-  `theme/patterns.ts` (patrón diagonal animado).
+- Estilos compartidos ya resueltos: las primitivas de `components/ui/` (`input`, `field`…) y
+  `PatternLayer` (patrón diagonal animado, tile de `theme/patternTile.ts`). Geometría de un
+  solo componente: literal con comentario `valor único:` (D138).
 
 ## Componentes
 
 - Antes de crear uno nuevo, revisar `COMPONENTS_INVENTORY.md`. Dos componentes que hacen lo
   mismo con nombres distintos es la deuda más cara del sistema.
-- **MUI antes que reimplementar** un primitivo a mano. Excepción registrada: `DateField` usa
-  un calendario propio (D062).
+- **shadcn/ui antes que reimplementar** un primitivo a mano (`bunx shadcn@latest add <x>` y
+  ajustarlo a los tokens). Excepciones registradas: `DateField` y `TimeField` con calendario y
+  selector propios (D062, D089).
 - Los widgets compuestos siguen el patrón de WAI-ARIA Authoring Practices correspondiente.
 - Modales globales (diezmo, proyecto del dashboard) se montan una vez en el layout y se
   abren con un store (D049/D059), no con estado local.
@@ -72,8 +74,8 @@ Los de MUI, definidos en `theme/tokens.ts`:
 - **Context7** consultado antes de usar la API de cualquier librería.
 - Server Components por defecto; `'use client'` lo más abajo posible del árbol.
 - TypeScript estricto, cero `any`.
-- **Librería de componentes:** MUI — ver `PROJECT_CONTEXT.md`.
-- **Sistema de estilos:** `sx`/`styled` de MUI. Tailwind no se usa en código nuevo.
+- **Librería de componentes:** shadcn/ui (Radix) — ver `PROJECT_CONTEXT.md`. MUI retirado (D143).
+- **Sistema de estilos:** Tailwind con los tokens de `app/tokens.css`; `cn` de `lib/utils`.
 - Una sección de Home = un archivo con su componente y sus datos (D030).
 - **Nadie levanta el servidor de desarrollo.** Lo levanta César. Los agentes piden que esté
   corriendo y esperan confirmación.

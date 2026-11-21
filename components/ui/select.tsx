@@ -69,7 +69,7 @@ function SelectContent({
   container,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content> & {
-  /** Ver `PopoverContent`: dentro de un `Dialog`/`Drawer` de MUI. */
+  /** Ver `PopoverContent`: dentro de un diálogo con trampa de foco propia. */
   container?: HTMLElement | null;
 }) {
   return (
