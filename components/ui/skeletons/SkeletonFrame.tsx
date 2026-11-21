@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
-import styles from "./SkeletonFrame.module.css";
 
 /**
  * Envoltorio común de los esqueletos del panel (D102): marca la región como
  * ocupada y anuncia "Cargando <página>…" a lectores de pantalla. El pulso de
- * los `Skeleton` de shadcn se apaga solo con "reducir movimiento"; la clase
- * `frame` cubre los de MUI que aún trae `DashboardTable` (ola 4).
+ * los `Skeleton` de shadcn se apaga solo con "reducir movimiento" (también
+ * los de `DashboardTable`, D135).
  */
 export function SkeletonFrame({
   label,
@@ -16,7 +15,7 @@ export function SkeletonFrame({
   children: ReactNode;
 }) {
   return (
-    <div aria-busy="true" className={styles.frame}>
+    <div aria-busy="true">
       <output className="sr-only">Cargando {label}…</output>
       {children}
     </div>

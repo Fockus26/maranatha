@@ -1,17 +1,12 @@
 "use client";
 
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
-import EditOutlinedIcon from "@mui/icons-material/EditRounded";
-import FolderOutlinedIcon from "@mui/icons-material/FolderRounded";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import LinearProgress from "@mui/material/LinearProgress";
-import Skeleton from "@mui/material/Skeleton";
-import { useTheme } from "@mui/material/styles";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowDown, ArrowUp, Folder, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { common, fontScale, radius, secondary, semantic } from "@/theme/tokens";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "./EmptyState";
 import type { ProjectStatus } from "./ProjectCard";
@@ -22,10 +17,14 @@ import type { ProjectStatus } from "./ProjectCard";
  * de `/proyectos`, D052) — animar `<tr>` con `framer-motion` es poco
  * confiable entre navegadores (los transforms que usa `layout` para el FLIP
  * no se aplican de forma consistente sobre elementos de tabla), así que se
- * pasa a una "tabla" armada con CSS Grid (encabezado + filas como `Box`
+ * pasa a una "tabla" armada con CSS Grid (encabezado + filas como `div`
  * `display: grid` con las mismas columnas), donde `layout` + `AnimatePresence`
  * sí funcionan igual que en el resto del sitio. `role="table"/"row"/"cell"`
  * mantiene la semántica de tabla para lectores de pantalla.
+ *
+ * Migrada a shadcn (D135): el orden es un botón dentro de cada cabecera, que
+ * lleva `aria-sort`; cada botón de ícono (también en las tarjetas de móvil)
+ * tiene nombre accesible con el título del proyecto.
  */
 
 export interface DashboardProjectRow {
@@ -53,7 +52,48 @@ type SortColumn = "title" | "status" | "progress" | "deadline";
 type SortDirection = "asc" | "desc";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
-const GRID_COLUMNS = "minmax(0,1fr) 130px 200px 130px 96px";
+/** Proyecto · Estado · Progreso · Cierre · Acciones (sin token de columnas). */
+const GRID_COLUMNS =
+  "grid grid-cols-[minmax(0,1fr)_130px_200px_130px_96px] items-center";
+
+const SORT_COLUMNS: { column: SortColumn; label: string }[] = [
+  { column: "title", label: "Proyecto" },
+  { column: "status", label: "Estado" },
+  { column: "progress", label: "Progreso" },
+  { column: "deadline", label: "Cierre" },
+];
+
+/**
+ * Botón de ícono con borde: el `IconButton size="small"` de MUI (ícono de
+ * 20 px + 5 px de relleno + 1 px de borde = 32 px).
+ */
+const ROW_ACTION_CLASS = "size-8 rounded-sm border border-border p-1.25";
+const EDIT_ACTION_CLASS = cn(
+  ROW_ACTION_CLASS,
+  "text-primary hover:border-secondary hover:text-secondary dark:text-primary dark:hover:text-secondary",
+);
+const DELETE_ACTION_CLASS = cn(
+  ROW_ACTION_CLASS,
+  "text-muted-foreground hover:border-destructive hover:text-destructive dark:text-muted-foreground dark:hover:text-destructive",
+);
+
+/** Píldora de estado: fondo sólido + texto blanco (D060/D061). */
+function statusPillClass(isCompleted: boolean) {
+  return cn(
+    "inline-block rounded-pill font-semibold whitespace-nowrap text-white",
+    isCompleted ? "bg-success-filled" : "bg-secondary-700",
+  );
+}
+
+/** Barra de la fila: verde si se completó, naranja si sigue activo. */
+function progressClass(isCompleted: boolean) {
+  return cn(
+    "h-1.25 rounded-pill bg-accent",
+    isCompleted
+      ? "**:data-[slot=progress-indicator]:bg-success"
+      : "**:data-[slot=progress-indicator]:bg-secondary",
+  );
+}
 
 function progressOf(row: DashboardProjectRow) {
   // Fase QA (functional-qa): acota a 0-100. Sin el piso en 0, un
@@ -65,6 +105,13 @@ function progressOf(row: DashboardProjectRow) {
 
 const SKELETON_ROWS = [0, 1, 2];
 
+/** Línea de texto en gris (el `Skeleton variant="text"` de MUI: 60 % del alto). */
+function SkeletonText({ className }: { className: string }) {
+  return (
+    <Skeleton className={cn("origin-left scale-y-60 rounded-xs", className)} />
+  );
+}
+
 export function DashboardTable({
   projects,
   onEdit,
@@ -72,7 +119,6 @@ export function DashboardTable({
   loading,
   onCreate,
 }: DashboardTableProps) {
-  const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const [sortColumn, setSortColumn] = useState<SortColumn>("deadline");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -114,21 +160,15 @@ export function DashboardTable({
   // pasarle `projects` a este componente.
   if (!loading && projects.length === 0) {
     return (
-      <Box
-        sx={{
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: `${radius.lg}px`,
-          backgroundColor: theme.palette.background.paper,
-        }}
-      >
+      <div className="rounded-lg border border-border bg-card">
         <EmptyState
-          icon={FolderOutlinedIcon}
+          icon={Folder}
           title="Todavía no hay proyectos"
           description="Crea el primero para empezar a hacerle seguimiento desde aquí."
           ctaLabel={onCreate ? "Crear proyecto" : undefined}
           onCtaClick={onCreate}
         />
-      </Box>
+      </div>
     );
   }
 
@@ -142,76 +182,66 @@ export function DashboardTable({
         opciones (tarjetas / scroll horizontal / columnas ocultas) vistas en
         un comparador visual. Desde `sm` en adelante esta tabla no cambia.
       */}
-      <Box
+      <div
         role="table"
         aria-label="Proyectos"
-        sx={{
-          display: { xs: "none", sm: "block" },
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: `${radius.lg}px`,
-          backgroundColor: theme.palette.background.paper,
-          overflow: "hidden",
-          position: "relative",
-        }}
+        className="relative hidden overflow-hidden rounded-lg border border-border bg-card sm:block"
       >
-        <Box
+        <div
           role="row"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: GRID_COLUMNS,
-            alignItems: "center",
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? "rgba(255,255,255,0.02)"
-                : theme.palette.action.hover,
-            px: 3,
-            py: 1,
-          }}
+          className={cn(
+            GRID_COLUMNS,
+            "border-b border-border bg-black/4 px-3 py-1 dark:bg-white/2",
+          )}
         >
-          {/* Antes sin `fontSize` propio: al dejar de estar dentro de un
-              `<TableCell>` (que MUI dimensiona a ~14px por defecto, D0XX),
-              estos encabezados heredaban el tamaño de cuerpo ambiente (16px)
-              y se veían desproporcionados frente al resto de la tabla. */}
-          {[
-            { column: "title" as const, label: "Proyecto" },
-            { column: "status" as const, label: "Estado" },
-            { column: "progress" as const, label: "Progreso" },
-            { column: "deadline" as const, label: "Cierre" },
-          ].map(({ column, label }) => (
-            <Box
-              key={column}
-              role="columnheader"
-              sx={{
-                fontSize: fontScale[13],
-                color: theme.palette.text.secondary,
-                "& .MuiTableSortLabel-root": {
-                  fontSize: fontScale[13],
-                  fontWeight: 500,
-                },
-              }}
-            >
-              <TableSortLabel
-                active={sortColumn === column}
-                direction={sortColumn === column ? sortDirection : "asc"}
-                onClick={() => handleSort(column)}
+          {SORT_COLUMNS.map(({ column, label }) => {
+            const active = sortColumn === column;
+            const direction = active ? sortDirection : "asc";
+            const Arrow = direction === "asc" ? ArrowUp : ArrowDown;
+            return (
+              <div
+                key={column}
+                role="columnheader"
+                aria-sort={
+                  active
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : undefined
+                }
               >
-                {label}
-              </TableSortLabel>
-            </Box>
-          ))}
-          <Box
+                <button
+                  type="button"
+                  onClick={() => handleSort(column)}
+                  className={cn(
+                    "group inline-flex cursor-pointer items-center rounded-xs font-body text-13 font-medium",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                    active
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {label}
+                  <Arrow
+                    aria-hidden="true"
+                    className={cn(
+                      "mr-1 ml-1 size-4.5 shrink-0 transition-opacity duration-150",
+                      active
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-50 group-focus-visible:opacity-50",
+                    )}
+                  />
+                </button>
+              </div>
+            );
+          })}
+          <div
             role="columnheader"
-            sx={{
-              textAlign: "right",
-              fontSize: fontScale[13],
-              fontWeight: 500,
-              color: theme.palette.text.secondary,
-            }}
+            className="text-right text-13 font-medium text-muted-foreground"
           >
             Acciones
-          </Box>
-        </Box>
+          </div>
+        </div>
 
         {loading ? (
           // Fase 09 (D067) — patrón de loading elegido por el cliente:
@@ -220,63 +250,32 @@ export function DashboardTable({
           // chip, barra+%, fecha, acciones) para que el salto al llegar el
           // contenido real sea mínimo.
           SKELETON_ROWS.map((key) => (
-            <Box
+            <div
               key={key}
               role="row"
-              sx={{
-                display: "grid",
-                gridTemplateColumns: GRID_COLUMNS,
-                alignItems: "center",
-                px: 3,
-                py: 2,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                "&:last-of-type": { borderBottom: "none" },
-              }}
+              className={cn(
+                GRID_COLUMNS,
+                "border-b border-border px-3 py-2 last:border-b-0",
+              )}
             >
-              <Box role="cell" sx={{ pr: 2 }}>
-                <Skeleton variant="text" width="70%" height={20} />
-              </Box>
-              <Box role="cell">
-                <Skeleton
-                  variant="rounded"
-                  width={64}
-                  height={20}
-                  sx={{ borderRadius: `${radius.pill}px` }}
-                />
-              </Box>
-              <Box
-                role="cell"
-                sx={{ display: "flex", alignItems: "center", gap: 2 }}
-              >
-                <Skeleton
-                  variant="rounded"
-                  width={80}
-                  height={5}
-                  sx={{ borderRadius: `${radius.pill}px` }}
-                />
-                <Skeleton variant="text" width={24} height={16} />
-              </Box>
-              <Box role="cell">
-                <Skeleton variant="text" width="60%" height={16} />
-              </Box>
-              <Box
-                role="cell"
-                sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
-              >
-                <Skeleton
-                  variant="rounded"
-                  width={28}
-                  height={28}
-                  sx={{ borderRadius: `${radius.sm}px` }}
-                />
-                <Skeleton
-                  variant="rounded"
-                  width={28}
-                  height={28}
-                  sx={{ borderRadius: `${radius.sm}px` }}
-                />
-              </Box>
-            </Box>
+              <div role="cell" className="pr-2">
+                <SkeletonText className="h-5 w-7/10" />
+              </div>
+              <div role="cell">
+                <Skeleton className="h-5 w-16 rounded-pill" />
+              </div>
+              <div role="cell" className="flex items-center gap-2">
+                <Skeleton className="h-1.25 w-20 rounded-pill" />
+                <SkeletonText className="h-4 w-6" />
+              </div>
+              <div role="cell">
+                <SkeletonText className="h-4 w-3/5" />
+              </div>
+              <div role="cell" className="flex justify-end gap-1">
+                <Skeleton className="size-7" />
+                <Skeleton className="size-7" />
+              </div>
+            </div>
           ))
         ) : (
           <AnimatePresence mode="popLayout" initial={false}>
@@ -285,208 +284,112 @@ export function DashboardTable({
               const percent = progressOf(row);
 
               return (
-                <Box
+                <motion.div
                   key={row.id}
                   role="row"
-                  component={motion.div}
                   layout={!reduceMotion}
                   initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
                   transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE }}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: GRID_COLUMNS,
-                    alignItems: "center",
-                    px: 3,
-                    py: 2,
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    "&:last-of-type": { borderBottom: "none" },
-                  }}
+                  className={cn(
+                    GRID_COLUMNS,
+                    "border-b border-border px-3 py-2 last:border-b-0",
+                  )}
                 >
-                  <Box
+                  <div
                     role="cell"
-                    sx={{
-                      fontSize: fontScale[14],
-                      fontWeight: 500,
-                      color: theme.palette.text.primary,
-                      pr: 2,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
+                    className="truncate pr-2 text-14 font-medium text-foreground"
                   >
                     {row.title}
-                  </Box>
-                  <Box role="cell">
-                    <Box
-                      sx={{
-                        display: "inline-block",
-                        fontSize: fontScale[11],
-                        fontWeight: 600,
-                        borderRadius: `${radius.pill}px`,
-                        px: 2.25,
-                        py: 0.5,
-                        // Antes: fondo translúcido ("26" ≈ 15% opacidad) con
-                        // texto en el color de acento — subir la opacidad no fue
-                        // suficiente (el cliente lo siguió viendo apagado), así
-                        // que se pasa a fondo sólido + texto blanco, mismo
-                        // criterio de contraste que la píldora del topbar
-                        // (D060/D061).
-                        backgroundColor: isCompleted
-                          ? semantic.successFilled
-                          : secondary[700],
-                        color: common.white,
-                      }}
+                  </div>
+                  <div role="cell">
+                    <span
+                      className={cn(
+                        statusPillClass(isCompleted),
+                        "px-2.25 py-0.5 text-11",
+                      )}
                     >
                       {isCompleted ? "Completado" : "Activo"}
-                    </Box>
-                  </Box>
-                  <Box role="cell">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <LinearProgress
-                        variant="determinate"
+                    </span>
+                  </div>
+                  <div role="cell">
+                    <div className="flex items-center gap-2">
+                      <Progress
                         value={percent}
                         aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
-                        color={isCompleted ? "success" : "secondary"}
-                        sx={{
-                          width: 80,
-                          height: 5,
-                          borderRadius: `${radius.pill}px`,
-                          backgroundColor: theme.palette.action.hover,
-                        }}
+                        className={cn(progressClass(isCompleted), "w-20")}
                       />
-                      <Box
-                        component="span"
-                        sx={{
-                          fontSize: fontScale[11],
-                          color: theme.palette.text.secondary,
-                        }}
-                      >
+                      <span className="text-11 text-muted-foreground">
                         {Math.round(percent)}%
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Box
-                    role="cell"
-                    sx={{
-                      fontSize: fontScale[13],
-                      color: theme.palette.text.secondary,
-                    }}
-                  >
+                      </span>
+                    </div>
+                  </div>
+                  <div role="cell" className="text-13 text-muted-foreground">
                     {row.deadlineLabel}
-                  </Box>
-                  <Box role="cell">
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        justifyContent: "flex-end",
-                      }}
-                    >
+                  </div>
+                  <div role="cell">
+                    <div className="flex justify-end gap-1">
                       {/* Un proyecto completado ya no se puede editar — pedido
                           del cliente; Eliminar sigue disponible en cualquier
                           estado. */}
                       {!isCompleted && (
-                        <IconButton
-                          size="small"
+                        <Button
+                          variant="plain"
+                          size="icon"
                           onClick={() => onEdit(row.id)}
                           aria-label={`Editar ${row.title}`}
-                          sx={{
-                            border: `1px solid ${theme.palette.divider}`,
-                            borderRadius: `${radius.sm}px`,
-                            color: theme.palette.primary.main,
-                            "&:hover": {
-                              borderColor: theme.palette.secondary.main,
-                              color: theme.palette.secondary.main,
-                            },
-                          }}
+                          className={EDIT_ACTION_CLASS}
                         >
-                          <EditOutlinedIcon fontSize="small" />
-                        </IconButton>
+                          <Pencil aria-hidden="true" className="size-5" />
+                        </Button>
                       )}
-                      <IconButton
-                        size="small"
+                      <Button
+                        variant="plain"
+                        size="icon"
                         onClick={() => setDeleteTarget(row)}
                         aria-label={`Eliminar ${row.title}`}
-                        sx={{
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: `${radius.sm}px`,
-                          color: theme.palette.text.secondary,
-                          "&:hover": {
-                            borderColor: theme.palette.error.main,
-                            color: theme.palette.error.main,
-                          },
-                        }}
+                        className={DELETE_ACTION_CLASS}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                </Box>
+                        <Trash2 aria-hidden="true" className="size-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
               );
             })}
           </AnimatePresence>
         )}
-      </Box>
+      </div>
 
       {/* Vista mobile — tarjetas apiladas (Opción A del comparador de /design,
           elegida por el cliente). Mismos datos/acciones que la tabla de
           arriba, en una tarjeta vertical por proyecto: título + estado,
-          barra de progreso, fecha de cierre, acciones. */}
-      <Box
+          barra de progreso, fecha de cierre, acciones. Antes sus botones de
+          ícono no tenían nombre (crítico de axe a 320 px): ahora llevan el
+          mismo `aria-label` que los de la tabla. */}
+      <div
         role="table"
         aria-label="Proyectos"
-        sx={{
-          display: { xs: "flex", sm: "none" },
-          flexDirection: "column",
-          gap: 2,
-          position: "relative",
-        }}
+        className="relative flex flex-col gap-2 sm:hidden"
       >
         {loading ? (
           SKELETON_ROWS.map((key) => (
-            <Box
+            <div
               key={key}
-              sx={{
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: `${radius.md}px`,
-                backgroundColor: theme.palette.background.paper,
-                p: 3,
-              }}
+              className="rounded-md border border-border bg-card p-3"
             >
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
-              >
-                <Skeleton variant="text" width="50%" height={20} />
-                <Skeleton
-                  variant="rounded"
-                  width={56}
-                  height={18}
-                  sx={{ borderRadius: `${radius.pill}px` }}
-                />
-              </Box>
-              <Skeleton
-                variant="rounded"
-                height={5}
-                sx={{ borderRadius: `${radius.pill}px`, mb: 1.5 }}
-              />
-              <Skeleton variant="text" width="40%" height={16} sx={{ mb: 2 }} />
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Skeleton
-                  variant="rounded"
-                  width={28}
-                  height={28}
-                  sx={{ borderRadius: `${radius.sm}px` }}
-                />
-                <Skeleton
-                  variant="rounded"
-                  width={28}
-                  height={28}
-                  sx={{ borderRadius: `${radius.sm}px` }}
-                />
-              </Box>
-            </Box>
+              <div className="mb-2 flex justify-between">
+                <SkeletonText className="h-5 w-1/2" />
+                <Skeleton className="h-4.5 w-14 rounded-pill" />
+              </div>
+              <Skeleton className="mb-1.5 h-1.25 rounded-pill" />
+              <SkeletonText className="mb-2 h-4 w-2/5" />
+              <div className="flex justify-end gap-1">
+                <Skeleton className="size-7" />
+                <Skeleton className="size-7" />
+              </div>
+            </div>
           ))
         ) : (
           <AnimatePresence mode="popLayout" initial={false}>
@@ -495,150 +398,77 @@ export function DashboardTable({
               const percent = progressOf(row);
 
               return (
-                <Box
+                <motion.div
                   key={row.id}
                   role="row"
-                  component={motion.div}
                   layout={!reduceMotion}
                   initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
                   transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE }}
-                  sx={{
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: `${radius.md}px`,
-                    backgroundColor: theme.palette.background.paper,
-                    p: 3,
-                  }}
+                  className="rounded-md border border-border bg-card p-3"
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 2,
-                      mb: 2,
-                    }}
-                  >
-                    <Box
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <div
                       role="cell"
-                      sx={{
-                        fontSize: fontScale[14],
-                        fontWeight: 600,
-                        color: theme.palette.text.primary,
-                        minWidth: 0,
-                      }}
+                      className="min-w-0 text-14 font-semibold text-foreground"
                     >
                       {row.title}
-                    </Box>
-                    <Box
+                    </div>
+                    <div
                       role="cell"
-                      sx={{
-                        display: "inline-block",
-                        flexShrink: 0,
-                        fontSize: fontScale[10.5],
-                        fontWeight: 600,
-                        borderRadius: `${radius.pill}px`,
-                        px: 1.75,
-                        py: 0.4,
-                        whiteSpace: "nowrap",
-                        backgroundColor: isCompleted
-                          ? semantic.successFilled
-                          : secondary[700],
-                        color: common.white,
-                      }}
+                      className={cn(
+                        statusPillClass(isCompleted),
+                        "shrink-0 px-1.75 py-0.5 text-10.5",
+                      )}
                     >
                       {isCompleted ? "Completado" : "Activo"}
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
 
-                  <Box
-                    role="cell"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      mb: 1.5,
-                    }}
-                  >
-                    <LinearProgress
-                      variant="determinate"
+                  <div role="cell" className="mb-1.5 flex items-center gap-2">
+                    <Progress
                       value={percent}
                       aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
-                      color={isCompleted ? "success" : "secondary"}
-                      sx={{
-                        flex: 1,
-                        height: 5,
-                        borderRadius: `${radius.pill}px`,
-                        backgroundColor: theme.palette.action.hover,
-                      }}
+                      className={cn(progressClass(isCompleted), "flex-1")}
                     />
-                    <Box
-                      component="span"
-                      sx={{
-                        fontSize: fontScale[11],
-                        color: theme.palette.text.secondary,
-                        flexShrink: 0,
-                      }}
-                    >
+                    <span className="shrink-0 text-11 text-muted-foreground">
                       {Math.round(percent)}%
-                    </Box>
-                  </Box>
+                    </span>
+                  </div>
 
-                  <Box
-                    role="cell"
-                    sx={{
-                      fontSize: fontScale[12],
-                      color: theme.palette.text.secondary,
-                      mb: 2,
-                    }}
-                  >
+                  <div role="cell" className="mb-2 text-12 text-muted-foreground">
                     Cierre: {row.deadlineLabel}
-                  </Box>
+                  </div>
 
-                  <Box
-                    role="cell"
-                    sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
-                  >
+                  <div role="cell" className="flex justify-end gap-1">
                     {!isCompleted && (
-                      <IconButton
-                        size="small"
+                      <Button
+                        variant="plain"
+                        size="icon"
                         onClick={() => onEdit(row.id)}
-                        sx={{
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: `${radius.sm}px`,
-                          color: theme.palette.primary.main,
-                          "&:hover": {
-                            borderColor: theme.palette.secondary.main,
-                            color: theme.palette.secondary.main,
-                          },
-                        }}
+                        aria-label={`Editar ${row.title}`}
+                        className={EDIT_ACTION_CLASS}
                       >
-                        <EditOutlinedIcon fontSize="small" />
-                      </IconButton>
+                        <Pencil aria-hidden="true" className="size-5" />
+                      </Button>
                     )}
-                    <IconButton
-                      size="small"
+                    <Button
+                      variant="plain"
+                      size="icon"
                       onClick={() => setDeleteTarget(row)}
-                      sx={{
-                        border: `1px solid ${theme.palette.divider}`,
-                        borderRadius: `${radius.sm}px`,
-                        color: theme.palette.text.secondary,
-                        "&:hover": {
-                          borderColor: theme.palette.error.main,
-                          color: theme.palette.error.main,
-                        },
-                      }}
+                      aria-label={`Eliminar ${row.title}`}
+                      className={DELETE_ACTION_CLASS}
                     >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </Box>
+                      <Trash2 aria-hidden="true" className="size-5" />
+                    </Button>
+                  </div>
+                </motion.div>
               );
             })}
           </AnimatePresence>
         )}
-      </Box>
+      </div>
 
       <ConfirmDialog
         open={deleteTarget !== null}
@@ -647,12 +477,9 @@ export function DashboardTable({
           deleteTarget ? (
             <>
               Esta acción no se puede deshacer. Se eliminará{" "}
-              <Box
-                component="span"
-                sx={{ fontWeight: 700, color: theme.palette.text.primary }}
-              >
+              <span className="font-bold text-foreground">
                 &quot;{deleteTarget.title}&quot;
-              </Box>{" "}
+              </span>{" "}
               permanentemente.
             </>
           ) : (
