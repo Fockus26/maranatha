@@ -1,17 +1,15 @@
 "use client";
 
-import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Snackbar from "@mui/material/Snackbar";
-import Typography from "@mui/material/Typography";
 import { useInView } from "framer-motion";
+import { HandHeart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Container } from "@/components/ui/container";
 import {
   PaymentStep,
   type PaymentStepContribution,
 } from "@/components/ui/PaymentStep";
+import { PatternLayer } from "@/components/ui/pattern-layer";
 import { Reveal } from "@/components/ui/Reveal";
 import { StepTransition } from "@/components/ui/StepTransition";
 import {
@@ -22,8 +20,6 @@ import {
   TYPE_LABEL,
 } from "@/components/ui/TitheForm";
 import { TitheLayout } from "@/components/ui/TitheLayout";
-import { patternLayerSx } from "@/theme/patterns";
-import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
 
 /**
  * Sección "Ofrendar" de Home (D098) — vuelve a la home, ahora con el formulario
@@ -35,12 +31,17 @@ import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
  * Fondo navy sólido fijo (`primary[700]`) en claro y oscuro, con el patrón
  * geométrico de D048 y el contador animado de familias (una sola vez, al
  * entrar en el viewport). `TitheForm` solo recolecta datos (D018); el paso de
- * pago lo resuelve `PaymentStep`. Los ids de campos salen de `useId` (MUI), así
- * que conviven con la instancia del modal; PayPal/Binance son redirecciones,
- * no hay SDK que cargar dos veces.
+ * pago lo resuelve `PaymentStep`. Los ids de campos salen de `useId`, así que
+ * conviven con la instancia del modal (D099); PayPal/Binance son
+ * redirecciones, no hay SDK que cargar dos veces.
  */
 
 const FAMILIES_SUPPORTING = 132;
+
+/** Mismo texto y duración que el `Snackbar` que reemplaza (D118). */
+const REPORTED_TOAST_TEXT =
+  "¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las próximas horas.";
+const REPORTED_TOAST_MS = 6000;
 
 function AnimatedFamiliesCounter() {
   const ref = useRef<HTMLDivElement>(null);
@@ -63,43 +64,19 @@ function AnimatedFamiliesCounter() {
   }, [isInView]);
 
   return (
-    <Box
-      ref={ref}
-      sx={{
-        mt: { xs: 4, md: 5 },
-        pt: 3,
-        borderTop: "1px solid rgba(245,246,250,0.15)",
-      }}
-    >
-      <Typography
-        component="span"
-        sx={{
-          display: "block",
-          fontFamily: "var(--font-heading)",
-          fontWeight: 800,
-          fontSize: { xs: "36px", md: "44px" },
-          lineHeight: 1,
-          color: "secondary.light",
-        }}
-      >
+    <div ref={ref} className="mt-4 border-t border-gray-50/15 pt-3 md:mt-5">
+      {/* 36/44 px: sin token en la escala (ver "Tokens que faltaron", PR). */}
+      <span className="block font-heading text-[36px] font-extrabold leading-none text-secondary-300 md:text-[44px]">
         +{value}
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: "var(--font-body)",
-          fontSize: fontScale[13],
-          color: "rgba(245,246,250,0.65)",
-          mt: 0.75,
-        }}
-      >
+      </span>
+      <p className="mt-0.75 font-body text-13 leading-body text-gray-50/65">
         familias aportando este año entre toda la comunidad
-      </Typography>
-    </Box>
+      </p>
+    </div>
   );
 }
 
 export function Tithe() {
-  const [confirmed, setConfirmed] = useState(false);
   // Paso 2 (método de pago). `null` = el donante sigue en el formulario.
   const [contribution, setContribution] =
     useState<PaymentStepContribution | null>(null);
@@ -127,151 +104,78 @@ export function Tithe() {
 
   function handleReported() {
     setContribution(null);
-    setConfirmed(true);
+    toast.success(REPORTED_TOAST_TEXT, { duration: REPORTED_TOAST_MS });
   }
 
   return (
-    <>
-      <Box
-        component="section"
-        id="ofrendar"
-        aria-labelledby="ofrendar-title"
-        sx={{
-          position: "relative",
-          overflow: "hidden",
-          py: { xs: 8, md: 12 },
-          backgroundColor: primary[700],
-        }}
-      >
-        {/* Patrón geométrico en pan continuo (D048) */}
-        <Box aria-hidden="true" sx={patternLayerSx()} />
-        <Box
-          aria-hidden="true"
-          sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(circle at 82% 15%, rgba(249,117,13,0.10) 0%, transparent 45%)",
-          }}
-        />
+    <section
+      id="ofrendar"
+      aria-labelledby="ofrendar-title"
+      className="relative overflow-hidden bg-primary-700 py-8 md:py-12"
+    >
+      {/* Patrón geométrico en pan continuo (D048) */}
+      <PatternLayer />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-radial-[circle_at_82%_15%] from-secondary-500/10 from-0% to-transparent to-45%"
+      />
 
-        <Container maxWidth="lg" sx={{ position: "relative" }}>
-          <Reveal>
-            <TitheLayout
-              text={
-                <>
-                  <Box
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: 44,
-                      height: 44,
-                      borderRadius: `${radius.lg}px`,
-                      backgroundColor: "rgba(245,246,250,0.1)",
-                      color: "secondary.light",
-                      mb: 3,
-                    }}
-                  >
-                    <VolunteerActivismRoundedIcon fontSize="small" />
-                  </Box>
+      <Container className="relative">
+        <Reveal>
+          <TitheLayout
+            text={
+              <>
+                <div className="mb-3 inline-flex size-11 items-center justify-center rounded-lg bg-gray-50/10 text-secondary-300">
+                  <HandHeart className="size-5" aria-hidden="true" />
+                </div>
 
-                  <Typography
-                    component="span"
-                    sx={{
-                      display: "block",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 500,
-                      fontSize: fontScale[11],
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "secondary.light",
-                      mb: 1.5,
-                    }}
-                  >
-                    Da con propósito
-                  </Typography>
+                {/* `tracking`: sin token (ver "Tokens que faltaron", PR). */}
+                <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-[0.18em] text-secondary-300">
+                  Da con propósito
+                </span>
 
-                  <Typography
-                    component="h2"
-                    id="ofrendar-title"
-                    sx={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: { xs: "28px", md: "38px" },
-                      lineHeight: 1.2,
-                      letterSpacing: "-0.01em",
-                      color: gray[50],
-                      mb: 2,
-                    }}
-                  >
-                    Tu ofrenda sostiene esta obra
-                  </Typography>
+                <h2
+                  id="ofrendar-title"
+                  className="mb-2 font-heading text-28 font-extrabold leading-h3 tracking-[-0.01em] text-gray-50 md:text-[38px]"
+                >
+                  Tu ofrenda sostiene esta obra
+                </h2>
 
-                  <Typography
-                    sx={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: fontScale[16],
-                      lineHeight: 1.6,
-                      color: "rgba(245,246,250,0.72)",
-                    }}
-                  >
-                    Cada aporte se destina directamente a nuestras áreas de
-                    servicio y proyectos activos. Elige un monto, única vez o
-                    mensual, y completa tus datos — sin compromisos, cancela
-                    cuando quieras.
-                  </Typography>
+                <p className="font-body text-16 leading-body text-gray-50/72">
+                  Cada aporte se destina directamente a nuestras áreas de
+                  servicio y proyectos activos. Elige un monto, única vez o
+                  mensual, y completa tus datos — sin compromisos, cancela
+                  cuando quieras.
+                </p>
 
-                  <AnimatedFamiliesCounter />
-                </>
-              }
-              form={
-                <>
-                  {/* El formulario queda montado durante el paso 2 para que
+                <AnimatedFamiliesCounter />
+              </>
+            }
+            form={
+              <>
+                {/* El formulario queda montado durante el paso 2 para que
               "Volver" conserve lo ya ingresado (D087). */}
-                  <StepTransition
-                    showSecond={!!contribution}
-                    firstRef={stepOneRef}
-                    first={<TitheForm width={440} onSubmit={handleSubmit} />}
-                    second={
-                      contribution && (
-                        <PaymentStep
-                          width={440}
-                          contribution={contribution}
-                          summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
-                          onBack={handleBack}
-                          onReported={handleReported}
-                        />
-                      )
-                    }
-                  />
-                </>
-              }
-            />
-          </Reveal>
-        </Container>
-      </Box>
-      <Snackbar
-        open={confirmed}
-        autoHideDuration={6000}
-        onClose={() => setConfirmed(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setConfirmed(false)}
-          severity="success"
-          variant="filled"
-          sx={{
-            width: "100%",
-            bgcolor: semantic.successFilled,
-            color: gray[50],
-            "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
-          }}
-        >
-          ¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las
-          próximas horas.
-        </Alert>
-      </Snackbar>
-    </>
+                <StepTransition
+                  showSecond={!!contribution}
+                  firstRef={stepOneRef}
+                  first={<TitheForm width={440} onSubmit={handleSubmit} />}
+                  second={
+                    contribution && (
+                      <PaymentStep
+                        width={440}
+                        contribution={contribution}
+                        summary={`${TYPE_LABEL[contribution.purpose as ContributionType]} · ${FREQUENCY_LABEL[contribution.frequency]}`}
+                        onBack={handleBack}
+                        onReported={handleReported}
+                      />
+                    )
+                  }
+                />
+              </>
+            }
+          />
+        </Reveal>
+      </Container>
+    </section>
   );
 }

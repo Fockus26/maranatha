@@ -1,21 +1,21 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { fontScale, typography } from "@/theme/tokens";
 import { AmountSelector } from "./AmountSelector";
+import { Button } from "./button";
 import { DonationFormCard } from "./DonationFormCard";
+import { Field } from "./field";
+import { Input } from "./input";
 import { SegmentedToggle } from "./SegmentedToggle";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
+
+/** Etiqueta de grupo del formulario ("Monto", "Tipo", "Frecuencia"). */
+const GROUP_LABEL_CLASSES =
+  "mb-2 font-body text-12 font-medium leading-body text-foreground";
 
 /**
  * Anima el número mostrado hacia `target` (estilo "contador") en vez de
@@ -95,8 +95,6 @@ export function TitheForm({
   width,
   onSubmit,
 }: TitheFormProps) {
-  const theme = useTheme();
-
   const [type, setType] = useState<ContributionType>("diezmo");
   const [frequency, setFrequency] = useState<ContributionFrequency>("once");
   const [amount, setAmount] = useState(0);
@@ -128,16 +126,9 @@ export function TitheForm({
   }
 
   return (
-    <Box component="form" noValidate onSubmit={handleSubmit}>
+    <form noValidate onSubmit={handleSubmit}>
       <DonationFormCard width={width}>
-        <Box
-          sx={{
-            textAlign: "center",
-            pb: 4.5,
-            mb: 4.5,
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          }}
-        >
+        <div className="mb-4.5 border-b border-border pb-4.5 text-center">
           {/*
           `AnimatePresence` con `key` en si hay monto o no: cubre el caso
           "no hay monto seleccionado → primer monto" que el cliente marcó
@@ -150,72 +141,37 @@ export function TitheForm({
           — los cambios de monto entre sí los sigue cubriendo el conteo.
         */}
           <AnimatePresence mode="wait" initial={false}>
-            <Box
+            <motion.div
               key={amountValid || displayAmount > 0 ? "value" : "empty"}
-              component={motion.div}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.22, ease: EASE }}
             >
-              <Typography
-                sx={{
-                  fontFamily: typography.fontFamily.heading,
-                  fontWeight: 800,
-                  fontSize: fontScale[32],
-                  color: theme.palette.text.primary,
-                }}
-              >
+              <p className="font-heading text-32 font-extrabold leading-body text-foreground">
                 {amountValid || displayAmount > 0
                   ? formatCurrency(Math.round(displayAmount))
                   : "—"}
-              </Typography>
-            </Box>
+              </p>
+            </motion.div>
           </AnimatePresence>
-          <Typography
-            sx={{
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[12],
-              color: theme.palette.text.secondary,
-              mt: 0.25,
-            }}
-          >
+          <p className="mt-0.25 font-body text-12 leading-body text-muted-foreground">
             {TYPE_LABEL[type]} · {FREQUENCY_LABEL[frequency]}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            fontWeight: 500,
-            color: theme.palette.text.primary,
-            mb: 2,
-          }}
-        >
-          Monto
-        </Typography>
-        <Box sx={{ mb: 3.5 }}>
+        <p className={GROUP_LABEL_CLASSES}>Monto</p>
+        <div className="mb-3.5">
           <AmountSelector
             presets={presetAmounts}
             onChange={setAmount}
             error={touched && !amountValid}
             helperText="Elige un monto entre US$ 1 y US$ 10.000."
           />
-        </Box>
+        </div>
 
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            fontWeight: 500,
-            color: theme.palette.text.primary,
-            mb: 2,
-          }}
-        >
-          Tipo
-        </Typography>
-        <Box sx={{ mb: 3.5 }}>
+        <p className={GROUP_LABEL_CLASSES}>Tipo</p>
+        <div className="mb-3.5">
           <SegmentedToggle
             aria-label="Tipo de aporte"
             value={type}
@@ -225,20 +181,10 @@ export function TitheForm({
               { value: "ofrenda", label: "Ofrenda" },
             ]}
           />
-        </Box>
+        </div>
 
-        <Typography
-          sx={{
-            fontFamily: typography.fontFamily.body,
-            fontSize: fontScale[12],
-            fontWeight: 500,
-            color: theme.palette.text.primary,
-            mb: 2,
-          }}
-        >
-          Frecuencia
-        </Typography>
-        <Box sx={{ mb: 4.5 }}>
+        <p className={GROUP_LABEL_CLASSES}>Frecuencia</p>
+        <div className="mb-4.5">
           <SegmentedToggle
             aria-label="Frecuencia del aporte"
             value={frequency}
@@ -248,58 +194,46 @@ export function TitheForm({
               { value: "monthly", label: "Mensual" },
             ]}
           />
-        </Box>
+        </div>
 
-        <Box
-          sx={{
-            borderTop: `1px solid ${theme.palette.divider}`,
-            pt: 4.5,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3.5,
-          }}
-        >
-          <TextField
+        <div className="flex flex-col gap-3.5 border-t border-border pt-4.5">
+          <Field
             label="Nombre completo"
-            fullWidth
-            size="small"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={touched && !nameValid}
-            helperText={
+            required
+            error={
               touched && !nameValid ? "Ingresa tu nombre completo." : undefined
             }
-            sx={SMALL_FIELD_SX}
-          />
-          <TextField
+          >
+            <Input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Field>
+          <Field
             label="Correo electrónico"
-            type="email"
-            fullWidth
-            size="small"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={touched && !emailValid}
-            helperText={
+            required
+            error={
               touched && !emailValid
                 ? "Ingresa un correo electrónico válido."
                 : undefined
             }
-            sx={SMALL_FIELD_SX}
-          />
-        </Box>
+          >
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Field>
+        </div>
 
-        <Box
-          sx={{
-            borderTop: `1px solid ${theme.palette.divider}`,
-            mt: 4.5,
-            pt: 4.5,
-          }}
-        >
-          <Button fullWidth type="submit" variant="contained" color="secondary">
+        <div className="mt-4.5 border-t border-border pt-4.5">
+          <Button type="submit" color="secondary" className="w-full">
             Continuar al pago
           </Button>
-        </Box>
+        </div>
       </DonationFormCard>
-    </Box>
+    </form>
   );
 }

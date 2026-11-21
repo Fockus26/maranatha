@@ -1,19 +1,14 @@
 "use client";
 
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Dialog from "@mui/material/Dialog";
-import IconButton from "@mui/material/IconButton";
-import Snackbar from "@mui/material/Snackbar";
-import Typography from "@mui/material/Typography";
 import { useInView } from "framer-motion";
+import { HandHeart, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useTitheModal } from "@/lib/titheModalStore";
-import { patternLayerSx } from "@/theme/patterns";
-import { fontScale, gray, primary, radius, semantic } from "@/theme/tokens";
+import { Button } from "./button";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "./dialog";
 import { PaymentStep, type PaymentStepContribution } from "./PaymentStep";
+import { PatternLayer } from "./pattern-layer";
 import { StepTransition } from "./StepTransition";
 import {
   type ContributionType,
@@ -29,37 +24,38 @@ import { TitheLayout } from "./TitheLayout";
  * Home (con el formulario completo) y este modal sigue abriéndose al hacer
  * click en el botón "Ofrendar" desde cualquier página (Navbar/PageNavbar/MobileMenuOverlay). Se
  * controla desde `TitheModalProvider`/`useTitheModal()`
- * (`lib/titheModalStore.tsx`), montado una sola vez en `app/layout.tsx`.
+ * (`lib/titheModalStore.tsx`), montado una sola vez en `app/layout.tsx` (D049).
+ *
+ * Sobre el `dialog` de Radix (D129): no monta su contenido cerrado (D099), así
+ * que con el modal cerrado solo existe la instancia de `TitheForm` de la
+ * sección; abierto, Radix atrapa el foco y deja inerte el resto de la página.
+ * El `DateField` del paso 2 se porta dentro de este `role="dialog"` (D115).
  *
  * Conserva el contenido y el efecto "wow" del fondo decidido en D048
- * (patrón geométrico en pan continuo + contador animado de familias, ver
- * comparativo de `/design`), ahora dentro de un `Dialog` de MUI en vez de
- * una sección de Home. El contador solo corre mientras el modal está
- * abierto (`active`), para que se reinicie visualmente si el usuario lo
- * cierra y lo vuelve a abrir mucho después — mismo criterio de "una sola
- * vez por apertura" que tenía `useInView({ once: true })` en la sección
- * original, ahora ligado al ciclo de vida del modal en vez del scroll.
+ * (patrón geométrico en pan continuo + contador animado de familias). El
+ * contador solo corre mientras el modal está abierto (`active`), para que se
+ * reinicie si el usuario lo cierra y lo vuelve a abrir — mismo criterio de
+ * "una sola vez por apertura" que `useInView({ once: true })`.
  *
- * Revisión (feedback directo del cliente): el modal siempre ocupa **toda
- * la pantalla** (`fullScreen` fijo, ya no solo por debajo de `md`) — antes
- * en desktop se veía como un dialog centrado de ancho medio, y el cliente
- * lo quería a pantalla completa en cualquier tamaño. El contenido se
- * centra verticalmente dentro de esa pantalla completa.
- *
- * Segunda revisión (feedback directo del cliente, previo a fase 08):
- * - Se quita el resplandor/degradado naranja que había detrás del
- *   formulario (`radial-gradient` en la esquina superior derecha) — se
- *   veía como un "reflejo" no intencional sobre la tarjeta del formulario.
- * - El navy de fondo pasa de `primary[700]` (`#101B45`) a `primary[900]`
- *   (`#060A1D`) — el cliente lo sentía "muy claro"; entre eso y el patrón
- *   de líneas blancas semitransparentes encima, el navy se percibía menos
- *   saturado de lo esperado.
- * - Los acentos naranjas (eyebrow, ícono, contador de familias) pasan de
- *   `secondary.light` (`#FCA355`, pastel) a `secondary.main` (`#F9750D`,
- *   el naranja de marca) — mismo motivo: se veían demasiado apagados.
+ * Revisiones del cliente que se conservan:
+ * - Ocupa **toda la pantalla** en cualquier tamaño, con el contenido centrado
+ *   verticalmente.
+ * - Sin el resplandor naranja detrás del formulario.
+ * - Navy `primary[900]` (no `primary[700]`): el cliente lo sentía "muy claro".
+ * - Acentos naranjas en `secondary.main`, no en `secondary.light`.
+ * - Sin velo blanco sobre el navy en oscuro (D057): el papel es `primary-900`
+ *   sólido.
+ * - El papel es un marco fijo (`overflow-hidden`) con el fondo, y el scroll
+ *   vive en una capa interna: así el patrón cubre todo el alto aunque el paso
+ *   de pago no entre en la pantalla.
  */
 
 const FAMILIES_SUPPORTING = 132;
+
+/** Mismo texto y duración que el `Snackbar` que reemplaza (D118). */
+const REPORTED_TOAST_TEXT =
+  "¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las próximas horas.";
+const REPORTED_TOAST_MS = 6000;
 
 function AnimatedFamiliesCounter({ active }: { active: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -82,44 +78,20 @@ function AnimatedFamiliesCounter({ active }: { active: boolean }) {
   }, [active, isInView]);
 
   return (
-    <Box
-      ref={ref}
-      sx={{
-        mt: { xs: 4, md: 5 },
-        pt: 3,
-        borderTop: "1px solid rgba(245,246,250,0.15)",
-      }}
-    >
-      <Typography
-        component="span"
-        sx={{
-          display: "block",
-          fontFamily: "var(--font-heading)",
-          fontWeight: 800,
-          fontSize: { xs: "36px", md: "44px" },
-          lineHeight: 1,
-          color: "secondary.main",
-        }}
-      >
+    <div ref={ref} className="mt-4 border-t border-gray-50/15 pt-3 md:mt-5">
+      {/* 36/44 px: sin token en la escala (ver "Tokens que faltaron", PR). */}
+      <span className="block font-heading text-[36px] font-extrabold leading-none text-secondary md:text-[44px]">
         +{value}
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: "var(--font-body)",
-          fontSize: fontScale[13],
-          color: "rgba(245,246,250,0.65)",
-          mt: 0.75,
-        }}
-      >
+      </span>
+      <p className="mt-0.75 font-body text-13 leading-body text-gray-50/65">
         familias aportando este año entre toda la comunidad
-      </Typography>
-    </Box>
+      </p>
+    </div>
   );
 }
 
 export function TitheModal() {
   const { open, closeTithe } = useTitheModal();
-  const [confirmed, setConfirmed] = useState(false);
   // Paso 2 (método de pago). `null` = el donante sigue en el formulario.
   const [contribution, setContribution] =
     useState<PaymentStepContribution | null>(null);
@@ -154,171 +126,74 @@ export function TitheModal() {
 
   function handleReported() {
     handleClose();
-    setConfirmed(true);
+    toast.success(REPORTED_TOAST_TEXT, { duration: REPORTED_TOAST_MS });
   }
 
   return (
-    <>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        fullScreen
-        aria-labelledby="tithe-modal-title"
-        slotProps={{
-          paper: {
-            // `elevation: 0` es la parte que realmente importa acá: el Dialog
-            // de MUI monta su Paper con elevation 24 por defecto, y en modo
-            // oscuro `Paper` agrega automáticamente un overlay blanco
-            // translúcido proporcional a la elevación (para simular que las
-            // superficies "más cerca de la luz" se ven más claras) — eso era
-            // el azul "lavado" que reportó el cliente: no era el navy en sí,
-            // era ese overlay encima. En modo claro `Paper` no aplica ningún
-            // overlay, por eso ahí sí se veía bien. `elevation: 0` desactiva
-            // el overlay por completo, dejando el navy sólido sin filtrar.
-            elevation: 0,
-            sx: {
-              position: "relative",
-              // Segunda revisión de este fix (feedback de cliente): la versión
-              // anterior combinaba `scroll="body"` con `fullScreen` para
-              // resolver el recorte de contenido en mobile — pero esa
-              // combinación es una conocida rareza de MUI: la clase que
-              // `scroll="body"` le agrega al Paper (`display: inline-block`,
-              // para centrarlo dentro del body) pisaba el `width: 100%` que
-              // `fullScreen` necesita, y el modal quedaba angosto (ajustado al
-              // contenido) en vez de ocupar todo el ancho. Se quita
-              // `scroll="body"` del todo — con el `scroll="paper"` default de
-              // MUI, el propio Paper `fullScreen` (ya 100% ancho/alto por su
-              // clase nativa) es el que scrollea internamente
-              // (`overflowY: "auto"`) cuando el contenido no entra, sin
-              // ninguna clase adicional que le achique el ancho.
-              //
-              // Tercera revisión: el Paper ya no es el que scrollea. Cuando el
-              // paso de pago superaba el alto de la pantalla, el fondo animado
-              // (absoluto dentro del Paper) solo cubría la primera "pantalla" y
-              // el resto quedaba sin patrón. Ahora el Paper es un marco fijo
-              // (`overflow: hidden`) con el fondo, y el scroll vive en una capa
-              // interna (ver abajo).
-              width: "100%",
-              height: "100%",
-              overflow: "hidden",
-              backgroundColor: primary[900],
-              borderRadius: 0,
-              m: 0,
-            },
-          },
-        }}
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) handleClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        // Sin descripción: el párrafo se oculta en móvil.
+        aria-describedby={undefined}
+        // Pantalla completa: anula la caja centrada de 444 px del `dialog`
+        // (posición, ancho, radio, sombra, padding, grid y su scroll) y el
+        // zoom de entrada; queda el fundido, como el `Fade` del Dialog de MUI.
+        className="inset-0 top-0 left-0 block h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-none bg-primary-900 p-0 shadow-none sm:max-w-none data-open:zoom-in-100 data-closed:zoom-out-100"
       >
-        {/* Patrón geométrico en pan continuo — mismo "efecto wow" de D048,
-          ahora sin salto al reiniciar el bucle (ver theme/patterns.ts). */}
-        <Box aria-hidden="true" sx={patternLayerSx()} />
+        {/* Patrón geométrico en pan continuo — mismo "efecto wow" de D048. */}
+        <PatternLayer />
 
-        <IconButton
-          onClick={handleClose}
-          aria-label="Cerrar"
-          sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            zIndex: 2,
-            color: gray[50],
-            backgroundColor: "rgba(245,246,250,0.1)",
-            "&:hover": { backgroundColor: "rgba(245,246,250,0.18)" },
-          }}
-        >
-          <CloseRoundedIcon fontSize="small" />
-        </IconButton>
+        <DialogClose asChild>
+          <Button
+            variant="plain"
+            size="icon"
+            aria-label="Cerrar"
+            className="absolute top-3 right-3 z-2 bg-gray-50/10 text-gray-50 hover:bg-gray-50/18 dark:text-gray-50 dark:hover:bg-gray-50/18"
+          >
+            <X className="size-5" aria-hidden="true" />
+          </Button>
+        </DialogClose>
 
         {/* Capa que scrollea, por encima del fondo fijo. */}
-        <Box
-          sx={{ position: "absolute", inset: 0, zIndex: 1, overflowY: "auto" }}
-        >
-          <Box
-            sx={{
-              position: "relative",
-              boxSizing: "border-box",
-              minHeight: "100%",
-              display: "flex",
-              flexDirection: "column",
-              // Fase QA (design-qa): en pantallas bajas (teléfono horizontal) el
-              // centrado vertical dejaba el submit fuera de vista sin señal de
-              // que había más abajo. `safe center` no recorta el inicio del
-              // contenido cuando no entra; el `pb` grande garantiza aire bajo el
-              // botón "Continuar al pago".
-              justifyContent: "safe center",
-              p: { xs: 3, md: 6 },
-              pb: { xs: 8, md: 6 },
-            }}
-          >
+        <div className="absolute inset-0 z-1 overflow-y-auto">
+          {/*
+            Fase QA (design-qa): en pantallas bajas (teléfono horizontal) el
+            centrado vertical dejaba el submit fuera de vista sin señal de
+            que había más abajo. `safe center` no recorta el inicio del
+            contenido cuando no entra; el `pb` grande garantiza aire bajo el
+            botón "Continuar al pago".
+          */}
+          <div className="relative box-border flex min-h-full flex-col justify-center-safe p-3 pb-8 md:p-6">
             <TitheLayout
               text={
                 <>
-                  <Box
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: 44,
-                      height: 44,
-                      borderRadius: `${radius.lg}px`,
-                      backgroundColor: "rgba(245,246,250,0.1)",
-                      color: "secondary.main",
-                      mb: 3,
-                    }}
-                  >
-                    <VolunteerActivismRoundedIcon fontSize="small" />
-                  </Box>
+                  <div className="mb-3 inline-flex size-11 items-center justify-center rounded-lg bg-gray-50/10 text-secondary">
+                    <HandHeart className="size-5" aria-hidden="true" />
+                  </div>
 
-                  <Typography
-                    component="span"
-                    sx={{
-                      display: "block",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 500,
-                      fontSize: fontScale[11],
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "secondary.main",
-                      mb: 1.5,
-                    }}
-                  >
+                  {/* `tracking`: sin token (ver "Tokens que faltaron", PR). */}
+                  <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-[0.18em] text-secondary">
                     Da con propósito
-                  </Typography>
+                  </span>
 
-                  <Typography
-                    component="h2"
-                    id="tithe-modal-title"
-                    sx={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: { xs: "26px", md: "32px" },
-                      lineHeight: 1.2,
-                      letterSpacing: "-0.01em",
-                      color: gray[50],
-                      mb: 2,
-                    }}
-                  >
+                  <DialogTitle className="mb-2 font-heading text-26 font-extrabold leading-h3 tracking-[-0.01em] text-gray-50 md:text-32">
                     Tu ofrenda sostiene esta obra
-                  </Typography>
+                  </DialogTitle>
 
                   {/* Feedback de cliente: en mobile este párrafo empujaba el
                 formulario más abajo sin aportar tanto como el heading — se
-                quita por debajo de `md` para que el modal quede más
-                compacto; desde `md` (donde hay espacio de sobra al lado del
-                formulario) se mantiene. */}
-                  <Typography
-                    sx={{
-                      display: { xs: "none", md: "block" },
-                      fontFamily: "var(--font-body)",
-                      fontSize: fontScale[16],
-                      lineHeight: 1.6,
-                      color: "rgba(245,246,250,0.72)",
-                    }}
-                  >
+                quita por debajo de `md`. */}
+                  <p className="hidden font-body text-16 leading-body text-gray-50/72 md:block">
                     Cada aporte se destina directamente a nuestras áreas de
                     servicio y proyectos activos. Elige un monto, única vez o
                     mensual, y completa tus datos — sin compromisos, cancela
                     cuando quieras.
-                  </Typography>
+                  </p>
 
                   <AnimatedFamiliesCounter active={open} />
                 </>
@@ -346,31 +221,9 @@ export function TitheModal() {
                 </>
               }
             />
-          </Box>
-        </Box>
-      </Dialog>
-
-      <Snackbar
-        open={confirmed}
-        autoHideDuration={6000}
-        onClose={() => setConfirmed(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setConfirmed(false)}
-          severity="success"
-          variant="filled"
-          sx={{
-            width: "100%",
-            bgcolor: semantic.successFilled,
-            color: gray[50],
-            "& .MuiAlert-icon, & .MuiAlert-action": { color: gray[50] },
-          }}
-        >
-          ¡Gracias! Recibimos tu reporte de pago. Lo verificaremos en las
-          próximas horas.
-        </Alert>
-      </Snackbar>
-    </>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
