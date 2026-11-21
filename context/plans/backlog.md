@@ -11,3 +11,13 @@
 - (QA tanda 2026-11-19 #4, Medio) Con el panel lateral abierto el Snackbar de error queda bajo `aria-hidden` (WCAG 4.1.3): mostrar el error dentro del `DashboardFormDrawer` (Alert) mientras esté abierto. Script: `5-aviso-oculto-con-panel.mjs`.
 - (QA tanda 2026-11-19 #5, Bajo) Franja de 12 px a la derecha con Drawer/Dialog abiertos: `scrollbar-gutter: stable` (`theme/globalStyles.ts:79`) + `body{overflow:hidden}`. Script: `3-riel-scroll-overlay.mjs`.
 - (fix #51, visto de paso) Tras un ancla nativa ("Saltar al contenido", `#agenda` con `<a>` nativo), ir a otra página y pulsar Atrás cambia la URL a `/#main-content` pero no navega: Next ignora el `popstate` sin `state`. Arreglo: que esos enlaces pasen por `Link`/router o que el skip-link mueva el foco sin crear entrada de historial.
+
+- (ola 2 shadcn, #61) Paso 2 del diezmo a 360 px claro mide 742 → 732 px tras migrar StepTransition (oscuro igual); sin confirmar si es la carga de métodos sin DB. Revisar en el QA de versión.
+
+## De la ola 4 shadcn (2026-11-21) — para el QA de versión
+- Alturas de los `loading.tsx` del panel (D102) tras #68: el worker midió otro elemento `aria-busy`.
+- "Ver comprobante" en `/dashboard/pagos` (sin comprobantes en la base local).
+- Panel con sesión tras #67 (tokens y primitivas; W2 sin Docker).
+- `PaymentStep`, error al cargar métodos: "Reintentar" a 12 px del mensaje (antes 8).
+- Contraste: error de `Field` sobre navy en claro 3,49:1 (heredado).
+- `status.test.ts`: timeout falso con la máquina cargada (subir timeout o calentar `Intl`).

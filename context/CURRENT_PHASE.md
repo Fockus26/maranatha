@@ -5,13 +5,13 @@
 
 ## Ahora
 
-**Fase:** migración MUI → shadcn (fase propia, antes del QA 09) · **Track:** Producto
-**Ola:** 2 de 5 (primitivas) por lanzar · ola 1 cerrada (#58, main @ dd080a4) · plan: `context/plans/phase-migracion-shadcn.md`
+**Fase:** migración MUI → shadcn **cerrada** el 2026-11-21 (D143; olas 1–5: #58–#69, main @ b245f0b) · **Track:** Producto
+**Sigue:** QA de versión 09 (`design-qa` en todas las rutas, `functional-qa` en pagos y sesión) · plan: `context/plans/phase-migracion-shadcn.md` › "Después de la fase"
 
 | Unidad | Rama | Estado | Log |
 |---|---|---|---|
 
-Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ 4029221 con #46; CI, Deploy (VPS) y Release en verde); logs en `PHASE_LOG/` de cada rama. Tanda 2026-11-19: `PHASE_LOG/tanda-2026-11-19.md`.
+Ola 5 cerrada el 2026-11-21: #69 `chore/quitar-mui` (minor, D140–D143; log `PHASE_LOG/chore-quitar-mui.md`). Sin `@mui`/`@emotion` en el código; guard `tests/unit/sin-mui.test.ts`. Tras el merge: `bun install` en cada copia local.
 
 ## Bloquea (acciones de César o externas)
 
@@ -30,7 +30,7 @@ Tanda 2026-11-20 ola 1 cerrada (#52–#55 mergeados, main @ 4029221 con #46; CI,
 
 ## Sigue
 
-- **Migración MUI → shadcn:** ola 2 (primitivas) en otra sesión: `/orchestrate ola 2 de la fase migración MUI → shadcn`. César autorizó al orquestador a mergear los PRs de la fase. Contrastes bajo AA heredados (oscuro): ver el plan.
+- **QA de versión 09:** `design-qa` (todas las rutas) + `functional-qa` (pagos y sesión); incluye los "Sin verificar" de la fase shadcn y las decisiones abiertas D128, D129, D132 (ver el plan). `tailwind.config.ts` sin uso: decide César.
 
 - PR `style/biome-format`: formatear con Biome, corregir los 9 errores de lint y añadir el CI (D076).
 - Persistir los proyectos del dashboard en la base (Postgres, hoy en memoria, D045).

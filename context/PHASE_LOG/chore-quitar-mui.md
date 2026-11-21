@@ -1,0 +1,6 @@
+# chore/quitar-mui — ola 5 fase shadcn (W1, cierre de fase) · PR #69
+
+- Fuera `@mui/material`, `@mui/icons-material`, `@mui/material-nextjs`, `@emotion/react` y `@emotion/styled` (package.json + bun.lock). Borrados `theme/{theme,globalStyles,fieldStyles,patterns}.ts` y `components/ui/outlinedActionSx.ts`.
+- `ThemeRegistry` → `theme/ColorModeProvider.tsx` (D140); base de `body`, `--focus-ring`, scroll y selección en CSS propio con variables generadas en `app/tokens.css` (D141); reglas `.Mui*` de `globals.css` quitadas sin sustituto (D142); `global-error` con `data-color-mode` + `import "./globals.css"`. Guard `tests/unit/sin-mui.test.ts`. Docs y D143 (cierre de fase). Changeset minor.
+- Medido: estilos computados de html/body, foco, selección, scroll (página, interno, navy), forced-colors y transición del toggle, iguales a main; capturas 24×2 comparadas por píxel (oscuro 0 %, claro solo imágenes remotas y datos de pagos); axe 0 a 320 claro/oscuro en 6 rutas; Tab con anillo en home y panel. typecheck, lint, 240 tests y CI (con build) verdes.
+- No verificado: global-error en ejecución; Firefox. Build local falla en next/font/google por el entorno (también sin el cambio de global-error); el del CI pasa.
