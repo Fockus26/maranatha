@@ -36,6 +36,16 @@ describe("app/tokens.css", () => {
     expect(css).toContain(`--spacing-lg: ${spacing.lg}px;`);
     expect(css).toContain("--spacing: 4px;");
     expect(css).toContain(`--container-narrow: ${layout.contentNarrow}px;`);
+    expect(css).toContain(`--container-agenda: ${layout.agenda}px;`);
+    expect(css).toContain(`--container-panel: ${layout.panel}px;`);
+    expect(css).toContain("--container-reading: 70ch;");
+  });
+
+  test("los nombres de Tailwind por defecto de tracking no sobreviven (D137)", () => {
+    expect(css).toContain("--tracking-*: initial;");
+    expect(css).toContain("--tracking-tight: -0.01em;");
+    expect(css).toContain("--tracking-eyebrow-lg: 0.18em;");
+    expect(css).not.toContain("--tracking-widest");
   });
 
   test("las familias no se redefinen en :root (las pone next/font)", () => {
@@ -151,5 +161,21 @@ describe("cn conoce los tokens propios (D110)", () => {
 
   test("max-w con los anchos propios", () => {
     expect(cn("max-w-form-drawer", "max-w-narrow")).toBe("max-w-narrow");
+  });
+
+  test.each(themeKeys("container"))("max-w-%s se fusiona como ancho", (c) => {
+    expect(cn("max-w-narrow", `max-w-${c}`)).toBe(`max-w-${c}`);
+  });
+
+  test.each(
+    themeKeys("tracking"),
+  )("tracking-%s se fusiona como tracking", (t) => {
+    expect(cn("tracking-tight", `tracking-${t}`)).toBe(`tracking-${t}`);
+  });
+
+  test.each(
+    themeKeys("leading"),
+  )("leading-%s se fusiona como interlineado", (l) => {
+    expect(cn("leading-h1", `leading-${l}`)).toBe(`leading-${l}`);
   });
 });

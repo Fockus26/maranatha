@@ -9,7 +9,7 @@ export const SKELETON_ACTION_HEIGHT = 48;
 
 /**
  * Contenedor de contenido del panel: mismo padding que las páginas reales.
- * `maxWidthClass`: el tope (`max-w-[1000px]` Agenda, `max-w-[1400px]` el
+ * `maxWidthClass`: el tope (`max-w-agenda` Agenda, `max-w-panel` el
  * resto; sin token, como en las páginas).
  */
 export function SkeletonContent({

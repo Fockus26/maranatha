@@ -34,7 +34,7 @@ export function AgendaItem({
         <span className="font-extrabold font-heading text-26 text-primary-foreground leading-none">
           {day}
         </span>
-        <span className="mt-px font-body text-primary-foreground/70 text-small uppercase tracking-[0.05em]">
+        <span className="mt-px font-body text-primary-foreground/70 text-small uppercase tracking-wide-5">
           {month}
         </span>
       </div>

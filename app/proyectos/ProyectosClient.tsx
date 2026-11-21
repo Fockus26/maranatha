@@ -62,11 +62,11 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
       <main id="main-content" className="py-8 md:py-12">
         <Container maxWidth="lg">
           <div className="mb-5 max-w-160 md:mb-7">
-            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-eyebrow-lg wide:text-13">
               Proyectos
             </span>
 
-            <h1 className="m-0 mb-2 font-extrabold font-heading text-32 text-foreground leading-h2 tracking-[-0.01em] md:text-[44px] wide:text-54">
+            <h1 className="m-0 mb-2 font-extrabold font-heading text-32 text-foreground leading-h2 tracking-tight md:text-44 wide:text-54">
               Todos los proyectos
             </h1>
 
@@ -200,12 +200,12 @@ function ViewButton({
   return (
     <Button
       variant="plain"
-      size="icon"
+      size="icon-sm"
       onClick={onClick}
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "size-7.5 rounded-none p-1.25 hover:bg-primary/8 hover:text-primary dark:hover:bg-primary/8 dark:hover:text-primary",
+        "rounded-none hover:bg-primary/8 hover:text-primary dark:hover:bg-primary/8 dark:hover:text-primary",
         active
           ? "bg-primary/8 text-primary dark:text-primary"
           : "text-muted-foreground dark:text-muted-foreground",

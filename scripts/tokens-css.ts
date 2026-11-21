@@ -104,6 +104,12 @@ function themeBlock() {
   for (const [k, lh] of Object.entries(typography.lineHeight)) {
     v.push([`--leading-${k}`, lh]);
   }
+  // Espaciado entre letras (D137): sin `tracking-tight/wide/…` de Tailwind
+  // (valores distintos: -0.025em, 0.025em…).
+  v.push(["--tracking-*", "initial"]);
+  for (const [k, ls] of Object.entries(typography.letterSpacing)) {
+    v.push([`--tracking-${k}`, ls]);
+  }
   v.push(["--font-weight-*", "initial"]);
   for (const [k, w] of Object.entries(FONT_WEIGHTS)) {
     v.push([`--font-weight-${k}`, w]);
@@ -122,7 +128,7 @@ function themeBlock() {
   // `--spacing-md`, ver D109.
   v.push(["--container-*", "initial"]);
   for (const [k, n] of Object.entries(CONTAINERS)) {
-    v.push([`--container-${k}`, px(n)]);
+    v.push([`--container-${k}`, typeof n === "string" ? n : px(n)]);
   }
 
   v.push(["--radius-*", "initial"]);

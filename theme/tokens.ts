@@ -152,6 +152,27 @@ export const typography = {
     // Botones: el interlineado por defecto de MUI, que hoy pintan todos los
     // botones (D110:`components/ui/button.tsx`).
     button: 1.75,
+    // Interlineados con nombre de Tailwind (D137): títulos grandes y cuerpos
+    // que no son h1–h4 ni `body` (antes `leading-[1.3]` etc.).
+    tight: 1.15,
+    snug: 1.3,
+    normal: 1.4,
+    relaxed: 1.65,
+  },
+  // Espaciado entre letras (D137): `tracking-<nombre>`. Los valores son los que
+  // ya usaba el sitio como `tracking-[…em]`; `caps`/`eyebrow` son los de las
+  // etiquetas en mayúsculas y los sobretítulos.
+  letterSpacing: {
+    tighter: "-0.02em",
+    tight: "-0.01em",
+    wide: "0.02em",
+    wider: "0.03em",
+    "wide-4": "0.04em",
+    "wide-5": "0.05em",
+    "wide-6": "0.06em",
+    caps: "0.08em",
+    eyebrow: "0.14em",
+    "eyebrow-lg": "0.18em",
   },
 } as const;
 
@@ -164,7 +185,9 @@ export const fontScale = {
   11: "11px",
   11.5: "11.5px",
   12: "12px",
+  12.5: "12.5px",
   13: "13px",
+  13.5: "13.5px",
   14: "14px",
   15: "15px",
   16: "16px",
@@ -177,10 +200,15 @@ export const fontScale = {
   28: "28px",
   32: "32px",
   34: "34px",
+  36: "36px",
+  38: "38px",
   40: "40px",
+  44: "44px",
   46: "46px",
+  52: "52px",
   54: "54px",
   56: "56px",
+  58: "58px",
   64: "64px",
 } as const;
 
@@ -233,8 +261,15 @@ export const largeScreen = 1920;
 // `lg` en `xl` y ≥1920 (`wide`); en Tailwind `max-w-page-lg` (D119).
 export const layout = {
   contentNarrow: 960,
+  // `max-w-agenda` (la lista de reuniones) y `max-w-panel` (el contenido del
+  // dashboard), D137. `max-w-reading` es `readingMeasure` (la medida de lectura).
+  agenda: 1000,
+  panel: 1400,
   page: { xs: 444, sm: 600, md: 900, lg: 1200, xl: 1440, wide: 1600 },
 } as const;
+
+// Medida de lectura de los textos largos (`max-w-reading`, D137).
+export const readingMeasure = "70ch";
 
 // Panel lateral de formularios del dashboard (D096): ancho desde `md`.
 export const formDrawer = {

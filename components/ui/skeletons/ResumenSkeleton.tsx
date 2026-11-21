@@ -22,6 +22,7 @@ export function ResumenSkeleton() {
       <h1 className="sr-only">Resumen del dashboard</h1>
       <DashboardStatBand loading stats={STATS} />
       <div className={cn(DASHBOARD_CONTENT_CLASS, "py-5")}>
+        {/* valor único: la proporción del resumen (misma que app/dashboard/(panel)/page.tsx) */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.6fr_1fr]">
           <div className={CARD}>
             <p className={cn(CARD_TITLE, "mb-0.75")}>Próximos cierres</p>

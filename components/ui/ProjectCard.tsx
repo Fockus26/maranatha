@@ -116,12 +116,8 @@ function ProgressBlock({
       <Progress
         value={percent}
         aria-label={`${percent}% recaudado de la meta`}
-        className={cn(
-          "mb-2 h-1.5 rounded-pill",
-          isCompleted
-            ? "[&>[data-slot=progress-indicator]]:bg-success"
-            : "[&>[data-slot=progress-indicator]]:bg-secondary",
-        )}
+        color={isCompleted ? "success" : "secondary"}
+        className="mb-2 h-1.5 rounded-pill"
       />
       <div className="mb-4 flex justify-between font-body text-12">
         <span className="font-medium text-foreground">
@@ -226,7 +222,7 @@ export function ProjectCard({
       </CardPhoto>
 
       <div className="flex flex-1 flex-col p-4">
-        <p className="m-0 mb-1.5 line-clamp-2 min-h-[calc(1.3em*2)] overflow-hidden font-heading font-semibold text-17 text-foreground leading-[1.3]">
+        <p className="m-0 mb-1.5 line-clamp-2 min-h-[calc(1.3em*2)] overflow-hidden font-heading font-semibold text-17 text-foreground leading-snug">
           {title}
         </p>
         <p className="m-0 mb-4 line-clamp-3 min-h-[calc(1.5em*3)] overflow-hidden font-body text-body text-muted-foreground leading-small">

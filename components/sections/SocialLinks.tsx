@@ -109,11 +109,11 @@ export function SocialLinks({
       <Container maxWidth="lg">
         <Reveal>
           <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-6 md:text-left">
-            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-eyebrow-lg wide:text-13">
               Redes sociales
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-tight md:text-38 wide:text-46">
               Síguenos en cada cuenta
             </h2>
 
@@ -140,7 +140,8 @@ export function SocialLinks({
                     className={cn(
                       "flex min-h-11 min-w-0 basis-0 cursor-pointer items-center justify-center gap-0.6 px-0.75 py-1.4 font-body text-12 transition-[flex-grow,background-color,color] duration-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                       isActive
-                        ? "grow-[1.3] rounded-t-[14px] bg-card font-semibold text-foreground"
+                        ? // valor único: la pestaña activa crece 1.3 y redondea 14 px arriba
+                          "grow-[1.3] rounded-t-[14px] bg-card font-semibold text-foreground"
                         : "grow bg-transparent font-medium text-muted-foreground",
                     )}
                   >

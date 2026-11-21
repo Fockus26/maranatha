@@ -32,10 +32,10 @@ export function ServiceAreaCard({
       onClick={onClick}
       bottomSlot={
         <>
-          <p className="mb-0.5 font-bold font-heading text-19 text-gray-50 tracking-[-0.01em]">
+          <p className="mb-0.5 font-bold font-heading text-19 text-gray-50 tracking-tight">
             {name}
           </p>
-          <p className="font-body text-13 text-gray-200 leading-[1.4]">
+          <p className="font-body text-13 text-gray-200 leading-normal">
             {description}
           </p>
         </>

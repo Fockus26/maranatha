@@ -50,7 +50,7 @@ export function ProjectDetailContent({
 
       {/* Medida de lectura (design-qa fase 09): sin tope llegaba a ~117
           caracteres por línea desde 1920px. */}
-      <p className="m-0 mb-5 max-w-[70ch] font-body text-body-lg text-muted-foreground leading-body">
+      <p className="m-0 mb-5 max-w-reading font-body text-body-lg text-muted-foreground leading-body">
         {description}
       </p>
 

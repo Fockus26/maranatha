@@ -59,7 +59,7 @@ export function ProjectSidebar({
           queda en success (verde), ya lo suficientemente distintivo. */}
       <span
         className={cn(
-          "inline-block rounded-pill px-2.25 py-0.75 font-body font-bold text-11 tracking-[0.03em]",
+          "inline-block rounded-pill px-2.25 py-0.75 font-body font-bold text-11 tracking-wider",
           isCompleted
             ? "bg-success-filled text-white"
             : "border border-gray-50/14 bg-primary-700 text-gray-50 dark:bg-primary-600",
@@ -78,12 +78,8 @@ export function ProjectSidebar({
       <Progress
         value={percent}
         aria-label={`${percent}% recaudado de la meta`}
-        className={cn(
-          "mb-1.5 h-1.5 rounded-pill",
-          isCompleted
-            ? "[&>[data-slot=progress-indicator]]:bg-success"
-            : "[&>[data-slot=progress-indicator]]:bg-secondary",
-        )}
+        color={isCompleted ? "success" : "secondary"}
+        className="mb-1.5 h-1.5 rounded-pill"
       />
       <p className="m-0 mb-4 font-body text-11 text-muted-foreground leading-body">
         {percent}% · {deadlineLabel}
@@ -106,7 +102,7 @@ export function ProjectSidebar({
         <div className="border-border border-t pt-3.5">
           {/* Fase QA (a11y): antes `text.disabled` (~2.7:1 sobre el papel) —
               es un encabezado de sección real, no texto inhabilitado. */}
-          <p className="m-0 mb-2.5 font-body text-11 text-muted-foreground uppercase leading-body tracking-[0.04em]">
+          <p className="m-0 mb-2.5 font-body text-11 text-muted-foreground uppercase leading-body tracking-wide-4">
             Encargados
           </p>
 

@@ -78,7 +78,7 @@ export function DashboardAuthShell({
         <div className="flex w-full flex-col gap-2.5 md:gap-3">
           <div className="flex items-center gap-2 text-secondary">
             <Shield className="size-4" aria-hidden="true" />
-            <span className="font-semibold text-11 tracking-[0.18em] uppercase">
+            <span className="font-semibold text-11 tracking-eyebrow-lg uppercase">
               Área privada
             </span>
           </div>

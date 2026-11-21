@@ -66,7 +66,7 @@ function AnimatedFamiliesCounter() {
   return (
     <div ref={ref} className="mt-4 border-t border-gray-50/15 pt-3 md:mt-5">
       {/* 36/44 px: sin token en la escala (ver "Tokens que faltaron", PR). */}
-      <span className="block font-heading text-[36px] font-extrabold leading-none text-secondary-300 md:text-[44px]">
+      <span className="block font-heading text-36 font-extrabold leading-none text-secondary-300 md:text-44">
         +{value}
       </span>
       <p className="mt-0.75 font-body text-13 leading-body text-gray-50/65">
@@ -130,13 +130,13 @@ export function Tithe() {
                 </div>
 
                 {/* `tracking`: sin token (ver "Tokens que faltaron", PR). */}
-                <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-[0.18em] text-secondary-300">
+                <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-eyebrow-lg text-secondary-300">
                   Da con propósito
                 </span>
 
                 <h2
                   id="ofrendar-title"
-                  className="mb-2 font-heading text-28 font-extrabold leading-h3 tracking-[-0.01em] text-gray-50 md:text-[38px]"
+                  className="mb-2 font-heading text-28 font-extrabold leading-h3 tracking-tight text-gray-50 md:text-38"
                 >
                   Tu ofrenda sostiene esta obra
                 </h2>
