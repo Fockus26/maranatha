@@ -165,18 +165,6 @@ function notify(message: string, ok: boolean) {
   else toast.error(message);
 }
 
-/**
- * Botón "heredado" de MUI (`color="inherit"`) mientras `button.tsx` no lo
- * tenga (sustituto del brief de la ola 4).
- */
-const INHERIT_BUTTON_CLASS = "text-inherit hover:bg-accent hover:text-inherit";
-
-/** Rojo de rechazo (`color="error"` de MUI) mientras `button.tsx` no lo tenga. */
-const ERROR_CONTAINED_CLASS =
-  "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90";
-const ERROR_OUTLINED_CLASS =
-  "border-destructive/50 text-destructive hover:border-destructive hover:bg-destructive/4 dark:hover:bg-destructive/8";
-
 function formatUsd(value: number) {
   return formatAmount(value, "USD");
 }
@@ -324,17 +312,17 @@ function RejectDialog({
         <DialogFooter className="mt-3">
           <Button
             variant="text"
+            color="inherit"
             onClick={onClose}
             disabled={pending}
-            className={INHERIT_BUTTON_CLASS}
           >
             Cancelar
           </Button>
           <Button
             variant="contained"
+            color="error"
             onClick={() => onConfirm(note)}
             disabled={pending}
-            className={ERROR_CONTAINED_CLASS}
           >
             Rechazar
           </Button>
@@ -482,9 +470,9 @@ function RatesDialog({
         <DialogFooter className="mt-3">
           <Button
             variant="text"
+            color="inherit"
             onClick={onClose}
             disabled={pending}
-            className={INHERIT_BUTTON_CLASS}
           >
             Cerrar
           </Button>
@@ -544,12 +532,7 @@ function PaymentsPagination({
       </p>
       <div className="flex gap-1">
         {hasPrev ? (
-          <Button
-            asChild
-            variant="text"
-            size="small"
-            className={INHERIT_BUTTON_CLASS}
-          >
+          <Button asChild variant="text" color="inherit" size="small">
             <Link href={paymentsHref(filter, prevPage)}>Anterior</Link>
           </Button>
         ) : null}
@@ -879,11 +862,11 @@ export function DashboardPayments({
                             <div className="flex-1" />
                             <Button
                               variant="outlined"
+                              color="error"
                               size="small"
                               onClick={() => setRejecting(row)}
                               disabled={pending}
                               aria-label={`Rechazar pago de ${row.donorName}`}
-                              className={ERROR_OUTLINED_CLASS}
                             >
                               <X aria-hidden="true" className="size-4.5" />
                               Rechazar

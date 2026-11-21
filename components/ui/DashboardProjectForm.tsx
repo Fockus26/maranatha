@@ -66,7 +66,7 @@ const ADD_ACTION_CLASS = "text-primary-700 dark:text-primary-200";
 
 /** Quitar una línea o un encargado: `IconButton size="small"` gris (30 px). */
 const REMOVE_ACTION_CLASS =
-  "size-7.5 self-center p-1.25 text-muted-foreground dark:text-muted-foreground";
+  "self-center text-muted-foreground dark:text-muted-foreground";
 
 export function DashboardProjectForm({
   initialValues,
@@ -313,7 +313,7 @@ export function DashboardProjectForm({
                 />
                 <Button
                   variant="plain"
-                  size="icon"
+                  size="icon-sm"
                   onClick={() => removeBudgetLine(line.id)}
                   aria-label={
                     line.label
@@ -399,7 +399,7 @@ export function DashboardProjectForm({
                   </Field>
                   <Button
                     variant="plain"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => removeEncargado(encargado.id)}
                     aria-label={
                       encargado.name

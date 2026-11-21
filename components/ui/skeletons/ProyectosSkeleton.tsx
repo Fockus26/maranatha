@@ -18,7 +18,7 @@ function noop() {}
 export function ProyectosSkeleton() {
   return (
     <SkeletonFrame label="proyectos">
-      <SkeletonContent maxWidthClass="max-w-[1400px]">
+      <SkeletonContent maxWidthClass="max-w-panel">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <SkeletonHeading title="Proyectos" />
           <SkeletonButton widthClass="w-40" />

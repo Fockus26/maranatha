@@ -94,13 +94,8 @@ export function ConfirmDialog({
           <Button
             onClick={onConfirm}
             disabled={pending}
-            color={destructive ? "primary" : "secondary"}
+            color={destructive ? "error" : "secondary"}
             variant="contained"
-            className={
-              destructive
-                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90"
-                : undefined
-            }
           >
             {confirmLabel}
           </Button>

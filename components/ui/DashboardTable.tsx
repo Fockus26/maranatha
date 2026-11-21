@@ -86,14 +86,7 @@ function statusPillClass(isCompleted: boolean) {
 }
 
 /** Barra de la fila: verde si se completó, naranja si sigue activo. */
-function progressClass(isCompleted: boolean) {
-  return cn(
-    "h-1.25 rounded-pill bg-accent",
-    isCompleted
-      ? "**:data-[slot=progress-indicator]:bg-success"
-      : "**:data-[slot=progress-indicator]:bg-secondary",
-  );
-}
+const PROGRESS_CLASS = "h-1.25 rounded-pill bg-accent";
 
 function progressOf(row: DashboardProjectRow) {
   // Fase QA (functional-qa): acota a 0-100. Sin el piso en 0, un
@@ -333,7 +326,8 @@ export function DashboardTable({
                       <Progress
                         value={percent}
                         aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
-                        className={cn(progressClass(isCompleted), "w-20")}
+                        color={isCompleted ? "success" : "secondary"}
+                        className={cn(PROGRESS_CLASS, "w-20")}
                       />
                       <span className="text-11 text-muted-foreground">
                         {Math.round(percent)}%
@@ -440,7 +434,8 @@ export function DashboardTable({
                     <Progress
                       value={percent}
                       aria-label={`${row.title}: ${Math.round(percent)}% recaudado`}
-                      className={cn(progressClass(isCompleted), "flex-1")}
+                      color={isCompleted ? "success" : "secondary"}
+                      className={cn(PROGRESS_CLASS, "flex-1")}
                     />
                     <span className="shrink-0 text-11 text-muted-foreground">
                       {Math.round(percent)}%

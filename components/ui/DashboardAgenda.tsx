@@ -464,7 +464,7 @@ export function DashboardAgenda({
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1000px] px-3 pt-8 pb-5 md:px-5 md:pt-12">
+    <div className="mx-auto w-full max-w-agenda px-3 pt-8 pb-5 md:px-5 md:pt-12">
       <PanelFreshness scope="agenda" version={version} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
