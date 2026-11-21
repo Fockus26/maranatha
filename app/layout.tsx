@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
+import { ScrollbarGapSync } from "@/components/layout/ScrollbarGapSync";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { Toaster } from "@/components/ui/sonner";
 import { TitheModal } from "@/components/ui/TitheModal";
@@ -98,6 +99,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         </ColorModeProvider>
         <Toaster />
         <ServiceWorkerRegister />
+        <ScrollbarGapSync />
         {/* Solo en Vercel: fuera de ahí el script `/_vercel/insights` da 404. */}
         {process.env.VERCEL === "1" && <Analytics />}
       </body>

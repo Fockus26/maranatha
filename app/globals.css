@@ -222,6 +222,21 @@ body,
     scrollbar-gutter: stable;
   }
 
+  /* Con un Dialog o Sheet abierto, Radix (react-remove-scroll) bloquea el
+     scroll. Si el riel sigue reservado, las capas `fixed` (velo y modal)
+     terminan 12 px antes del borde y queda una franja sin velo (QA de versión
+     09): ese hueco solo pinta el fondo del documento. Se suelta el riel y el
+     `body` conserva su ancho con el que medía `ScrollbarGapSync`; el
+     `margin-right` de react-remove-scroll vale 0 en las páginas que no
+     desbordan, por eso se reemplaza. */
+  html:has(> body[data-scroll-locked]) {
+    scrollbar-gutter: auto;
+  }
+  html:has(> body[data-scroll-locked]) > body {
+    /* biome-ignore lint/complexity/noImportantStyles: react-remove-scroll pone su `margin-right` con `!important`; sin él no se le gana. */
+    margin-right: var(--scrollbar-gap, 0px) !important;
+  }
+
   html::-webkit-scrollbar {
     width: var(--sb-size-page);
     height: var(--sb-size-page);
