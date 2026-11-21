@@ -10,20 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-/**
- * Si se abre desde un Drawer/Dialog de MUI (aún vivos hasta la ola 4), su
- * focus trap le quita el foco a cualquier cosa montada fuera de él (probado en
- * el panel). Se monta el portal dentro del papel del modal MUI abierto: queda
- * dentro de su trap y el foco inicial de Radix se conserva (D117).
- */
-function findMuiModalPaper(): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  const papers = document.querySelectorAll<HTMLElement>(
-    ".MuiModal-root:not([aria-hidden=true]) .MuiDrawer-paper, .MuiModal-root:not([aria-hidden=true]) .MuiDialog-paper",
-  );
-  return papers.item(papers.length - 1);
-}
-
 export interface ConfirmDialogProps {
   open: boolean;
   title: string;
@@ -49,7 +35,9 @@ export interface ConfirmDialogProps {
 /**
  * Confirmación modal sobre el `dialog` de shadcn (D117). Mismo contrato que
  * la versión MUI: con `pending` no se cierra ni con Escape ni con clic fuera.
- * Radix devuelve el foco al disparador al cerrar y atrapa el Tab dentro.
+ * Radix atrapa el Tab dentro; el foco vuelve a quien lo abrió. Se porta a
+ * `body` también cuando lo abre un `sheet` o un `dialog` de Radix (la pila de
+ * capas de Radix lo pone encima): sin el papel MUI de antes (D134).
  */
 export function ConfirmDialog({
   open,
@@ -83,7 +71,6 @@ export function ConfirmDialog({
           e.preventDefault();
           openerRef.current?.focus();
         }}
-        container={open ? findMuiModalPaper() : null}
         onEscapeKeyDown={(e) => {
           if (pending) e.preventDefault();
         }}
@@ -107,13 +94,8 @@ export function ConfirmDialog({
           <Button
             onClick={onConfirm}
             disabled={pending}
-            color={destructive ? "primary" : "secondary"}
+            color={destructive ? "error" : "secondary"}
             variant="contained"
-            className={
-              destructive
-                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90"
-                : undefined
-            }
           >
             {confirmLabel}
           </Button>

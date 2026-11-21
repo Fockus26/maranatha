@@ -1,16 +1,13 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/AddRounded";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import { type Theme, useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
 import { AnimatePresence, motion } from "framer-motion";
+import { Plus, Trash2 } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { primary, radius } from "@/theme/tokens";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { DrawerSection } from "./DashboardFormDrawer";
 import { DateField } from "./DateField";
 import { ImageUploadField } from "./ImageUploadField";
@@ -58,48 +55,18 @@ function newId() {
     : Math.random().toString(36).slice(2);
 }
 
-// Tamaño de placeholder/label/texto ingresado — antes heredaban el default de
-// MUI (16px), que se sentía grande al lado del resto de texto del form
-// (mismo ajuste ya hecho en `TitheForm.tsx`, D057). Se aplica a todos los
-// `TextField` del formulario.
-//
-// Revisión: la primera versión apuntaba solo a `.MuiInputLabel-root`, lo que
-// dejaba un hueco visible a la derecha del label cuando este "flota" hacia
-// arriba — el notch del borde (`NotchedOutline`, variante `outlined`) mide su
-// ancho con `font-size: 0.75em` relativo al tamaño de fuente del contenedor,
-// no del label en sí; al no tocar ese contenedor, el notch seguía
-// calculándose sobre el tamaño por defecto (16px) mientras el label ya
-// medía 14px, dejando el hueco de más. Poner `fontSize` a nivel raíz del
-// `TextField` (hereda por CSS a input, label Y notch) resuelve ambos a la
-// vez.
-// Campos chicos (14px, label y hueco del borde a la misma escala) — mismo
-// estilo que los formularios de aporte y login (theme/fieldStyles.ts).
-function fieldSx() {
-  return SMALL_FIELD_SX;
-}
-
 // Quita las flechas nativas de incremento/decremento de los inputs
 // numéricos — mismo criterio ya aplicado al monto libre de `TitheForm.tsx`
 // (D057), el cliente tampoco las quiere acá.
-function numberFieldSx() {
-  return {
-    ...fieldSx(),
-    "& input[type=number]": { MozAppearance: "textfield" },
-    "& input[type=number]::-webkit-outer-spin-button": {
-      WebkitAppearance: "none",
-      margin: 0,
-    },
-    "& input[type=number]::-webkit-inner-spin-button": {
-      WebkitAppearance: "none",
-      margin: 0,
-    },
-  };
-}
+const NUMBER_INPUT_CLASS =
+  "appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none";
 
-// Botón de texto "Agregar…": el primary de MUI en oscuro (3.1:1) no llega a AA.
-const addActionSx = (theme: Theme) => ({
-  color: theme.palette.mode === "light" ? primary[700] : primary[200],
-});
+// Botón de texto "Agregar…": el primary en oscuro (3.1:1) no llega a AA.
+const ADD_ACTION_CLASS = "text-primary-700 dark:text-primary-200";
+
+/** Quitar una línea o un encargado: `IconButton size="small"` gris (30 px). */
+const REMOVE_ACTION_CLASS =
+  "self-center text-muted-foreground dark:text-muted-foreground";
 
 export function DashboardProjectForm({
   initialValues,
@@ -107,8 +74,6 @@ export function DashboardProjectForm({
   formId,
   onDirtyChange,
 }: DashboardProjectFormProps) {
-  const theme = useTheme();
-
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [description, setDescription] = useState(
     initialValues?.description ?? "",
@@ -215,38 +180,28 @@ export function DashboardProjectForm({
   }
 
   return (
-    <Box
-      component="form"
-      id={formId}
-      noValidate
-      onSubmit={handleSubmit}
-      sx={{ width: "100%" }}
-    >
+    <form id={formId} noValidate onSubmit={handleSubmit} className="w-full">
       <DrawerSection title="Información" first>
-        <TextField
-          size="small"
+        <Field
           label="Título del proyecto"
-          autoFocus
-          fullWidth
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          error={touched && !titleValid}
-          helperText={
+          error={
             touched && !titleValid ? "El título es obligatorio." : undefined
           }
-          sx={fieldSx()}
-        />
+        >
+          <Input
+            data-autofocus=""
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Field>
 
-        <TextField
-          size="small"
-          label="Descripción"
-          fullWidth
-          multiline
-          minRows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          sx={fieldSx()}
-        />
+        <Field label="Descripción">
+          <Textarea
+            className="min-h-19"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Field>
       </DrawerSection>
 
       <DrawerSection title="Imagen">
@@ -261,26 +216,20 @@ export function DashboardProjectForm({
       </DrawerSection>
 
       <DrawerSection title="Meta y fechas">
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-            gap: 3,
-          }}
-        >
-          <TextField
-            size="small"
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field
             label="Monto meta"
-            type="number"
-            fullWidth
-            value={goalAmount || ""}
-            onChange={(e) => setGoalAmount(Number(e.target.value))}
-            error={touched && !goalValid}
-            helperText={
+            error={
               touched && !goalValid ? "Ingresa un monto mayor a 0." : undefined
             }
-            sx={numberFieldSx()}
-          />
+          >
+            <Input
+              type="number"
+              className={NUMBER_INPUT_CLASS}
+              value={goalAmount || ""}
+              onChange={(e) => setGoalAmount(Number(e.target.value))}
+            />
+          </Field>
           <DateField
             label="Fecha de cierre"
             value={deadline}
@@ -288,42 +237,43 @@ export function DashboardProjectForm({
             error={touched && !deadlineValid}
             helperText="La fecha de cierre es obligatoria."
           />
-        </Box>
+        </div>
 
-        <TextField
-          size="small"
+        <Field
           label="Monto recaudado"
-          type="number"
-          fullWidth
-          value={currentAmount || ""}
-          onChange={(e) => setCurrentAmount(Number(e.target.value))}
-          error={touched && !currentValid}
-          helperText={
+          description="Para registrar aportes recibidos fuera del sitio"
+          error={
             touched && currentAmount < 0
               ? "No puede ser negativo."
               : touched && goalValid && currentAmount > goalAmount
                 ? "No puede superar el monto meta."
-                : "Para registrar aportes recibidos fuera del sitio"
+                : undefined
           }
-          sx={numberFieldSx()}
-        />
+        >
+          <Input
+            type="number"
+            className={NUMBER_INPUT_CLASS}
+            value={currentAmount || ""}
+            onChange={(e) => setCurrentAmount(Number(e.target.value))}
+          />
+        </Field>
       </DrawerSection>
 
       <DrawerSection
         title="Presupuesto"
         action={
           <Button
-            type="button"
+            variant="text"
             size="small"
-            startIcon={<AddIcon />}
-            sx={addActionSx}
+            className={ADD_ACTION_CLASS}
             onClick={addBudgetLine}
           >
+            <Plus aria-hidden="true" className="size-4.5" />
             Agregar línea
           </Button>
         }
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div className="flex flex-col gap-2">
           {/* Sin `exit` — al cliente le gustó la animación de entrada pero
                 no la de salida; sin ese prop, `AnimatePresence` desmonta el
                 item de inmediato (sin animar su desaparición) mientras que
@@ -331,180 +281,141 @@ export function DashboardProjectForm({
                 `layout`, que no depende de `exit`. */}
           <AnimatePresence initial={false}>
             {budget.map((line) => (
-              <Box
+              <motion.div
                 key={line.id}
-                component={motion.div}
                 layout
                 initial={{ opacity: 0, y: -8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.22, ease: EASE }}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "1fr auto",
-                    sm: "1fr 160px auto",
-                  },
-                  gap: 2,
-                }}
+                className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_160px_auto]"
               >
-                <TextField
+                <Input
                   placeholder="Concepto"
                   aria-label="Concepto de la línea de presupuesto"
-                  size="small"
                   value={line.label}
                   onChange={(e) =>
                     updateBudgetLine(line.id, { label: e.target.value })
                   }
-                  sx={{
-                    ...fieldSx(),
-                    gridColumn: { xs: "1 / -1", sm: "auto" },
-                  }}
+                  className="col-span-full sm:col-span-1"
                 />
-                <TextField
+                <Input
                   placeholder="Monto"
                   aria-label="Monto de la línea de presupuesto"
                   type="number"
                   inputMode="numeric"
-                  size="small"
                   value={line.amount || ""}
                   onChange={(e) =>
                     updateBudgetLine(line.id, {
                       amount: Number(e.target.value),
                     })
                   }
-                  sx={numberFieldSx()}
+                  className={NUMBER_INPUT_CLASS}
                 />
-                <IconButton
-                  type="button"
-                  size="small"
+                <Button
+                  variant="plain"
+                  size="icon-sm"
                   onClick={() => removeBudgetLine(line.id)}
                   aria-label={
                     line.label
                       ? `Eliminar línea "${line.label}"`
                       : "Eliminar línea de presupuesto"
                   }
-                  sx={{ color: theme.palette.text.secondary }}
+                  className={REMOVE_ACTION_CLASS}
                 >
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                  <Trash2 aria-hidden="true" className="size-5" />
+                </Button>
+              </motion.div>
             ))}
           </AnimatePresence>
-        </Box>
+        </div>
       </DrawerSection>
 
       <DrawerSection
         title="Encargados"
         action={
           <Button
-            type="button"
+            variant="text"
             size="small"
-            startIcon={<AddIcon />}
-            sx={addActionSx}
+            className={ADD_ACTION_CLASS}
             onClick={addEncargado}
           >
+            <Plus aria-hidden="true" className="size-4.5" />
             Agregar encargado
           </Button>
         }
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <div className="flex flex-col gap-3">
           <AnimatePresence initial={false}>
             {encargados.map((encargado) => (
-              <Box
+              <motion.div
                 key={encargado.id}
-                component={motion.div}
                 layout
                 initial={{ opacity: 0, y: -8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.22, ease: EASE }}
-                sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: `${radius.md}px`,
-                  p: 3,
-                }}
+                className="rounded-md border border-border p-3"
               >
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <TextField
-                    label="Nombre"
-                    size="small"
-                    value={encargado.name}
-                    onChange={(e) =>
-                      updateEncargado(encargado.id, { name: e.target.value })
-                    }
-                    sx={fieldSx()}
-                  />
-                  <TextField
-                    label="Rol"
-                    size="small"
-                    value={encargado.role}
-                    onChange={(e) =>
-                      updateEncargado(encargado.id, { role: e.target.value })
-                    }
-                    sx={fieldSx()}
-                  />
-                </Box>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr auto",
-                      sm: "1fr 1fr auto",
-                    },
-                    gap: 2,
-                    alignItems: "center",
-                  }}
-                >
-                  <TextField
+                <div className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Field label="Nombre">
+                    <Input
+                      value={encargado.name}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, { name: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="Rol">
+                    <Input
+                      value={encargado.role}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, { role: e.target.value })
+                      }
+                    />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-[1fr_auto] items-end gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                  <Field
                     label="URL de foto"
-                    size="small"
-                    value={encargado.imageUrl}
-                    onChange={(e) =>
-                      updateEncargado(encargado.id, {
-                        imageUrl: e.target.value,
-                      })
-                    }
-                    sx={{
-                      ...fieldSx(),
-                      gridColumn: { xs: "1 / -1", sm: "auto" },
-                    }}
-                  />
-                  <TextField
-                    label="Instagram (opcional)"
-                    size="small"
-                    value={encargado.instagramUrl}
-                    onChange={(e) =>
-                      updateEncargado(encargado.id, {
-                        instagramUrl: e.target.value,
-                      })
-                    }
-                    sx={fieldSx()}
-                  />
-                  <IconButton
-                    type="button"
-                    size="small"
+                    className="col-span-full sm:col-span-1"
+                  >
+                    <Input
+                      value={encargado.imageUrl}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, {
+                          imageUrl: e.target.value,
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="Instagram (opcional)">
+                    <Input
+                      value={encargado.instagramUrl}
+                      onChange={(e) =>
+                        updateEncargado(encargado.id, {
+                          instagramUrl: e.target.value,
+                        })
+                      }
+                    />
+                  </Field>
+                  <Button
+                    variant="plain"
+                    size="icon-sm"
                     onClick={() => removeEncargado(encargado.id)}
                     aria-label={
                       encargado.name
                         ? `Eliminar a ${encargado.name}`
                         : "Eliminar encargado"
                     }
-                    sx={{ color: theme.palette.text.secondary }}
+                    className={cn(REMOVE_ACTION_CLASS, "mb-1.25 self-end")}
                   >
-                    <DeleteOutlineIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Box>
+                    <Trash2 aria-hidden="true" className="size-5" />
+                  </Button>
+                </div>
+              </motion.div>
             ))}
           </AnimatePresence>
-        </Box>
+        </div>
       </DrawerSection>
-    </Box>
+    </form>
   );
 }

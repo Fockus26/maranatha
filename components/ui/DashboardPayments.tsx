@@ -1,25 +1,10 @@
 "use client";
 
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import CurrencyExchangeRoundedIcon from "@mui/icons-material/CurrencyExchangeRounded";
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsRounded";
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongRounded";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import Snackbar from "@mui/material/Snackbar";
-import { useTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowLeftRight, Banknote, Check, ReceiptText, X } from "lucide-react";
 import Link from "next/link";
-import { type FormEvent, useState, useTransition } from "react";
+import { type FormEvent, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
   type AdminActionError,
   approvePayment,
@@ -27,6 +12,19 @@ import {
   rejectPayment,
   saveFallbackRates,
 } from "@/app/actions/adminPayments";
+import { DASHBOARD_CONTENT_CLASS } from "@/components/layout/DashboardShell";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { PanelVersion } from "@/lib/panelFreshness";
 import {
   formatAmount,
@@ -42,19 +40,10 @@ import {
   type PaymentPurpose,
   type PaymentStatus,
 } from "@/lib/payments/schema";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import {
-  common,
-  fontScale,
-  gray,
-  radius,
-  semantic,
-  typography,
-} from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { DashboardStatBand } from "./DashboardStatBand";
 import { EmptyState } from "./EmptyState";
-import { outlinedActionSx } from "./outlinedActionSx";
 import { PanelFreshness } from "./PanelFreshness";
 
 // Patrón de animación de listas (D087).
@@ -69,6 +58,10 @@ const LIST_STAGGER_MAX = 0.2;
  * (`app/dashboard/(panel)/pagos/page.tsx`); las acciones son Server Actions
  * que re-verifican al admin y revalidan la ruta, así que la lista se
  * actualiza sola después de aprobar o rechazar.
+ *
+ * Migrado a shadcn (D136): los dos diálogos (rechazo y tasas) sobre `dialog`,
+ * los avisos con `toast()` de sonner y los campos con `Field` + `Input`. Las
+ * acciones del servidor y cuándo se llaman no cambian.
  */
 
 export type PaymentFilter = PaymentStatus | "all";
@@ -166,6 +159,12 @@ async function callAction<T>(action: () => Promise<T>): Promise<T | null> {
   }
 }
 
+/** Aviso de resultado (antes `Snackbar` + `Alert filled`): éxito o error. */
+function notify(message: string, ok: boolean) {
+  if (ok) toast.success(message);
+  else toast.error(message);
+}
+
 function formatUsd(value: number) {
   return formatAmount(value, "USD");
 }
@@ -198,43 +197,30 @@ function expectedIfMismatch(row: DashboardPaymentRow): number | null {
     : null;
 }
 
+const STATUS_CLASS: Record<PaymentStatus, string> = {
+  // "Pendiente" en ámbar para no confundirse con el gris de "Cancelado"
+  // (design-qa fase 09). gray[900] sobre warning: 9.6:1.
+  pending: "bg-warning text-gray-900",
+  confirmed: "bg-success-filled text-white",
+  rejected: "bg-destructive text-destructive-foreground",
+  cancelled: "bg-accent text-muted-foreground",
+};
+
 function StatusBadge({ status }: { status: PaymentStatus }) {
-  const theme = useTheme();
-  const colors: Record<PaymentStatus, { bg: string; fg: string }> = {
-    // "Pendiente" en ámbar para no confundirse con el gris de "Cancelado"
-    // (design-qa fase 09). gray[900] sobre warning: 9.6:1.
-    pending: { bg: semantic.warning, fg: gray[900] },
-    confirmed: { bg: semantic.successFilled, fg: common.white },
-    rejected: {
-      bg: theme.palette.error.main,
-      fg: theme.palette.error.contrastText,
-    },
-    cancelled: {
-      bg: theme.palette.action.hover,
-      fg: theme.palette.text.secondary,
-    },
-  };
   return (
-    <Box
-      component="span"
-      sx={{
-        display: "inline-block",
-        fontSize: fontScale[11],
-        fontWeight: 600,
-        borderRadius: `${radius.pill}px`,
-        px: 1.25,
-        py: 0.25,
-        bgcolor: colors[status].bg,
-        color: colors[status].fg,
-        whiteSpace: "nowrap",
-      }}
+    <span
+      className={cn(
+        "inline-block rounded-pill px-1.25 py-0.25 text-11 font-semibold whitespace-nowrap",
+        STATUS_CLASS[status],
+      )}
     >
       {STATUS_LABEL[status]}
-    </Box>
+    </span>
   );
 }
 
-function Field({
+/** Dato de la tarjeta (`<dt>` + `<dd>`). */
+function DetailField({
   label,
   children,
 }: {
@@ -242,26 +228,32 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <Box sx={{ minWidth: 0 }}>
-      <Typography
-        component="dt"
-        sx={{ fontSize: fontScale[11], color: "text.secondary", mb: 0.25 }}
-      >
+    <div className="min-w-0">
+      <dt className="mb-0.25 text-11 leading-body text-muted-foreground">
         {label}
-      </Typography>
-      <Typography
-        component="dd"
-        sx={{
-          m: 0,
-          fontSize: fontScale[13],
-          fontWeight: 500,
-          overflowWrap: "anywhere",
-        }}
-      >
+      </dt>
+      <dd className="m-0 text-13 leading-body font-medium wrap-anywhere">
         {children}
-      </Typography>
-    </Box>
+      </dd>
+    </div>
   );
+}
+
+/**
+ * Diálogo abierto sin `DialogTrigger` (desde un botón de la fila o de la
+ * cabecera): guarda quién lo abrió y le devuelve el foco al cerrar (D129).
+ */
+function useOpenerFocus() {
+  const openerRef = useRef<HTMLElement | null>(null);
+  return {
+    onOpenAutoFocus: () => {
+      openerRef.current = document.activeElement as HTMLElement | null;
+    },
+    onCloseAutoFocus: (event: Event) => {
+      event.preventDefault();
+      openerRef.current?.focus();
+    },
+  };
 }
 
 function RejectDialog({
@@ -276,22 +268,30 @@ function RejectDialog({
   onConfirm: (note: string) => void;
 }) {
   const [note, setNote] = useState("");
+  const focus = useOpenerFocus();
   return (
     <Dialog
       open={Boolean(row)}
-      onClose={onClose}
-      maxWidth="xs"
-      fullWidth
-      slotProps={{
-        paper: { elevation: 0 },
-        transition: { onExited: () => setNote("") },
+      onOpenChange={(next) => {
+        if (!next) onClose();
       }}
     >
-      <DialogTitle sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}>
-        Rechazar pago
-      </DialogTitle>
-      <DialogContent sx={{ px: 3.5, pb: 1 }}>
-        <DialogContentText sx={{ mb: 2 }}>
+      <DialogContent
+        showCloseButton={false}
+        onOpenAutoFocus={focus.onOpenAutoFocus}
+        onCloseAutoFocus={(event) => {
+          setNote("");
+          focus.onCloseAutoFocus(event);
+        }}
+        onEscapeKeyDown={(e) => {
+          if (pending) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (pending) e.preventDefault();
+        }}
+      >
+        <DialogTitle>Rechazar pago</DialogTitle>
+        <DialogDescription className="mb-2">
           {row && (
             <>
               El reporte de <strong>{row.donorName}</strong> por{" "}
@@ -299,32 +299,35 @@ function RejectDialog({
               rechazado y no sumará a lo recaudado.
             </>
           )}
-        </DialogContentText>
-        <TextField
-          label="Motivo (opcional)"
-          sx={SMALL_FIELD_SX}
-          fullWidth
-          size="small"
-          multiline
-          maxRows={5}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          slotProps={{ htmlInput: { maxLength: 500 } }}
-        />
+        </DialogDescription>
+        <Field label="Motivo (opcional)">
+          <Textarea
+            className="max-h-30 min-h-10"
+            rows={1}
+            maxLength={500}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </Field>
+        <DialogFooter className="mt-3">
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={onClose}
+            disabled={pending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => onConfirm(note)}
+            disabled={pending}
+          >
+            Rechazar
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3.5, pb: 3, pt: 2, gap: 1 }}>
-        <Button onClick={onClose} color="inherit" disabled={pending}>
-          Cancelar
-        </Button>
-        <Button
-          onClick={() => onConfirm(note)}
-          variant="contained"
-          color="error"
-          disabled={pending}
-        >
-          Rechazar
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -347,9 +350,9 @@ function RatesDialog({
   fallbackRates: RatePair;
   onResult: (message: string, ok: boolean) => void;
 }) {
-  const theme = useTheme();
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState<RatePair | null>(null);
+  const focus = useOpenerFocus();
   // Tras guardar, lo guardado manda hasta que el servidor re-renderice.
   const fallback = saved ?? fallbackRates;
 
@@ -386,147 +389,104 @@ function RatesDialog({
   return (
     <Dialog
       open={open}
-      onClose={pending ? undefined : onClose}
-      maxWidth="sm"
-      fullWidth
-      aria-labelledby="rates-dialog-title"
-      slotProps={{ paper: { elevation: 0 } }}
+      onOpenChange={(next) => {
+        if (!next && !pending) onClose();
+      }}
     >
-      <DialogTitle
-        id="rates-dialog-title"
-        sx={{ fontWeight: 700, px: 3.5, pt: 3.5, pb: 1 }}
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-page-sm"
+        onOpenAutoFocus={focus.onOpenAutoFocus}
+        onCloseAutoFocus={focus.onCloseAutoFocus}
       >
-        Tasas de cambio
-      </DialogTitle>
-      <DialogContent sx={{ px: 3.5 }}>
-        <DialogContentText sx={{ fontSize: fontScale[13], mb: 3 }}>
+        <DialogTitle>Tasas de cambio</DialogTitle>
+        <DialogDescription className="mb-3 text-13">
           Se usan para mostrarle al donante cuánto pagar en bolívares o pesos.
           Primero se consulta DolarApi (tasa BCV y la cotización en Colombia);
           la tasa de respaldo solo se usa si DolarApi no responde.
-        </DialogContentText>
+        </DialogDescription>
 
-        <Box
-          component="dl"
-          sx={{
-            m: 0,
-            mb: 3,
-            display: "grid",
-            gap: 1.5,
-            p: 2,
-            borderRadius: `${radius.sm}px`,
-            border: `1px solid ${theme.palette.divider}`,
-          }}
-        >
+        <dl className="m-0 mb-3 grid gap-1.5 rounded-sm border border-border p-2">
           {currencies.map(({ currency, label }) => {
             const live = liveRates[currency];
             const inUse = live ?? fallback[currency];
             return (
-              <Box
+              <div
                 key={currency}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  flexWrap: "wrap",
-                }}
+                className="flex flex-wrap justify-between gap-2"
               >
-                <Typography component="dt" sx={{ fontSize: fontScale[13] }}>
-                  {label}
-                </Typography>
-                <Typography
-                  component="dd"
-                  sx={{
-                    m: 0,
-                    fontSize: fontScale[13],
-                    fontWeight: 600,
-                    textAlign: "right",
-                  }}
-                >
+                <dt className="text-13 leading-body">{label}</dt>
+                <dd className="m-0 text-right text-13 leading-body font-semibold">
                   {inUse ? formatAmount(inUse, currency) : "Sin tasa"} por USD
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "block",
-                      fontSize: fontScale[11],
-                      fontWeight: 400,
-                      color: "text.secondary",
-                    }}
-                  >
+                  <span className="block text-11 font-normal text-muted-foreground">
                     {live
                       ? "En uso: DolarApi"
                       : fallback[currency]
                         ? "En uso: respaldo (DolarApi no responde)"
                         : "Sin DolarApi ni respaldo: se muestra el monto en USD"}
-                  </Box>
-                </Typography>
-              </Box>
+                  </span>
+                </dd>
+              </div>
             );
           })}
-        </Box>
+        </dl>
 
-        <Box
-          component="form"
+        <form
           id="rates-form"
           onSubmit={handleSubmit}
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-            gap: 2,
-          }}
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
         >
-          <TextField
-            name="VES"
-            label="Respaldo Bs. por USD"
-            // "text": con "number" el navegador muestra su propia burbuja
-            // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
-            // el valor llega tal cual y el servidor responde con el rango.
-            type="text"
-            size="small"
-            defaultValue={fallbackRates.VES ?? ""}
-            slotProps={{
-              htmlInput: { inputMode: "decimal", autoComplete: "off" },
-            }}
-            sx={SMALL_FIELD_SX}
-          />
-          <TextField
-            name="COP"
-            label="Respaldo COP por USD"
-            // "text": con "number" el navegador muestra su propia burbuja
-            // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
-            // el valor llega tal cual y el servidor responde con el rango.
-            type="text"
-            size="small"
-            defaultValue={fallbackRates.COP ?? ""}
-            slotProps={{
-              htmlInput: { inputMode: "decimal", autoComplete: "off" },
-            }}
-            sx={SMALL_FIELD_SX}
-          />
-        </Box>
-        <Typography
-          role="status"
-          sx={{ fontSize: fontScale[12], color: "text.secondary", mt: 2 }}
-        >
+          <Field label="Respaldo Bs. por USD">
+            <Input
+              name="VES"
+              // "text": con "number" el navegador muestra su propia burbuja
+              // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
+              // el valor llega tal cual y el servidor responde con el rango.
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              defaultValue={fallbackRates.VES ?? ""}
+            />
+          </Field>
+          <Field label="Respaldo COP por USD">
+            <Input
+              name="COP"
+              // "text": con "number" el navegador muestra su propia burbuja
+              // ("valores válidos 0 y 0,0001") y convierte "0x10" en "010"; así
+              // el valor llega tal cual y el servidor responde con el rango.
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              defaultValue={fallbackRates.COP ?? ""}
+            />
+          </Field>
+        </form>
+        <output className="mt-2 block text-12 text-muted-foreground">
           Respaldo guardado:{" "}
           {fallback.VES ? formatAmount(fallback.VES, "VES") : "sin Bs."} ·{" "}
           {fallback.COP ? formatAmount(fallback.COP, "COP") : "sin COP"} por
           USD.
-        </Typography>
+        </output>
+        <DialogFooter className="mt-3">
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={onClose}
+            disabled={pending}
+          >
+            Cerrar
+          </Button>
+          <Button
+            type="submit"
+            form="rates-form"
+            variant="contained"
+            color="secondary"
+            disabled={pending}
+          >
+            {pending ? "Guardando…" : "Guardar respaldo"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3.5, pb: 3, pt: 2, gap: 1 }}>
-        <Button onClick={onClose} color="inherit" disabled={pending}>
-          Cerrar
-        </Button>
-        <Button
-          type="submit"
-          form="rates-form"
-          variant="contained"
-          color="secondary"
-          disabled={pending}
-        >
-          {pending ? "Guardando…" : "Guardar respaldo"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -561,47 +521,28 @@ function PaymentsPagination({
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
   const prevPage = shown > 0 ? page - 1 : Math.min(page - 1, lastPage);
   return (
-    <Box
-      component="nav"
+    <nav
       aria-label="Páginas de pagos"
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: 2,
-        mt: 3,
-      }}
+      className="mt-3 flex flex-wrap items-center justify-between gap-2"
     >
-      <Typography sx={{ fontSize: fontScale[13], color: "text.secondary" }}>
+      <p className="text-13 leading-body text-muted-foreground">
         {shown > 0
           ? `Mostrando ${first}–${last} de ${total}`
           : `Esta página está vacía; hay ${total} en total.`}
-      </Typography>
-      <Box sx={{ display: "flex", gap: 1 }}>
+      </p>
+      <div className="flex gap-1">
         {hasPrev ? (
-          <Button
-            component={Link}
-            href={paymentsHref(filter, prevPage)}
-            color="inherit"
-            size="small"
-          >
-            Anterior
+          <Button asChild variant="text" color="inherit" size="small">
+            <Link href={paymentsHref(filter, prevPage)}>Anterior</Link>
           </Button>
         ) : null}
         {hasNext ? (
-          <Button
-            component={Link}
-            href={paymentsHref(filter, page + 1)}
-            variant="outlined"
-            color="secondary"
-            size="small"
-          >
-            Siguiente
+          <Button asChild variant="outlined" color="secondary" size="small">
+            <Link href={paymentsHref(filter, page + 1)}>Siguiente</Link>
           </Button>
         ) : null}
-      </Box>
-    </Box>
+      </div>
+    </nav>
   );
 }
 
@@ -617,19 +558,11 @@ export function DashboardPayments({
   fallbackRates,
   version,
 }: DashboardPaymentsProps) {
-  const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const [ratesOpen, setRatesOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [approving, setApproving] = useState<DashboardPaymentRow | null>(null);
   const [rejecting, setRejecting] = useState<DashboardPaymentRow | null>(null);
-  const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(
-    null,
-  );
-
-  function notify(message: string, ok: boolean) {
-    setToast({ message, ok });
-  }
 
   function handleApprove() {
     const row = approving;
@@ -717,113 +650,65 @@ export function DashboardPayments({
         ]}
       />
 
-      <Box
-        sx={{
-          px: { xs: 3, md: 5 },
-          pt: { xs: "32px", md: "48px" },
-          pb: 5,
-          maxWidth: 1400,
-          mx: "auto",
-        }}
-      >
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 2,
-            flexWrap: "wrap",
-          }}
-        >
-          <Box sx={{ minWidth: 0, flex: "1 1 320px" }}>
-            <Typography
-              component="h1"
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 800,
-                fontSize: fontScale[26],
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
+      <div className={cn(DASHBOARD_CONTENT_CLASS, "pt-8 pb-5 md:pt-12")}>
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 flex-1 basis-80">
+            <h1 className="mb-0.5 font-heading text-26 font-extrabold text-foreground">
               Pagos
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: fontScale[13],
-                color: theme.palette.text.secondary,
-              }}
-            >
+            </h1>
+            <p className="text-13 leading-body text-muted-foreground">
               Verifica cada reporte contra tu banco o app antes de confirmarlo.
               Solo los pagos confirmados suman a lo recaudado.
-            </Typography>
-          </Box>
+            </p>
+          </div>
           <Button
-            variant="outlined"
+            variant="action"
             size="small"
-            startIcon={<CurrencyExchangeRoundedIcon fontSize="small" />}
             onClick={() => setRatesOpen(true)}
-            sx={outlinedActionSx}
           >
+            <ArrowLeftRight aria-hidden="true" className="size-4.5" />
             Tasas de cambio
           </Button>
-        </Box>
+        </div>
 
-        <Box
-          component="nav"
+        <nav
           aria-label="Filtrar pagos por estado"
-          sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}
+          className="mb-3 flex flex-wrap gap-1"
         >
           {FILTER_ORDER.map((f) => {
             const active = f === filter;
             return (
-              <Box
+              <Link
                 key={f}
-                component={Link}
                 href={
                   f === "pending"
                     ? "/dashboard/pagos"
                     : `/dashboard/pagos?estado=${f}`
                 }
                 aria-current={active ? "page" : undefined}
-                sx={{
-                  px: 2,
-                  py: 0.75,
-                  borderRadius: `${radius.pill}px`,
-                  fontSize: fontScale[13],
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  border: `1px solid ${active ? theme.palette.secondary.main : theme.palette.divider}`,
-                  color: active
-                    ? theme.palette.text.primary
-                    : theme.palette.text.secondary,
-                  bgcolor: active
-                    ? `${theme.palette.secondary.light}22`
-                    : "transparent",
-                  "&:hover": { color: theme.palette.text.primary },
-                  "&:focus-visible": {
-                    outline: `2px solid ${theme.palette.secondary.main}`,
-                    outlineOffset: 2,
-                  },
-                }}
+                className={cn(
+                  "rounded-pill border px-2 py-0.75 text-13 leading-body font-medium no-underline hover:text-foreground",
+                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+                  active
+                    ? "border-secondary bg-secondary-300/13 text-foreground"
+                    : "border-border bg-transparent text-muted-foreground",
+                )}
               >
                 {FILTER_LABEL[f]}
-              </Box>
+              </Link>
             );
           })}
-        </Box>
+        </nav>
 
         {loadError ? (
-          <Alert severity="error" role="alert">
+          <Alert severity="error">
             No se pudieron cargar los pagos. Revisa la conexión con la base de
             datos.
           </Alert>
         ) : (
           <>
             {rows.length === 0 && (
-              <Box
-                component={motion.div}
+              <motion.div
                 initial={reduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{
@@ -833,7 +718,7 @@ export function DashboardPayments({
                 }}
               >
                 <EmptyState
-                  icon={PaymentsOutlinedIcon}
+                  icon={Banknote}
                   title={
                     filter === "pending"
                       ? "No hay pagos pendientes"
@@ -845,25 +730,16 @@ export function DashboardPayments({
                       : undefined
                   }
                 />
-              </Box>
+              </motion.div>
             )}
-            <Box
-              component="ul"
+            <ul
               aria-label={`Pagos: ${FILTER_LABEL[filter].toLowerCase()}`}
               aria-hidden={rows.length === 0 || undefined}
-              sx={{
-                listStyle: "none",
-                m: 0,
-                p: 0,
-                display: "grid",
-                gap: 2,
-                position: "relative",
-              }}
+              className="relative m-0 grid list-none gap-2 p-0"
             >
               <AnimatePresence mode="popLayout" initial={false}>
                 {rows.map((row, index) => (
-                  <Box
-                    component={motion.li}
+                  <motion.li
                     key={row.id}
                     layout={!reduceMotion}
                     initial={
@@ -887,219 +763,133 @@ export function DashboardPayments({
                         duration: reduceMotion ? 0 : LIST_DURATION / 2,
                       },
                     }}
-                    sx={{
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: `${radius.md}px`,
-                      bgcolor: "background.paper",
-                      p: { xs: 2.5, md: 3 },
-                    }}
+                    className="rounded-md border border-border bg-card p-2.5 md:p-3"
                   >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 2,
-                        flexWrap: "wrap",
-                        mb: 2,
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography
-                          component="h2"
-                          sx={{
-                            fontWeight: 700,
-                            fontSize: fontScale[15],
-                            overflowWrap: "anywhere",
-                          }}
-                        >
+                    <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h2 className="text-15 leading-body font-bold wrap-anywhere">
                           {row.donorName}{" "}
-                          <Box
-                            component="span"
-                            sx={{
-                              fontWeight: 400,
-                              fontSize: fontScale[13],
-                              color: "text.secondary",
-                            }}
-                          >
+                          <span className="text-13 font-normal text-muted-foreground">
                             · {row.donorEmail}
-                          </Box>
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: fontScale[12],
-                            color: "text.secondary",
-                            mt: 0.25,
-                          }}
-                        >
+                          </span>
+                        </h2>
+                        <p className="mt-0.25 text-12 leading-body text-muted-foreground">
                           {PURPOSE_LABEL[row.purpose]}
                           {row.projectTitle ? `: ${row.projectTitle}` : ""}
                           {row.frequency === "monthly" ? " · Mensual" : ""} ·
                           Reportado {formatDate(row.createdAt, true)}
-                        </Typography>
+                        </p>
                         {isGatewayRow(row) && row.status === "pending" && (
-                          <Typography
-                            sx={{
-                              fontSize: fontScale[12],
-                              color: "text.secondary",
-                              mt: 0.5,
-                            }}
-                          >
+                          <p className="mt-0.5 text-12 leading-body text-muted-foreground">
                             Esperando que el donante complete el pago en{" "}
                             {row.method === "binance"
                               ? "Binance Pay"
                               : "PayPal"}
                             . Se confirma solo; no hace falta verificarlo.
-                          </Typography>
+                          </p>
                         )}
-                      </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
-                      >
-                        <Typography
-                          sx={{
-                            fontFamily: typography.fontFamily.heading,
-                            fontWeight: 800,
-                            fontSize: fontScale[20],
-                          }}
-                        >
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-heading text-20 leading-body font-extrabold">
                           {formatUsd(row.amountUsd)}
-                        </Typography>
+                        </p>
                         <StatusBadge status={row.status} />
-                      </Box>
-                    </Box>
+                      </div>
+                    </div>
 
-                    <Box
-                      component="dl"
-                      sx={{
-                        m: 0,
-                        display: "grid",
-                        gridTemplateColumns: {
-                          xs: "1fr 1fr",
-                          md: "repeat(4, 1fr)",
-                        },
-                        gap: 2,
-                      }}
-                    >
-                      <Field label="Método">{METHOD_LABEL[row.method]}</Field>
-                      <Field label="Monto pagado">
+                    <dl className="m-0 grid grid-cols-2 gap-2 md:grid-cols-4">
+                      <DetailField label="Método">
+                        {METHOD_LABEL[row.method]}
+                      </DetailField>
+                      <DetailField label="Monto pagado">
                         {row.amountPaid != null
                           ? formatAmount(row.amountPaid, row.currency)
                           : "—"}
                         {row.exchangeRate &&
                           row.currency !== "USD" &&
                           row.currency !== "USDT" && (
-                            <Box
-                              component="span"
-                              sx={{
-                                display: "block",
-                                fontSize: fontScale[11],
-                                fontWeight: 400,
-                                color: "text.secondary",
-                              }}
-                            >
+                            <span className="block text-11 font-normal text-muted-foreground">
                               Tasa{" "}
                               {formatAmount(row.exchangeRate, row.currency)}
-                            </Box>
+                            </span>
                           )}
                         {expectedIfMismatch(row) != null && (
-                          <Box
-                            component="span"
-                            sx={{
-                              display: "block",
-                              fontSize: fontScale[11],
-                              fontWeight: 600,
-                              color: "error.main",
-                            }}
-                          >
+                          <span className="block text-11 font-semibold text-destructive">
                             ⚠ No coincide: se esperaba ≈{" "}
                             {formatAmount(
                               expectedIfMismatch(row) ?? 0,
                               row.currency,
                             )}
-                          </Box>
+                          </span>
                         )}
-                      </Field>
-                      <Field label="Referencia">{row.reference ?? "—"}</Field>
-                      <Field label="Fecha del pago">
+                      </DetailField>
+                      <DetailField label="Referencia">
+                        {row.reference ?? "—"}
+                      </DetailField>
+                      <DetailField label="Fecha del pago">
                         {row.paidAt ? formatDate(row.paidAt) : "—"}
-                      </Field>
-                    </Box>
+                      </DetailField>
+                    </dl>
 
                     {(row.reviewedBy || row.notes) &&
                       row.status !== "pending" && (
-                        <Typography
-                          sx={{
-                            fontSize: fontScale[12],
-                            color: "text.secondary",
-                            mt: 2,
-                          }}
-                        >
+                        <p className="mt-2 text-12 leading-body text-muted-foreground">
                           {STATUS_LABEL[row.status]} por {row.reviewedBy ?? "—"}
                           {row.notes ? ` · Nota: ${row.notes}` : ""}
-                        </Typography>
+                        </p>
                       )}
 
                     {(row.hasReceipt ||
                       (row.status === "pending" && !isGatewayRow(row))) && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: 1,
-                          mt: 2.5,
-                          pt: 2.5,
-                          borderTop: `1px solid ${theme.palette.divider}`,
-                        }}
-                      >
+                      <div className="mt-2.5 flex flex-wrap gap-1 border-t border-border pt-2.5">
                         {row.hasReceipt && (
                           <Button
+                            variant="action"
                             size="small"
-                            variant="outlined"
-                            sx={outlinedActionSx}
-                            startIcon={
-                              <ReceiptLongOutlinedIcon fontSize="small" />
-                            }
                             onClick={() => handleReceipt(row)}
                             disabled={pending}
                             aria-label={`Ver comprobante de ${row.donorName}`}
                           >
+                            <ReceiptText
+                              aria-hidden="true"
+                              className="size-4.5"
+                            />
                             Ver comprobante
                           </Button>
                         )}
                         {row.status === "pending" && !isGatewayRow(row) && (
                           <>
-                            <Box sx={{ flex: 1 }} />
+                            <div className="flex-1" />
                             <Button
-                              size="small"
                               variant="outlined"
                               color="error"
-                              startIcon={<CloseRoundedIcon fontSize="small" />}
+                              size="small"
                               onClick={() => setRejecting(row)}
                               disabled={pending}
                               aria-label={`Rechazar pago de ${row.donorName}`}
                             >
+                              <X aria-hidden="true" className="size-4.5" />
                               Rechazar
                             </Button>
                             <Button
-                              size="small"
                               variant="contained"
                               color="secondary"
-                              startIcon={<CheckRoundedIcon fontSize="small" />}
+                              size="small"
                               onClick={() => setApproving(row)}
                               disabled={pending}
                               aria-label={`Confirmar pago de ${row.donorName}`}
                             >
+                              <Check aria-hidden="true" className="size-4.5" />
                               Confirmar
                             </Button>
                           </>
                         )}
-                      </Box>
+                      </div>
                     )}
-                  </Box>
+                  </motion.li>
                 ))}
               </AnimatePresence>
-            </Box>
+            </ul>
           </>
         )}
         {!loadError && total > rows.length ? (
@@ -1111,7 +901,7 @@ export function DashboardPayments({
             total={total}
           />
         ) : null}
-      </Box>
+      </div>
 
       <RatesDialog
         open={ratesOpen}
@@ -1135,15 +925,7 @@ export function DashboardPayments({
                 : formatUsd(approving.amountUsd)}
               ? Se sumarán {formatUsd(approving.amountUsd)} a lo recaudado.
               {expectedIfMismatch(approving) != null && (
-                <Box
-                  component="span"
-                  sx={{
-                    display: "block",
-                    mt: 1.5,
-                    color: "error.main",
-                    fontWeight: 600,
-                  }}
-                >
+                <span className="mt-1.5 block font-semibold text-destructive">
                   ⚠ Lo pagado no coincide con el monto declarado (se esperaba ≈{" "}
                   {formatAmount(
                     expectedIfMismatch(approving) ?? 0,
@@ -1151,7 +933,7 @@ export function DashboardPayments({
                   )}
                   ). Si no corresponde, recházalo con el motivo para que el
                   donante lo reporte de nuevo.
-                </Box>
+                </span>
               )}
             </>
           ) : (
@@ -1170,31 +952,6 @@ export function DashboardPayments({
         onClose={() => (pending ? undefined : setRejecting(null))}
         onConfirm={handleReject}
       />
-
-      <Snackbar
-        open={Boolean(toast)}
-        autoHideDuration={5000}
-        onClose={() => setToast(null)}
-      >
-        <Alert
-          onClose={() => setToast(null)}
-          severity={toast?.ok ? "success" : "error"}
-          variant="filled"
-          sx={
-            toast?.ok
-              ? {
-                  bgcolor: semantic.successFilled,
-                  color: common.white,
-                  "& .MuiAlert-icon, & .MuiAlert-action": {
-                    color: common.white,
-                  },
-                }
-              : undefined
-          }
-        >
-          {toast?.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

@@ -1,15 +1,13 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/AddRounded";
-import SearchOffRoundedIcon from "@mui/icons-material/SearchOffRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import { motion, useReducedMotion } from "framer-motion";
-import { type ChangeEvent, useMemo, useState } from "react";
-import { DashboardShell } from "@/components/layout/DashboardShell";
+import { Plus, Search, SearchX } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  DASHBOARD_CONTENT_CLASS,
+  DashboardShell,
+} from "@/components/layout/DashboardShell";
+import { Button } from "@/components/ui/button";
 import {
   type DashboardProjectRow,
   DashboardTable,
@@ -17,7 +15,7 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDashboardProjectModal } from "@/lib/dashboardProjectModalStore";
 import { useDashboardProjects } from "@/lib/dashboardProjectsStore";
-import { fontScale, radius, typography } from "@/theme/tokens";
+import { cn } from "@/lib/utils";
 
 /**
  * Página "Dashboard — Proyectos" (`/dashboard/proyectos`) — Opción B ("Panel
@@ -38,7 +36,6 @@ import { fontScale, radius, typography } from "@/theme/tokens";
  */
 
 export default function DashboardProyectosPage() {
-  const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const { projects, isLoading, deleteProject } = useDashboardProjects();
   const { openCreate, openEdit } = useDashboardProjectModal();
@@ -73,124 +70,58 @@ export default function DashboardProyectosPage() {
 
   return (
     <DashboardShell>
-      <Box
-        sx={{
-          px: { xs: 3, md: 5 },
-          pt: { xs: "32px", md: "48px" },
-          pb: 5,
-          maxWidth: 1400,
-          mx: "auto",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 4,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography
-              component="h1"
-              sx={{
-                fontFamily: typography.fontFamily.heading,
-                fontWeight: 800,
-                fontSize: fontScale[26],
-                color: theme.palette.text.primary,
-                mb: 0.5,
-              }}
-            >
+      <div className={cn(DASHBOARD_CONTENT_CLASS, "pt-8 pb-5 md:pt-12")}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h1 className="mb-0.5 font-heading text-26 font-extrabold text-foreground">
               Proyectos
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: fontScale[13],
-                color: theme.palette.text.secondary,
-              }}
-            >
+            </h1>
+            <p className="text-13 text-muted-foreground">
               {projects.length} proyectos · {activos} activos, {completados}{" "}
               completados
-            </Typography>
-          </Box>
-          {/* `color="primary"` + modo oscuro usa `primary.contrastText`
-              (`gray[900]`, casi negro — D0XX del theme) como color de texto,
-              que no es lo que se quiere para este botón puntual: el cliente
-              pidió texto blanco fijo sin importar el modo. */}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={openCreate}
-          >
+            </p>
+          </div>
+          <Button variant="contained" color="primary" onClick={openCreate}>
+            <Plus aria-hidden="true" className="size-5" />
             Nuevo proyecto
           </Button>
-        </Box>
+        </div>
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: `${radius.sm}px`,
-            backgroundColor: theme.palette.background.paper,
-            px: 2,
-            py: 1.25,
-            width: { xs: "100%", sm: 320 },
-            mb: 3,
-            color: theme.palette.text.secondary,
-          }}
-        >
-          <SearchRoundedIcon fontSize="small" />
-          <Box
-            component="input"
+        {/* El campo no tenía nombre ni foco visible (outline: none): ahora
+            lleva `aria-label` y el anillo de foco de D085 en el contenedor. */}
+        <div className="mb-3 flex w-full items-center gap-1.5 rounded-sm border border-border bg-card px-2 py-1.25 text-muted-foreground focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring sm:w-80">
+          <Search aria-hidden="true" className="size-5 shrink-0" />
+          <input
+            type="search"
+            aria-label="Buscar proyecto"
             value={query}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setQuery(e.target.value)
-            }
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar proyecto…"
-            sx={{
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              fontFamily: typography.fontFamily.body,
-              fontSize: fontScale[13],
-              color: theme.palette.text.primary,
-              width: "100%",
-              "&::placeholder": { color: theme.palette.text.secondary },
-            }}
+            className="w-full border-none bg-transparent font-body text-13 text-foreground outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
           />
-        </Box>
+        </div>
 
         {/* Sin resultados de búsqueda (con proyectos existentes) — distinto
             del caso "sin ningún proyecto todavía", que resuelve el propio
             `DashboardTable` vía su prop `onCreate` (fase 09, D067). */}
         {!isLoading && query.trim() && filteredRows.length === 0 ? (
-          <Box
-            component={motion.div}
+          <motion.div
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{
               duration: reduceMotion ? 0 : 0.28,
               ease: [0.2, 0.8, 0.2, 1],
             }}
-            sx={{
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: `${radius.lg}px`,
-              backgroundColor: theme.palette.background.paper,
-            }}
+            className="rounded-lg border border-border bg-card"
           >
             <EmptyState
-              icon={SearchOffRoundedIcon}
+              icon={SearchX}
               title={`Ningún proyecto coincide con "${query}"`}
               description="Prueba con otro título o borra la búsqueda."
               ctaLabel="Limpiar búsqueda"
               onCtaClick={() => setQuery("")}
             />
-          </Box>
+          </motion.div>
         ) : (
           <DashboardTable
             projects={filteredRows}
@@ -200,7 +131,7 @@ export default function DashboardProyectosPage() {
             onCreate={openCreate}
           />
         )}
-      </Box>
+      </div>
     </DashboardShell>
   );
 }

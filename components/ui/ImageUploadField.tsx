@@ -1,17 +1,10 @@
 "use client";
 
-import AttachFileRoundedIcon from "@mui/icons-material/AttachFileRounded";
-import ImageOutlinedIcon from "@mui/icons-material/ImageRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useTheme } from "@mui/material/styles";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-import TextField from "@mui/material/TextField";
+import { Image as ImageIcon, Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
-import { SMALL_FIELD_SX } from "@/theme/fieldStyles";
-import { fontScale, primary, radius } from "@/theme/tokens";
-import { outlinedActionSx } from "./outlinedActionSx";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface ImageUploadFieldProps {
   label: string;
@@ -26,13 +19,15 @@ export interface ImageUploadFieldProps {
  * (`aspectRatio: 16/9`), con los controles de subida (tabs + botón/URL)
  * debajo en vez de al lado — así la vista previa puede crecer sin competir
  * por espacio horizontal con el resto del formulario.
+ *
+ * Migrado a shadcn (D134): pestañas de `tabs` (44 px de alto, la línea del
+ * sitio) y el campo de URL con `Input`.
  */
 export function ImageUploadField({
   label,
   value,
   onChange,
 }: ImageUploadFieldProps) {
-  const theme = useTheme();
   const [tab, setTab] = useState<"upload" | "url">("upload");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,76 +38,33 @@ export function ImageUploadField({
   }
 
   return (
-    <Box>
-      <Box
-        sx={{
-          fontSize: fontScale[12],
-          fontWeight: 500,
-          color: theme.palette.text.primary,
-          mb: 1.5,
-        }}
-      >
-        {label}
-      </Box>
+    <div>
+      <div className="mb-1.5 text-12 font-medium text-foreground">{label}</div>
 
-      <Box
-        sx={{
-          width: "100%",
-          aspectRatio: "16 / 9",
-          borderRadius: `${radius.md}px`,
-          border: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.primary.dark,
-          backgroundImage: value ? `url(${value})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+      <div
+        className="mb-2 flex aspect-video w-full items-center justify-center rounded-md border border-border bg-primary-dark bg-cover bg-center"
+        style={value ? { backgroundImage: `url(${value})` } : undefined}
       >
         {!value && (
-          <ImageOutlinedIcon
-            sx={{ fontSize: fontScale[40], color: "rgba(255,255,255,0.4)" }}
-          />
+          <ImageIcon aria-hidden="true" className="size-10 text-white/40" />
         )}
-      </Box>
+      </div>
 
-      <Tabs
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        aria-label="Origen de la imagen"
-        sx={(t) => ({
-          minHeight: 32,
-          mb: 1.5,
-          // Pestaña activa legible en oscuro (primary.main da 3.1:1, como D084).
-          "& .MuiTab-root.Mui-selected": {
-            color: t.palette.mode === "light" ? primary[700] : primary[200],
-          },
-        })}
-      >
-        <Tab
-          value="upload"
-          label="Subir archivo"
-          sx={{ minHeight: 32, py: 0.5, fontSize: fontScale[12] }}
-        />
-        <Tab
-          value="url"
-          label="URL"
-          sx={{ minHeight: 32, py: 0.5, fontSize: fontScale[12] }}
-        />
-      </Tabs>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "upload" | "url")}>
+        <TabsList aria-label="Origen de la imagen" className="mb-1.5">
+          <TabsTrigger value="upload" className="text-12">
+            Subir archivo
+          </TabsTrigger>
+          <TabsTrigger value="url" className="text-12">
+            URL
+          </TabsTrigger>
+        </TabsList>
 
-      {/*
-        El botón "Elegir imagen" (variant="outlined", tamaño "small" de MUI,
-        ~30.75px) y el `TextField` de URL (~40px con `size="small"`) tenían
-        alturas distintas — cambiar de tab movía el resto del formulario
-        hacia arriba/abajo. Se fija `height: 40px` en ambos (vía sx en el
-        Button, vía `.MuiInputBase-root` en el TextField) para que el
-        contenedor no salte de alto al alternar.
-      */}
-      {tab === "upload" ? (
-        <>
+        {/*
+          El botón y el campo de URL miden lo mismo (40 px): cambiar de
+          pestaña no mueve el resto del formulario.
+        */}
+        <TabsContent value="upload">
           <input
             ref={inputRef}
             type="file"
@@ -122,34 +74,25 @@ export function ImageUploadField({
           />
           {/* Mismo estilo que "Comprobante" del paso de pago (PaymentStep). */}
           <Button
-            type="button"
-            variant="outlined"
-            startIcon={<AttachFileRoundedIcon fontSize="small" />}
+            variant="action"
             onClick={() => inputRef.current?.click()}
-            sx={(t) => ({
-              ...outlinedActionSx(t),
-              height: 40,
-              fontSize: fontScale[12],
-            })}
+            className="h-10 min-h-10 text-12"
           >
+            <Paperclip aria-hidden="true" className="size-5" />
             {value ? "Cambiar imagen" : "Elegir imagen"}
           </Button>
-        </>
-      ) : (
-        <TextField
-          placeholder="https://..."
-          aria-label={`${label} — URL`}
-          type="url"
-          fullWidth
-          size="small"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          sx={{
-            ...SMALL_FIELD_SX,
-            "& .MuiInputBase-root": { fontSize: fontScale[14], height: 40 },
-          }}
-        />
-      )}
-    </Box>
+        </TabsContent>
+        <TabsContent value="url">
+          <Input
+            placeholder="https://..."
+            aria-label={`${label} — URL`}
+            type="url"
+            className="text-14"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
