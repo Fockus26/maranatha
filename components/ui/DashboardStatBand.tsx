@@ -34,7 +34,7 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
       <div
         className={cn(
           DASHBOARD_CONTENT_CLASS,
-          "relative flex flex-wrap gap-y-6",
+          "relative flex flex-wrap gap-y-3",
         )}
       >
         {stats.map((stat, index) => (
@@ -42,7 +42,7 @@ export function DashboardStatBand({ stats, loading }: DashboardStatBandProps) {
             key={stat.label}
             className={cn(
               "shrink grow basis-50",
-              index > 0 && "sm:border-l sm:border-on-navy-divider sm:pl-8",
+              index > 0 && "sm:border-l sm:border-on-navy-divider sm:pl-4",
             )}
           >
             <p className="mb-1.25 font-body text-11 tracking-[0.08em] text-white/55 uppercase">
