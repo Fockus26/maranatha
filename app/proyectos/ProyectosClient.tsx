@@ -86,7 +86,10 @@ export function ProyectosClient({ projects }: { projects: ProjectRecord[] }) {
             onValueChange={(value) => setTab(value as FilterTab)}
           >
             <div className="mb-4 flex items-center justify-between gap-2 md:mb-5">
-              <TabsList aria-label="Filtrar proyectos por estado">
+              <TabsList
+                aria-label="Filtrar proyectos por estado"
+                className="min-w-0 overflow-x-auto"
+              >
                 <TabsTrigger value="all">Todos ({projects.length})</TabsTrigger>
                 <TabsTrigger value="active">
                   Activos (

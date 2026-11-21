@@ -50,6 +50,9 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
   }
 
   const stepOneRef = useRef<HTMLDivElement>(null);
+  // Quien abrió el modal: Radix solo devuelve el foco a un `DialogTrigger`
+  // (aquí el botón vive en `ProjectSidebar`), así que se restaura a mano.
+  const openerRef = useRef<HTMLElement | null>(null);
 
   // Al volver, el botón "Volver" desaparece: el foco va al submit del paso 1
   // (que es desde donde el usuario había avanzado) en vez de caer al <body>.
@@ -101,9 +104,14 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
               goalAmount={project.goalAmount}
               deadlineLabel={project.deadlineLabel}
               encargados={project.encargados}
-              onCtaClick={() =>
-                isCompleted ? undefined : setContributeOpen(true)
-              }
+              onCtaClick={() => {
+                if (isCompleted) return;
+                openerRef.current =
+                  document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : null;
+                setContributeOpen(true);
+              }}
             />
           </div>
         </Container>
@@ -120,6 +128,10 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
         <DialogContent
           aria-label={`Aportar a "${project.title}"`}
           aria-describedby={undefined}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            openerRef.current?.focus();
+          }}
           // Márgenes de 8 px (16 desde `sm`) como el papel de MUI; el paso
           // interior trae su propio ancho.
           className="flex max-w-[calc(100%-1rem)] justify-center p-2.5 sm:max-w-111 sm:p-4"
