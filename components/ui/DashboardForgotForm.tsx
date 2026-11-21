@@ -1,19 +1,18 @@
 "use client";
 
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import MuiLink from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Link from "next/link";
+import NextLink from "next/link";
 import { useActionState, useState } from "react";
 import {
   type ForgotError,
   type ForgotState,
   requestPasswordReset,
 } from "@/app/actions/auth";
-import { fontScale } from "@/theme/tokens";
-import { authFormSx, DashboardAuthShell } from "./DashboardAuthShell";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Link } from "@/components/ui/link";
+import { authFormClass, DashboardAuthShell } from "./DashboardAuthShell";
 
 const ERROR_TEXT: Record<ForgotError, string> = {
   invalid_input: "Ingresa un correo válido.",
@@ -40,30 +39,25 @@ export function DashboardForgotForm() {
       title="Recupera tu acceso"
       subtitle="Te enviaremos un enlace para elegir una contraseña nueva."
     >
-      <Box component="form" action={formAction} noValidate sx={authFormSx}>
-        <TextField
-          name="email"
-          type="email"
+      <form action={formAction} noValidate className={authFormClass}>
+        <Field
           label="Correo electrónico"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
-          fullWidth
           error={error === "invalid_input"}
-          slotProps={{
-            htmlInput: {
-              "aria-describedby": error ? "forgot-error" : undefined,
-            },
-          }}
-        />
+        >
+          <Input
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            aria-describedby={error ? "forgot-error" : undefined}
+          />
+        </Field>
 
         {sent && (
-          <Alert
-            severity="success"
-            role="status"
-            sx={{ fontSize: fontScale[13] }}
-          >
+          <Alert severity="success" role="status" className="text-13">
             Si ese correo tiene acceso al panel, te llegará un enlace en unos
             minutos. Revisa también la carpeta de spam. El enlace vence en una
             hora.
@@ -74,42 +68,27 @@ export function DashboardForgotForm() {
             id="forgot-error"
             severity="error"
             role="alert"
-            sx={{ fontSize: fontScale[13] }}
+            className="text-13"
           >
             {ERROR_TEXT[error]}
           </Alert>
         )}
 
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 2,
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <Button
             type="submit"
-            variant="contained"
             color="secondary"
             disabled={pending}
             size="large"
-            sx={{ px: 5 }}
+            className="px-5"
           >
             {pending ? "Enviando…" : "Enviar enlace"}
           </Button>
-          <MuiLink
-            component={Link}
-            href="/dashboard/login"
-            color="text.secondary"
-            underline="always"
-            sx={{ fontSize: fontScale[14] }}
-          >
-            Volver a ingresar
-          </MuiLink>
-        </Box>
-      </Box>
+          <Link asChild tone="muted" underline="always" className="text-14">
+            <NextLink href="/dashboard/login">Volver a ingresar</NextLink>
+          </Link>
+        </div>
+      </form>
     </DashboardAuthShell>
   );
 }
