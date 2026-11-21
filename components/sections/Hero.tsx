@@ -256,7 +256,7 @@ export function Hero() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <span className="mb-1.5 block font-body font-medium text-11 text-secondary-300 uppercase tracking-[0.18em] wide:text-13">
+              <span className="mb-1.5 block font-body font-medium text-11 text-secondary-300 uppercase tracking-eyebrow-lg wide:text-13">
                 {slide.eyebrow}
               </span>
 
@@ -265,7 +265,7 @@ export function Hero() {
                   contiene también se ensancha (ver arriba). `min-h`: altura
                   reservada para el headline más largo — evita que el CTA/stats
                   salten de posición al cambiar de slide. */}
-              <h1 className="mb-4 min-h-[3.45em] font-extrabold font-heading text-34 text-gray-50 leading-h2 tracking-[-0.02em] md:text-[52px] xl:min-h-[2.7em] xl:text-[58px] wide:text-64">
+              <h1 className="mb-4 min-h-[3.45em] font-extrabold font-heading text-34 text-gray-50 leading-h2 tracking-tighter md:text-52 xl:min-h-[2.7em] xl:text-58 wide:text-64">
                 {slide.headline}
               </h1>
 
@@ -282,7 +282,7 @@ export function Hero() {
 
           {/* Stats — línea única minimalista, no cambia entre slides */}
           <div className="mt-5 border-gray-50/15 border-t pt-2 md:mt-6">
-            <p className="font-body text-12 text-gray-300 tracking-[0.02em] wide:text-14">
+            <p className="font-body text-12 text-gray-300 tracking-wide wide:text-14">
               +400 personas · 5 áreas de servicio · 11 años sirviendo
             </p>
           </div>

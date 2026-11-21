@@ -115,7 +115,7 @@ function Alert({
       {hideIcon ? null : <Icon aria-hidden="true" />}
       <div className={cn("min-w-0", hideIcon && "col-span-2")}>{children}</div>
       {action ? (
-        <div data-slot="alert-action" className="ml-3 self-center">
+        <div data-slot="alert-action" className="self-center">
           {action}
         </div>
       ) : null}

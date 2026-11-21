@@ -16,6 +16,7 @@ export function PublicPageSkeleton({ cards = 6 }: { cards?: number }) {
         className="min-h-screen py-8 md:py-12"
       >
         <Container maxWidth="lg">
+          {/* valor único: anchos relativos (45 % / 70 %) del título y la bajada simulados */}
           <Skeleton className="my-2.5 h-8 w-[45%]" />
           <Skeleton className="mt-1 mb-5 h-4 w-[70%]" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">

@@ -90,6 +90,7 @@ export function ProjectDetailClient({ project }: { project: ProjectRecord }) {
 
       <main id="main-content" className="py-6 md:py-9">
         <Container maxWidth="lg">
+          {/* valor único: contenido + barra lateral fija de 340 px */}
           <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_340px] md:gap-8">
             <ProjectDetailContent
               title={project.title}

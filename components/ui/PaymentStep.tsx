@@ -124,9 +124,8 @@ function CopyButton({ value, label }: { value: string; label: string }) {
         <TooltipTrigger asChild>
           <Button
             variant="plain"
-            size="icon"
             // El `IconButton size="small"` de MUI: 28 px con ícono de 18.
-            className="size-7 p-1.25"
+            size="icon-xs"
             onClick={copy}
             aria-label={name}
           >
@@ -647,8 +646,9 @@ export function PaymentStep({
           ref={backRef}
           onClick={onBack}
           variant="text"
+          color="inherit"
           size="small"
-          className="-ml-1 text-12 text-inherit hover:bg-accent hover:text-inherit"
+          className="-ml-1 text-12"
         >
           <ArrowLeft className="size-4.5" aria-hidden="true" />
           Volver
@@ -680,18 +680,22 @@ export function PaymentStep({
       )}
 
       {loadError && (
-        <Alert severity="error" className={ALERT_CLASSES}>
-          <div className="flex items-center justify-between gap-2">
-            <span>{loadError}</span>
+        <Alert
+          severity="error"
+          className={ALERT_CLASSES}
+          action={
             <Button
               variant="text"
+              color="inherit"
               size="small"
-              className="shrink-0 text-inherit hover:bg-accent hover:text-inherit"
+              className="shrink-0"
               onClick={() => setAttempt((n) => n + 1)}
             >
               Reintentar
             </Button>
-          </div>
+          }
+        >
+          {loadError}
         </Alert>
       )}
 

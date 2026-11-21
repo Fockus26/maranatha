@@ -34,7 +34,7 @@ export function LeaderCard({
       }
       bottomSlot={
         <>
-          <p className="mb-px font-bold font-heading text-18 text-gray-50 tracking-[-0.01em]">
+          <p className="mb-px font-bold font-heading text-18 text-gray-50 tracking-tight">
             {name}
           </p>
           <p className="font-body font-medium text-13 text-secondary-300">

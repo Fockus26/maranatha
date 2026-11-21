@@ -196,7 +196,7 @@ function AgendaTile({
           <Calendar aria-hidden className={cn("size-4 shrink-0", tagColor)} />
           <span
             className={cn(
-              "font-body font-medium text-11 uppercase tracking-[0.14em]",
+              "font-body font-medium text-11 uppercase tracking-eyebrow",
               tagColor,
             )}
           >
@@ -215,7 +215,7 @@ function AgendaTile({
           className={cn(
             "font-extrabold font-heading leading-none transition-colors duration-200",
             isFeature
-              ? "text-[44px]"
+              ? "text-44"
               : size === "tall"
                 ? "text-34"
                 : isCompact
@@ -228,7 +228,7 @@ function AgendaTile({
         </span>
         <span
           className={cn(
-            "font-body font-semibold uppercase tracking-[0.06em] transition-colors duration-200",
+            "font-body font-semibold uppercase tracking-wide-6 transition-colors duration-200",
             isCompact ? "text-11" : "text-12",
             isAccented ? onAccent : "text-muted-foreground",
           )}
@@ -246,7 +246,7 @@ function AgendaTile({
               : size === "tall"
                 ? "text-17"
                 : isCompact
-                  ? "text-[13.5px]"
+                  ? "text-13.5"
                   : "text-15",
             isCompact ? "mb-px line-clamp-2" : "mb-0.75 line-clamp-3",
             isAccented ? onAccent : "text-foreground",
@@ -267,7 +267,7 @@ function AgendaTile({
           <p
             className={cn(
               "font-body transition-colors duration-200",
-              isFeature ? "text-[13.5px]" : "text-[12.5px]",
+              isFeature ? "text-13.5" : "text-12.5",
               isAccented ? onAccent : "text-muted-foreground",
             )}
           >
@@ -279,6 +279,7 @@ function AgendaTile({
   );
 }
 
+// valor único: alto de fila (84/108 px) de la cuadrícula de fotos de la agenda
 const AGENDA_GRID_CLASS =
   "grid auto-rows-[84px] grid-cols-2 grid-flow-dense gap-1.25 sm:auto-rows-[108px] sm:grid-cols-4 sm:gap-1.75";
 
@@ -329,11 +330,11 @@ export function Agenda({ events }: { events: AgendaEvent[] }) {
       <Container maxWidth="lg">
         <Reveal>
           <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
-            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-eyebrow-lg wide:text-13">
               Agenda
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-tight md:text-38 wide:text-46">
               Lo que se viene este mes
             </h2>
 

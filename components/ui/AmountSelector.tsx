@@ -1,9 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { FieldError } from "./field";
+import { Field } from "./field";
 import { Input } from "./input";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -35,7 +35,6 @@ export function AmountSelector({
   error,
   helperText,
 }: AmountSelectorProps) {
-  const errorId = useId();
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
   const showError = Boolean(error && helperText);
@@ -111,21 +110,24 @@ export function AmountSelector({
           );
         })}
       </div>
-      <Input
-        placeholder={customLabel}
-        aria-label={customLabel}
-        // "text" y no "number": con "number" el navegador deja pasar "1e3" y
-        // no hay forma de limitar los decimales al escribir. "decimal": se
-        // aceptan centavos.
-        type="text"
-        inputMode="decimal"
-        autoComplete="off"
-        value={customAmount}
-        onChange={(e) => handleCustomChange(e.target.value)}
-        aria-invalid={error || undefined}
-        aria-describedby={showError ? errorId : undefined}
-      />
-      {showError && <FieldError id={errorId}>{helperText}</FieldError>}
+      {/* La etiqueta existe para el lector de pantalla; a la vista, el placeholder. */}
+      <Field
+        label={customLabel}
+        hideLabel
+        error={showError ? helperText : error || undefined}
+      >
+        <Input
+          placeholder={customLabel}
+          // "text" y no "number": con "number" el navegador deja pasar "1e3" y
+          // no hay forma de limitar los decimales al escribir. "decimal": se
+          // aceptan centavos.
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          value={customAmount}
+          onChange={(e) => handleCustomChange(e.target.value)}
+        />
+      </Field>
     </div>
   );
 }

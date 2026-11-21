@@ -71,6 +71,7 @@ export default function Footer() {
   return (
     <footer className="border-border border-t bg-background">
       <Container maxWidth="lg" className="py-4 lg:py-8">
+        {/* valor único: la primera columna (marca) más ancha que las demás */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <Logo size={40} className="mb-1.5" />

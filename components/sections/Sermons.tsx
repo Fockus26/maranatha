@@ -56,11 +56,11 @@ export function Sermons({ videos }: { videos?: SermonVideo[] }) {
       <Container maxWidth="lg">
         <Reveal>
           <div className="mx-auto mb-5 max-w-160 text-center md:mx-0 md:mb-7 md:text-left">
-            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-[0.18em] wide:text-13">
+            <span className="mb-1.5 block font-body font-medium text-11 text-secondary uppercase tracking-eyebrow-lg wide:text-13">
               Prédicas
             </span>
 
-            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-[-0.01em] md:text-[38px] wide:text-46">
+            <h2 className="mb-2 font-bold font-heading text-28 text-foreground leading-h3 tracking-tight md:text-38 wide:text-46">
               Vive cada mensaje, donde estés
             </h2>
 

@@ -13,19 +13,25 @@ import { cn } from "@/lib/utils";
  * pista y barra con colores de sistema (el `.MuiLinearProgress` de
  * `globals.css`).
  *
- * `color` = primary (def.) | secondary: el color de la barra (D139).
+ * `color` = primary (def.) | secondary | success: el color de la barra (D139).
  *
  *   <Progress value={42} aria-label="Avance de la meta" />
  *   <Progress color="secondary" aria-label="Cargando" />
  *   <Progress aria-label="Cargando" />
  */
+const INDICATOR_COLOR = {
+  primary: "bg-primary",
+  secondary: "bg-secondary",
+  success: "bg-success",
+} as const;
+
 function Progress({
   className,
   value,
   color = "primary",
   ...props
 }: Omit<React.ComponentProps<typeof ProgressPrimitive.Root>, "color"> & {
-  color?: "primary" | "secondary";
+  color?: "primary" | "secondary" | "success";
 }) {
   const indeterminate = value == null;
   return (
@@ -43,7 +49,7 @@ function Progress({
         data-slot="progress-indicator"
         className={cn(
           "h-full forced-colors:bg-[Highlight]",
-          color === "secondary" ? "bg-secondary" : "bg-primary",
+          INDICATOR_COLOR[color],
           indeterminate
             ? "w-2/5 animate-progress-indeterminate motion-reduce:animate-none"
             : "w-full transition-transform duration-300 motion-reduce:transition-none",

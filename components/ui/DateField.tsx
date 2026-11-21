@@ -291,8 +291,7 @@ export function DateField({
         <div className="mb-3 flex items-center justify-between">
           <Button
             variant="plain"
-            size="icon"
-            className="size-7.5 p-1.25"
+            size="icon-sm"
             onClick={() => shiftMonth(-1)}
             aria-label="Mes anterior"
           >
@@ -306,8 +305,7 @@ export function DateField({
           </span>
           <Button
             variant="plain"
-            size="icon"
-            className="size-7.5 p-1.25"
+            size="icon-sm"
             onClick={() => shiftMonth(1)}
             aria-label="Mes siguiente"
             disabled={isAfterMax(nextMonthStart)}
