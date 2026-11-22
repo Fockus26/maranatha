@@ -182,6 +182,7 @@ export default function MobileMenuOverlay({
                       href={link.href}
                       onClick={onClose}
                       className={cn(
+                        // valor único: borde de 1,5 px de las píldoras del menú móvil
                         "inline-flex items-center gap-1 rounded-pill border-[1.5px] bg-transparent py-1 pr-2.5 pl-2 font-body text-16 no-underline",
                         isActive
                           ? "border-secondary-700 font-semibold text-secondary-700 dark:border-secondary-300 dark:text-secondary-300"

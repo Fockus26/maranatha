@@ -287,6 +287,7 @@ export function DashboardProjectForm({
                 initial={{ opacity: 0, y: -8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.22, ease: EASE }}
+                // valor único: 160 px para el monto de cada línea de presupuesto
                 className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_160px_auto]"
               >
                 <Input

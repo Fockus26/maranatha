@@ -30,6 +30,11 @@ export interface ConfirmDialogProps {
   onClose: () => void;
   /** Acción en curso: deshabilita los botones y evita cerrar a mitad. */
   pending?: boolean;
+  /**
+   * Adónde va el foco al cerrar, cuando quien abrió el diálogo deja de existir
+   * (eliminar una fila). Si devuelve `null`, vuelve a quien lo abrió.
+   */
+  returnFocus?: () => HTMLElement | null;
 }
 
 /**
@@ -49,6 +54,7 @@ export function ConfirmDialog({
   onConfirm,
   onClose,
   pending = false,
+  returnFocus,
 }: ConfirmDialogProps) {
   // Radix solo devuelve el foco a su `DialogTrigger`; aquí el diálogo es
   // controlado y no tiene uno: se guarda el elemento que lo abrió.
@@ -69,7 +75,7 @@ export function ConfirmDialog({
         }}
         onCloseAutoFocus={(e) => {
           e.preventDefault();
-          openerRef.current?.focus();
+          (returnFocus?.() ?? openerRef.current)?.focus();
         }}
         onEscapeKeyDown={(e) => {
           if (pending) e.preventDefault();
