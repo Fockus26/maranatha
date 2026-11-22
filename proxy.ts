@@ -45,8 +45,15 @@ function withSession(
   // hacen las páginas y acciones con `getAdmin`, contra la base).
   const loggedIn = Boolean(getSessionCookie(req));
 
+  // Solo se redirigen las navegaciones (GET/HEAD). Un POST de Server Action
+  // seguido de un 307 llega al login, que no tiene la acción, y el cliente
+  // solo ve "No hubo respuesta del servidor". Sin redirigir, la acción
+  // responde `unauthorized` (lo comprueba `getAdmin`) y la pantalla dice
+  // "Tu sesión expiró" (QA de versión 09).
+  const isNavigation = req.method === "GET" || req.method === "HEAD";
+
   let response = res;
-  if (!loggedIn && !PUBLIC_DASHBOARD_PATHS.has(pathname)) {
+  if (!loggedIn && isNavigation && !PUBLIC_DASHBOARD_PATHS.has(pathname)) {
     const redirectUrl = req.nextUrl.clone();
     redirectUrl.pathname = LOGIN_PATH;
     redirectUrl.search = "";
