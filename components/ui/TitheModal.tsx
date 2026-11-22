@@ -80,7 +80,7 @@ function AnimatedFamiliesCounter({ active }: { active: boolean }) {
   return (
     <div ref={ref} className="mt-4 border-t border-gray-50/15 pt-3 md:mt-5">
       {/* 36/44 px: sin token en la escala (ver "Tokens que faltaron", PR). */}
-      <span className="block font-heading text-36 font-extrabold leading-none text-secondary md:text-44">
+      <span className="block font-heading text-36 font-extrabold leading-none text-secondary-500 md:text-44">
         +{value}
       </span>
       <p className="mt-0.75 font-body text-13 leading-body text-gray-50/65">
@@ -189,12 +189,15 @@ export function TitheModal() {
             <TitheLayout
               text={
                 <>
-                  <div className="mb-3 inline-flex size-11 items-center justify-center rounded-lg bg-gray-50/10 text-secondary">
+                  <div className="mb-3 inline-flex size-11 items-center justify-center rounded-lg bg-gray-50/10 text-secondary-500">
                     <HandHeart className="size-5" aria-hidden="true" />
                   </div>
 
-                  {/* `tracking`: sin token (ver "Tokens que faltaron", PR). */}
-                  <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-eyebrow-lg text-secondary">
+                  {/* `tracking`: sin token (ver "Tokens que faltaron", PR).
+                      `secondary-500` fijo: el modal es navy en los dos modos y
+                      el `--secondary` de claro (700) da 3,70:1 sobre navy; el
+                      500 da 7,09:1, el mismo que ya se veía en oscuro (QA 09). */}
+                  <span className="mb-1.5 block font-body text-11 font-medium uppercase tracking-eyebrow-lg text-secondary-500">
                     Da con propósito
                   </span>
 
