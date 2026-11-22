@@ -127,6 +127,20 @@ button:focus-visible,
   .skip-link {
     transition: none;
   }
+
+  /* Primitivas de `components/ui/` (QA de versión 09): con reduced-motion
+     abren y cierran sin deslizarse ni hacer zoom. Una clase
+     `motion-reduce:animate-none` no basta: `data-open:animate-in` tiene más
+     especificidad y gana. Esta regla va fuera de `@layer`, así que se impone
+     a cualquier utilidad sin `!important`. Radix desmonta el contenido al
+     instante cuando la animación es `none`. */
+  [data-slot="sheet-content"],
+  [data-slot="dialog-content"],
+  [data-slot="select-content"],
+  [data-slot="popover-content"],
+  [data-slot="tooltip-content"] {
+    animation: none;
+  }
 }
 
 /*
