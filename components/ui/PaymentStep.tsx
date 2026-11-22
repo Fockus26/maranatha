@@ -82,6 +82,8 @@ const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
   method_unavailable: "Este método de pago no está disponible en este momento.",
   invalid_receipt:
     "El comprobante debe ser una imagen (JPG, PNG, WebP) o PDF de hasta 4 MB.",
+  empty_receipt:
+    "El comprobante está vacío. Vuelve a adjuntarlo o envía el reporte sin él.",
   duplicate_reference:
     "Esa referencia ya fue reportada. Si crees que es un error, escríbenos.",
   too_many_requests:
@@ -518,6 +520,12 @@ function ManualPaymentPanel({
             if (file && file.size > MAX_RECEIPT_BYTES) {
               setReceipt(null);
               setError("invalid_receipt");
+              e.target.value = "";
+              return;
+            }
+            if (file && file.size === 0) {
+              setReceipt(null);
+              setError("empty_receipt");
               e.target.value = "";
               return;
             }

@@ -82,6 +82,7 @@ export type ReportPaymentError =
   | "invalid_project"
   | "method_unavailable"
   | "invalid_receipt"
+  | "empty_receipt"
   | "duplicate_reference"
   | "too_many_requests"
   | "not_configured"
@@ -151,6 +152,11 @@ export async function reportManualPayment(
 
   let receiptPath: string | null = null;
   const receipt = formData.get("receipt");
+  // Un archivo elegido pero vacío (descarga fallida, archivo de la nube sin
+  // bajar) se avisa: guardarlo sin comprobante haría creer al donante que lo
+  // adjuntó (QA de versión 09). Sin archivo, el navegador manda uno sin nombre.
+  if (receipt instanceof File && receipt.size === 0 && receipt.name !== "")
+    return { ok: false, error: "empty_receipt" };
   if (receipt instanceof File && receipt.size > 0) {
     const upload = await uploadReceipt(receipt);
     if (!upload.ok)
