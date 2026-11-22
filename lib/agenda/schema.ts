@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatTime12 } from "@/lib/timeOfDay";
 
 /**
  * Tipos y validación de la agenda (tabla `agenda_events`,
@@ -76,11 +77,12 @@ export const agendaEventInputSchema = z.discriminatedUnion("kind", [
 
 export type AgendaEventInput = z.infer<typeof agendaEventInputSchema>;
 
-/** "19:00" → "7:00 p.m." (el formato que ya usaba la sección Agenda). */
+/**
+ * "19:00" → "7:00 p. m.": el mismo formato que el selector de hora del panel
+ * (D090, "a. m."/"p. m." con espacio), en la agenda pública y en el panel.
+ */
 export function formatStartTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const suffix = h < 12 ? "a.m." : "p.m.";
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${suffix}`;
+  return formatTime12(time);
 }
 
 /** "YYYY-MM-DD" → `Date` local (sin el corrimiento de zona de `new Date(iso)`). */

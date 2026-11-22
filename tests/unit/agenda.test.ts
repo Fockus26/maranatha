@@ -27,11 +27,11 @@ const special = (eventDate: string, startTime = "18:30"): AgendaEvent => ({
 });
 
 describe("formatStartTime", () => {
-  test("formatea en 12 h con a.m./p.m.", () => {
-    expect(formatStartTime("10:00")).toBe("10:00 a.m.");
-    expect(formatStartTime("19:05")).toBe("7:05 p.m.");
-    expect(formatStartTime("00:30")).toBe("12:30 a.m.");
-    expect(formatStartTime("12:00")).toBe("12:00 p.m.");
+  test("formatea en 12 h con a. m./p. m.", () => {
+    expect(formatStartTime("10:00")).toBe("10:00\u00a0a.\u00a0m.");
+    expect(formatStartTime("19:05")).toBe("7:05\u00a0p.\u00a0m.");
+    expect(formatStartTime("00:30")).toBe("12:30\u00a0a.\u00a0m.");
+    expect(formatStartTime("12:00")).toBe("12:00\u00a0p.\u00a0m.");
   });
 });
 
@@ -42,7 +42,7 @@ describe("buildMonthlyAgenda", () => {
   test("expande los recurrentes al resto del mes", () => {
     const entries = buildMonthlyAgenda([sunday], today);
     expect(entries.map((e) => e.date.getDate())).toEqual([25]);
-    expect(entries[0].schedule).toBe("10:00 a.m.");
+    expect(entries[0].schedule).toBe("10:00\u00a0a.\u00a0m.");
   });
 
   test("incluye puntuales de hoy a fin de mes y descarta el resto", () => {
@@ -64,7 +64,10 @@ describe("buildMonthlyAgenda", () => {
       [sunday, special("2026-10-25", "08:00")],
       today,
     );
-    expect(entries.map((e) => e.schedule)).toEqual(["8:00 a.m.", "10:00 a.m."]);
+    expect(entries.map((e) => e.schedule)).toEqual([
+      "8:00\u00a0a.\u00a0m.",
+      "10:00\u00a0a.\u00a0m.",
+    ]);
   });
 });
 

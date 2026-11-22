@@ -18,12 +18,12 @@ describe("timeOfDay", () => {
       minute: 0,
       period: "pm",
     });
-    expect(formatTime12("00:00")).toBe("12:00 a. m.");
-    expect(formatTime12("12:00")).toBe("12:00 p. m.");
+    expect(formatTime12("00:00")).toBe("12:00\u00a0a.\u00a0m.");
+    expect(formatTime12("12:00")).toBe("12:00\u00a0p.\u00a0m.");
   });
 
   test("no redondea minutos fuera de la grilla", () => {
-    expect(formatTime12("19:07")).toBe("7:07 p. m.");
+    expect(formatTime12("19:07")).toBe("7:07\u00a0p.\u00a0m.");
     expect(parseTime24("19:07")?.minute).toBe(7);
     expect(MINUTE_STEPS.includes(7)).toBe(false);
   });
