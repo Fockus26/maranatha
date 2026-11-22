@@ -121,7 +121,12 @@ export function DashboardLoginForm({
           >
             {pending ? "Ingresando…" : "Ingresar"}
           </Button>
-          <Link asChild tone="muted" underline="always" className="text-14">
+          <Link
+            asChild
+            tone="muted"
+            underline="always"
+            className="relative text-14 max-md:tap-target"
+          >
             <NextLink href={FORGOT_PATH}>¿Olvidaste tu contraseña?</NextLink>
           </Link>
         </div>

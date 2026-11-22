@@ -128,7 +128,7 @@ export function ProjectSidebar({
                     asChild
                     variant="plain"
                     size="icon"
-                    className="size-6.5 rounded-sm border border-border text-primary hover:border-secondary hover:bg-secondary/8 hover:text-secondary dark:text-primary dark:hover:bg-secondary/8"
+                    className="size-6.5 rounded-sm border border-border text-primary max-md:tap-target hover:border-secondary hover:bg-secondary/8 hover:text-secondary dark:text-primary dark:hover:bg-secondary/8"
                   >
                     <a
                       href={encargado.instagramUrl}

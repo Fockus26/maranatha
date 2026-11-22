@@ -62,7 +62,7 @@ export function DashboardAuthShell({
           asChild
           variant="text"
           size="small"
-          className="text-12 text-foreground"
+          className="text-12 text-foreground max-md:tap-target"
         >
           <Link href="/">
             <ArrowLeft className="size-5" aria-hidden="true" />

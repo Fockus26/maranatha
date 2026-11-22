@@ -338,6 +338,7 @@ function EventRow({
       <Button
         variant="plain"
         size="icon"
+        className="max-md:tap-target"
         aria-label={`Editar ${event.title}`}
         onClick={onEdit}
       >
@@ -346,6 +347,7 @@ function EventRow({
       <Button
         variant="plain"
         size="icon"
+        className="max-md:tap-target"
         aria-label={`Eliminar ${event.title}`}
         onClick={onDelete}
       >

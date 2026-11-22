@@ -673,7 +673,7 @@ export function DashboardPayments({
 
         <nav
           aria-label="Filtrar pagos por estado"
-          className="mb-3 flex flex-wrap gap-1"
+          className="mb-3 flex flex-wrap gap-1 max-md:gap-y-4"
         >
           {FILTER_ORDER.map((f) => {
             const active = f === filter;
@@ -687,7 +687,7 @@ export function DashboardPayments({
                 }
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "rounded-pill border px-2 py-0.75 text-13 leading-body font-medium no-underline hover:text-foreground",
+                  "relative rounded-pill border px-2 py-0.75 text-13 leading-body font-medium no-underline hover:text-foreground max-md:tap-target",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
                   active
                     ? "border-secondary bg-secondary-300/13 text-foreground"
