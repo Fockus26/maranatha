@@ -107,3 +107,22 @@ describe("reglas de app/globals.css", () => {
     expect(GLOBALS_CSS).not.toMatch(/\.Mui[A-Z]/);
   });
 });
+
+// QA de versión 09: `motion-reduce:animate-none` pierde contra
+// `data-open:animate-in`; la regla de reduced-motion de las primitivas va
+// en CSS global, fuera de `@layer`.
+describe("reduced-motion en las primitivas", () => {
+  test("Sheet, Dialog, Select, Popover y Tooltip sin animación", () => {
+    const start = GLOBALS_CSS.indexOf('[data-slot="sheet-content"]');
+    expect(start).toBeGreaterThan(0);
+    // El bloque `@media` más cercano por encima es el de reduced-motion.
+    const before = GLOBALS_CSS.slice(0, start);
+    expect(before.slice(before.lastIndexOf("@media"))).toStartWith(
+      "@media (prefers-reduced-motion: reduce)",
+    );
+    const block = GLOBALS_CSS.slice(start, GLOBALS_CSS.indexOf("}", start));
+    for (const slot of ["sheet", "dialog", "select", "popover", "tooltip"])
+      expect(block).toContain(`[data-slot="${slot}-content"]`);
+    expect(block).toContain("animation: none;");
+  });
+});

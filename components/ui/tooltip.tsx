@@ -56,7 +56,7 @@ function TooltipContent({
         sideOffset={sideOffset}
         className={cn(
           "z-dropdown w-fit max-w-64 origin-(--radix-tooltip-content-transform-origin) rounded-sm bg-gray-800 px-2 py-1 font-body text-small text-white dark:bg-gray-700",
-          "data-open:fade-in-0 data-open:animate-in data-closed:fade-out-0 data-closed:animate-out motion-reduce:animate-none",
+          "data-open:fade-in-0 data-open:animate-in data-closed:fade-out-0 data-closed:animate-out",
           className,
         )}
         {...props}
