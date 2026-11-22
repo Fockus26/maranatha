@@ -202,6 +202,7 @@ export function Hero() {
                   <span className="flex h-1.5 w-full items-center overflow-hidden rounded-pill bg-gray-50/22">
                     <span
                       className={cn(
+                        // valor único: grosor de 2,5 px de la barra de progreso del carrusel
                         "block h-[2.5px]",
                         i < index
                           ? "w-full bg-gray-50/55"

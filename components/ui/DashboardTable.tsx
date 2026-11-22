@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUp, Folder, Pencil, Trash2 } from "lucide-react";
-import { type ComponentProps, useMemo, useState } from "react";
+import { type ComponentProps, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +52,10 @@ type SortColumn = "title" | "status" | "progress" | "deadline";
 type SortDirection = "asc" | "desc";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
-/** Proyecto · Estado · Progreso · Cierre · Acciones (sin token de columnas). */
+/**
+ * Proyecto · Estado · Progreso · Cierre · Acciones.
+ * valor único: anchos de columna de esta tabla (no hay token de columnas).
+ */
 const GRID_COLUMNS =
   "grid grid-cols-[minmax(0,1fr)_130px_200px_130px_96px] items-center";
 
@@ -143,6 +146,31 @@ export function DashboardTable({
   const [deleteTarget, setDeleteTarget] = useState<DashboardProjectRow | null>(
     null,
   );
+  // Fila a la que pasa el foco tras eliminar (la siguiente, o la anterior si
+  // era la última): el botón que abrió el diálogo ya no existe y el foco caía
+  // en `<body>` (QA de versión 09, WCAG 2.4.3).
+  const focusAfterDelete = useRef<string | null>(null);
+
+  function focusTargetAfterDelete(): HTMLElement | null {
+    const title = focusAfterDelete.current;
+    focusAfterDelete.current = null;
+    if (title === null) return null;
+    // La tabla y las tarjetas de móvil están las dos en el DOM: la visible.
+    const visible = (els: NodeListOf<HTMLElement>) =>
+      [...els].find((el) => el.getClientRects().length > 0) ?? null;
+    if (title) {
+      const row = visible(
+        document.querySelectorAll<HTMLElement>(
+          `button[aria-label="${CSS.escape(`Eliminar ${title}`)}"]`,
+        ),
+      );
+      if (row) return row;
+    }
+    // Sin filas: el título de la página.
+    const heading = document.querySelector<HTMLElement>("main h1");
+    heading?.setAttribute("tabindex", "-1");
+    return heading;
+  }
 
   function handleSort(column: SortColumn) {
     if (sortColumn === column) {
@@ -494,9 +522,15 @@ export function DashboardTable({
         confirmLabel="Eliminar"
         destructive
         onConfirm={() => {
-          if (deleteTarget) onDelete(deleteTarget.id);
+          if (deleteTarget) {
+            const i = sortedProjects.findIndex((p) => p.id === deleteTarget.id);
+            const neighbor = sortedProjects[i + 1] ?? sortedProjects[i - 1];
+            focusAfterDelete.current = neighbor?.title ?? "";
+            onDelete(deleteTarget.id);
+          }
           setDeleteTarget(null);
         }}
+        returnFocus={focusTargetAfterDelete}
         onClose={() => setDeleteTarget(null)}
       />
     </>

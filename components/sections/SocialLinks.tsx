@@ -46,7 +46,10 @@ import { gray, primary, secondary } from "@/theme/tokens";
 /** 2 columnas en móvil, 4 desde md, dentro de `Container lg` (1200 px). */
 const COVER_SIZES = "(min-width: 1200px) 280px, (min-width: 900px) 23vw, 50vw";
 
-/** Íconos sueltos sobre la portada: blanco con sombra para leerse sobre cualquier foto. */
+/**
+ * Íconos sueltos sobre la portada: blanco con sombra para leerse sobre cualquier foto.
+ * valor único: sombra de texto fuera de la escala `shadow` (solo sobre fotos).
+ */
 const OVERLAY_ICON = "text-gray-50 drop-shadow-[0_1px_3px_rgb(0_0_0/0.5)]";
 
 const IG = "https://www.instagram.com";
