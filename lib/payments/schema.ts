@@ -90,6 +90,22 @@ const safeText = (max: number) =>
     .max(max)
     .refine((v) => !UNSAFE_CHARS.test(v), { message: "unsafe_chars" });
 
+/** Largo máximo del nombre del donante. */
+export const MAX_DONOR_NAME = 120;
+
+/**
+ * Nombre del donante. Lo usa también el paso 1 (`TitheForm`) para frenar ahí
+ * lo que el servidor rechazaría (QA de versión 09): sin al menos una letra o
+ * número, o con caracteres invisibles (el ZWJ de los emojis compuestos).
+ */
+export const donorNameSchema = safeText(MAX_DONOR_NAME).refine(
+  (v) => /[\p{L}\p{N}]/u.test(v),
+  { message: "name_without_letters" },
+);
+
+/** Máximo de días hacia atrás para la fecha de un pago reportado. */
+export const MAX_PAID_AT_AGE_DAYS = 60;
+
 /** Lo que el paso 1 (formulario de aporte) entrega al paso de pago. */
 export const contributionSchema = z
   .object({
@@ -103,10 +119,7 @@ export const contributionSchema = z
         .max(MAX_AMOUNT_USD)
         .transform((v) => Math.round(v * 100) / 100),
     ),
-    // Al menos una letra o número: descarta nombres hechos solo de símbolos.
-    name: safeText(120).refine((v) => /[\p{L}\p{N}]/u.test(v), {
-      message: "name_without_letters",
-    }),
+    name: donorNameSchema,
     email: z.string().trim().toLowerCase().max(254).regex(EMAIL_RE),
   })
   .refine((v) => (v.purpose === "proyecto") === Boolean(v.projectSlug), {

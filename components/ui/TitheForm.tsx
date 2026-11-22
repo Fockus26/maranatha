@@ -2,7 +2,12 @@
 
 import { AnimatePresence, animate, motion } from "framer-motion";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { MAX_AMOUNT_USD, MIN_AMOUNT_USD } from "@/lib/payments/schema";
+import {
+  donorNameSchema,
+  MAX_AMOUNT_USD,
+  MAX_DONOR_NAME,
+  MIN_AMOUNT_USD,
+} from "@/lib/payments/schema";
 import { isValidEmail } from "@/lib/validation";
 import { AmountSelector } from "./AmountSelector";
 import { Button } from "./button";
@@ -104,7 +109,13 @@ export function TitheForm({
 
   // Mismos límites que valida el servidor (lib/payments/schema.ts).
   const amountValid = amount >= MIN_AMOUNT_USD && amount <= MAX_AMOUNT_USD;
-  const nameValid = name.trim().length > 0;
+  const nameValid = donorNameSchema.safeParse(name).success;
+  const nameError =
+    name.trim().length === 0
+      ? "Ingresa tu nombre completo."
+      : name.trim().length > MAX_DONOR_NAME
+        ? `El nombre puede tener hasta ${MAX_DONOR_NAME} caracteres.`
+        : "Escribe tu nombre solo con letras, sin emojis ni símbolos especiales.";
   const emailValid = isValidEmail(email);
   const formValid = amountValid && nameValid && emailValid;
   const displayAmount = useAnimatedAmount(amount);
@@ -200,12 +211,11 @@ export function TitheForm({
           <Field
             label="Nombre completo"
             required
-            error={
-              touched && !nameValid ? "Ingresa tu nombre completo." : undefined
-            }
+            error={touched && !nameValid ? nameError : undefined}
           >
             <Input
               required
+              maxLength={MAX_DONOR_NAME}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />

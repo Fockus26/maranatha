@@ -20,7 +20,11 @@ import {
   startPaypalCheckout,
 } from "@/app/actions/payments";
 import { formatAmount } from "@/lib/payments/labels";
-import type { PaymentFrequency, PaymentPurpose } from "@/lib/payments/schema";
+import {
+  MAX_PAID_AT_AGE_DAYS,
+  type PaymentFrequency,
+  type PaymentPurpose,
+} from "@/lib/payments/schema";
 import { cn } from "@/lib/utils";
 import { Alert } from "./alert";
 import { Button } from "./button";
@@ -78,6 +82,9 @@ export interface PaymentStepProps {
 const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
   invalid_input:
     "Revisa los datos del reporte: referencia, fecha y monto pagado.",
+  invalid_contribution:
+    "Revisa tu nombre, correo y monto: vuelve al paso anterior para corregirlos.",
+  invalid_date: `La fecha del pago debe ser de los últimos ${MAX_PAID_AT_AGE_DAYS} días.`,
   invalid_project: "Este proyecto ya no recibe aportes.",
   method_unavailable: "Este método de pago no está disponible en este momento.",
   invalid_receipt:
@@ -91,9 +98,12 @@ const REPORT_ERROR_TEXT: Record<ReportPaymentError, string> = {
     "No pudimos registrar el reporte. Prueba de nuevo en unos minutos.",
 };
 
-function todayIso() {
+/** Fecha local "YYYY-MM-DD", `daysAgo` días antes de hoy. */
+function todayIso(daysAgo = 0) {
   const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  const local = new Date(
+    now.getTime() - now.getTimezoneOffset() * 60_000 - daysAgo * 86_400_000,
+  );
   return local.toISOString().slice(0, 10);
 }
 
@@ -362,7 +372,10 @@ function ManualPaymentPanel({
     /^[A-Za-z0-9@._\- ]{3,64}$/.test(reference.trim()) &&
     /[A-Za-z0-9]/.test(reference);
   const amountValid = Number(amountPaid) > 0;
-  const dateValid = paidAt !== "" && paidAt <= todayIso();
+  // Mismo rango que el servidor: ni futura ni de hace más de 60 días.
+  const minPaidAt = todayIso(MAX_PAID_AT_AGE_DAYS);
+  const dateValid =
+    paidAt !== "" && paidAt <= todayIso() && paidAt >= minPaidAt;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -535,15 +548,16 @@ function ManualPaymentPanel({
         )}
 
         {/* Mismo calendario que el formulario de proyectos; no se puede
-            elegir una fecha futura. */}
+            elegir una fecha futura ni de hace más de 60 días. */}
         <input type="hidden" name="paidAt" value={paidAt} />
         <DateField
           label="Fecha del pago"
           value={paidAt}
           onChange={setPaidAt}
+          min={minPaidAt}
           max={todayIso()}
           error={touched && !dateValid}
-          helperText="Elige una fecha válida."
+          helperText={`Elige una fecha de los últimos ${MAX_PAID_AT_AGE_DAYS} días.`}
         />
         <Field
           label={`Monto pagado (${method.currency === "VES" ? "Bs" : method.currency})`}
