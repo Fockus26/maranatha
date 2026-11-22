@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3100"],
+      "port": 3100
+    },
+    {
+      "name": "qa-panel-lateral",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["--cwd=C:/Users/Cesar/Documents/Work/maranatha-wt/wt2", "run", "qa:local", "--", "--port", "4302"],
+      "port": 4302
+    }
+  ]
+}
