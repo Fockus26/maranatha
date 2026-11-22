@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { HashHistorySync } from "@/components/layout/HashHistorySync";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { ScrollbarGapSync } from "@/components/layout/ScrollbarGapSync";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
@@ -100,6 +101,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Toaster />
         <ServiceWorkerRegister />
         <ScrollbarGapSync />
+        <HashHistorySync />
         {/* Solo en Vercel: fuera de ahí el script `/_vercel/insights` da 404. */}
         {process.env.VERCEL === "1" && <Analytics />}
       </body>
