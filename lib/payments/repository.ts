@@ -210,6 +210,25 @@ export async function getPayment(
   return getOneBy(eq(payments.id, id), "getPayment");
 }
 
+/**
+ * El reporte manual vigente (no rechazado) con esa referencia en ese método,
+ * normalizada igual que `reference_norm`. Sirve para reconocer un reintento
+ * del mismo reporte tras `duplicate_reference`.
+ */
+export async function getActiveManualReport(
+  method: PaymentMethodId,
+  reference: string,
+): Promise<Result<PaymentRow, RepoError>> {
+  return getOneBy(
+    and(
+      eq(payments.method, method),
+      ne(payments.status, "rejected"),
+      sql`${payments.referenceNorm} = upper(regexp_replace(${reference}, '[\\s._-]', '', 'g'))`,
+    ),
+    "getActiveManualReport",
+  );
+}
+
 export async function getPaymentByOrderId(
   orderId: string,
 ): Promise<Result<PaymentRow, RepoError>> {

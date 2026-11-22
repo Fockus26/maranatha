@@ -23,13 +23,16 @@ import { deleteReceipt, uploadReceipt } from "@/lib/payments/receipts";
 import {
   countRecentPendingByEmail,
   deleteUnsentPayment,
+  getActiveManualReport,
   insertPayment,
+  type PaymentRow,
   transitionPayment,
   updatePayment,
 } from "@/lib/payments/repository";
 import {
   type Contribution,
   contributionSchema,
+  MAX_PAID_AT_AGE_DAYS,
   manualReportSchema,
   type PaymentFrequency,
   type Result,
@@ -79,6 +82,8 @@ export async function getCheckoutOptions(input: {
 
 export type ReportPaymentError =
   | "invalid_input"
+  | "invalid_contribution"
+  | "invalid_date"
   | "invalid_project"
   | "method_unavailable"
   | "invalid_receipt"
@@ -120,19 +125,26 @@ export async function reportManualPayment(
     paidAt: formData.get("paidAt"),
     amountPaid: formData.get("amountPaid"),
   });
-  if (!contribution.success || !report.success)
-    return { ok: false, error: "invalid_input" };
+  // Nombre, correo o monto vienen del paso 1: el mensaje manda allá, no a la
+  // referencia, la fecha o el monto pagado (QA de versión 09).
+  if (!contribution.success)
+    return { ok: false, error: "invalid_contribution" };
+  if (!report.success) return { ok: false, error: "invalid_input" };
   // Los métodos manuales no admiten recurrencia: "Mensual" solo existe con PayPal.
   if (contribution.data.frequency !== "once")
     return { ok: false, error: "invalid_input" };
   if (!validateProject(contribution.data))
     return { ok: false, error: "invalid_project" };
 
-  // Fecha del pago: no futura (con 1 día de margen por husos horarios) ni de hace más de 60 días.
+  // Fecha del pago: no futura (con 1 día de margen por husos horarios) ni de
+  // hace más de `MAX_PAID_AT_AGE_DAYS` (el calendario ya las deshabilita).
   const paidAt = new Date(`${report.data.paidAt}T00:00:00Z`).getTime();
   const DAY = 86_400_000;
-  if (paidAt > Date.now() + DAY || paidAt < Date.now() - 60 * DAY)
-    return { ok: false, error: "invalid_input" };
+  if (
+    paidAt > Date.now() + DAY ||
+    paidAt < Date.now() - (MAX_PAID_AT_AGE_DAYS + 1) * DAY
+  )
+    return { ok: false, error: "invalid_date" };
 
   if (!isDbConfigured()) return { ok: false, error: "not_configured" };
 
@@ -186,11 +198,43 @@ export async function reportManualPayment(
 
   if (!inserted.ok) {
     if (receiptPath) await deleteReceipt(receiptPath);
-    if (inserted.error === "duplicate_reference")
+    if (inserted.error === "duplicate_reference") {
+      // Reintento del mismo reporte (la respuesta del primero se perdió en la
+      // red, QA de versión 09): si la fila vigente es igual, el reporte ya
+      // está guardado y se responde como si fuera este.
+      const existing = await getActiveManualReport(
+        method.id,
+        report.data.reference,
+      );
+      if (
+        existing.ok &&
+        isSameReport(existing.data, {
+          ...contribution.data,
+          ...report.data,
+        })
+      )
+        return { ok: true, data: { id: existing.data.id } };
       return { ok: false, error: "duplicate_reference" };
+    }
     return { ok: false, error: "server_error" };
   }
   return { ok: true, data: { id: inserted.data.id } };
+}
+
+/** El reporte guardado coincide con el que llega (mismo donante y montos). */
+function isSameReport(
+  row: PaymentRow,
+  next: Contribution & { amountPaid: number; paidAt: string },
+): boolean {
+  return (
+    row.status === "pending" &&
+    row.donor_email === next.email &&
+    row.purpose === next.purpose &&
+    (row.project_slug ?? undefined) === next.projectSlug &&
+    row.amount_usd === next.amountUsd &&
+    row.amount_paid === next.amountPaid &&
+    row.paid_at === next.paidAt
+  );
 }
 
 // ─── PayPal (pasarela) ─────────────────────────────────────────────────────

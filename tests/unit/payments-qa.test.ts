@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   contributionSchema,
+  donorNameSchema,
   fallbackRatesSchema,
+  MAX_DONOR_NAME,
   manualReportSchema,
 } from "@/lib/payments/schema";
 
@@ -39,6 +41,26 @@ describe("QA de pagos: reporte manual", () => {
     expect(
       contributionSchema.safeParse({ ...base, amountUsd: "1e3" }).success,
     ).toBe(false);
+  });
+});
+
+// QA de versión 09: el paso 1 valida el nombre con el mismo esquema que el
+// servidor, para no culpar después a la referencia, la fecha o el monto.
+describe("QA de pagos: nombre del donante", () => {
+  test("rechaza lo que el servidor rechaza", () => {
+    for (const name of [
+      "",
+      "   ",
+      "!!!",
+      "Ana 👨‍👩‍👧",
+      "A".repeat(MAX_DONOR_NAME + 1),
+    ])
+      expect(donorNameSchema.safeParse(name).success).toBe(false);
+  });
+
+  test("acepta nombres reales, con tildes y emojis simples", () => {
+    for (const name of ["Ana", "José Pérez-Núñez", "María 🙏", "A".repeat(120)])
+      expect(donorNameSchema.safeParse(name).success).toBe(true);
   });
 });
 

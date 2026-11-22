@@ -19,6 +19,8 @@ export interface DateFieldProps {
   helperText?: string;
   /** Fecha máxima elegible ("YYYY-MM-DD"); los días posteriores se deshabilitan. */
   max?: string;
+  /** Fecha mínima elegible ("YYYY-MM-DD"); los días anteriores se deshabilitan. */
+  min?: string;
 }
 
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
@@ -113,10 +115,12 @@ export function DateField({
   error,
   helperText,
   max,
+  min,
 }: DateFieldProps) {
   const [open, setOpen] = useState(false);
   const selected = parseValue(value);
   const maxDate = max ? parseValue(max) : null;
+  const minDate = min ? parseValue(min) : null;
   const [viewDate, setViewDate] = useState<Date>(selected ?? new Date());
   const [focusDate, setFocusDate] = useState<Date>(selected ?? new Date());
   const [container, setContainer] = useState<HTMLElement | null>(null);
@@ -127,12 +131,16 @@ export function DateField({
 
   const isAfterMax = (day: Date) =>
     Boolean(maxDate && day > maxDate && !isSameDay(day, maxDate));
+  const isBeforeMin = (day: Date) =>
+    Boolean(minDate && day < minDate && !isSameDay(day, minDate));
+  const isOutOfRange = (day: Date) => isAfterMax(day) || isBeforeMin(day);
 
   function handleOpenChange(next: boolean) {
     if (next) {
       const today = new Date();
       let start = selected ?? today;
       if (isAfterMax(start) && maxDate) start = maxDate;
+      if (isBeforeMin(start) && minDate) start = minDate;
       setViewDate(start);
       setFocusDate(start);
       setContainer(
@@ -157,6 +165,7 @@ export function DateField({
     viewDate.getMonth() + 1,
     1,
   );
+  const prevMonthEnd = new Date(viewDate.getFullYear(), viewDate.getMonth(), 0);
   const days = buildMonthGrid(viewDate);
   const currentMonth = viewDate.getMonth();
   const monthLabel = MONTH_FORMATTER.format(viewDate);
@@ -210,7 +219,7 @@ export function DateField({
         return;
     }
     e.preventDefault();
-    if (isAfterMax(next)) return;
+    if (isOutOfRange(next)) return;
     moveFocus.current = true;
     setFocusDate(next);
     if (!isSameMonth(next, viewDate)) {
@@ -294,6 +303,7 @@ export function DateField({
             size="icon-sm"
             onClick={() => shiftMonth(-1)}
             aria-label="Mes anterior"
+            disabled={isBeforeMin(prevMonthEnd)}
           >
             <ChevronLeft aria-hidden className="size-5" />
           </Button>
@@ -330,7 +340,7 @@ export function DateField({
             const inCurrentMonth = day.getMonth() === currentMonth;
             const isSelected = selected ? isSameDay(day, selected) : false;
             const isToday = isSameDay(day, today);
-            const disabled = isAfterMax(day);
+            const disabled = isOutOfRange(day);
             return (
               <button
                 key={day.toISOString()}
