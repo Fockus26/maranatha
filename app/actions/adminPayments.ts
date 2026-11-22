@@ -88,6 +88,14 @@ export async function rejectPayment(
   const parsed = rejectSchema.safeParse({ id, note: note || undefined });
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
+  // Igual que en `approvePayment`: el estado de un pago de pasarela lo deciden
+  // su captura o su webhook. Rechazado a mano, si el donante termina de pagar
+  // después, PayPal cobra y la fila queda `rejected` (QA de versión 09).
+  const payment = await getPayment(parsed.data.id);
+  if (!payment.ok) return { ok: false, error: mapRepoError(payment.error) };
+  if (isGatewayPayment(payment.data))
+    return { ok: false, error: "invalid_input" };
+
   const result = await transitionPayment(parsed.data.id, "rejected", {
     confirmed_by: admin.email,
     notes: parsed.data.note ?? null,
@@ -126,9 +134,12 @@ export async function saveFallbackRates(
 ): Promise<Result<null, AdminActionError>> {
   const admin = await getAdminStrict();
   if (!admin) return { ok: false, error: "unauthorized" };
+  // Vacío o solo espacios = "sin respaldo" para esa moneda.
+  const field = (name: string) =>
+    String(formData.get(name) ?? "").trim() || undefined;
   const parsed = fallbackRatesSchema.safeParse({
-    VES: formData.get("VES") || undefined,
-    COP: formData.get("COP") || undefined,
+    VES: field("VES"),
+    COP: field("COP"),
   });
   if (!parsed.success) return { ok: false, error: "invalid_input" };
 
