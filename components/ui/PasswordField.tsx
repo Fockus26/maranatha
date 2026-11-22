@@ -75,7 +75,7 @@ export function PasswordField({
             disabled={disabled}
             onClick={() => setVisible((v) => !v)}
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute top-0.5 right-0.5 size-9"
+            className="absolute top-0.5 right-0.5 size-9 max-md:tap-target"
           >
             {visible ? (
               <EyeOff aria-hidden="true" />

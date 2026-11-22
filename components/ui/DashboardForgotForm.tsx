@@ -84,7 +84,12 @@ export function DashboardForgotForm() {
           >
             {pending ? "Enviando…" : "Enviar enlace"}
           </Button>
-          <Link asChild tone="muted" underline="always" className="text-14">
+          <Link
+            asChild
+            tone="muted"
+            underline="always"
+            className="relative text-14 max-md:tap-target"
+          >
             <NextLink href="/dashboard/login">Volver a ingresar</NextLink>
           </Link>
         </div>

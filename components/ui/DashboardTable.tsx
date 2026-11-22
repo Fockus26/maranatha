@@ -67,7 +67,8 @@ const SORT_COLUMNS: { column: SortColumn; label: string }[] = [
  * Botón de ícono con borde: el `IconButton size="small"` de MUI (ícono de
  * 20 px + 5 px de relleno + 1 px de borde = 32 px).
  */
-const ROW_ACTION_CLASS = "size-8 rounded-sm border border-border p-1.25";
+const ROW_ACTION_CLASS =
+  "size-8 rounded-sm border border-border p-1.25 max-md:tap-target";
 const EDIT_ACTION_CLASS = cn(
   ROW_ACTION_CLASS,
   "text-primary hover:border-secondary hover:text-secondary dark:text-primary dark:hover:text-secondary",
@@ -282,7 +283,7 @@ export function DashboardTable({
               <GridCell>
                 <SkeletonText className="h-4 w-3/5" />
               </GridCell>
-              <GridCell className="flex justify-end gap-1">
+              <GridCell className="flex justify-end gap-4">
                 <Skeleton className="size-7" />
                 <Skeleton className="size-7" />
               </GridCell>
@@ -338,7 +339,7 @@ export function DashboardTable({
                     {row.deadlineLabel}
                   </GridCell>
                   <GridCell>
-                    <div className="flex justify-end gap-1">
+                    <div className="flex justify-end gap-4">
                       {/* Un proyecto completado ya no se puede editar — pedido
                           del cliente; Eliminar sigue disponible en cualquier
                           estado. */}
@@ -393,7 +394,7 @@ export function DashboardTable({
               </div>
               <Skeleton className="mb-1.5 h-1.25 rounded-pill" />
               <SkeletonText className="mb-2 h-4 w-2/5" />
-              <div className="flex justify-end gap-1">
+              <div className="flex justify-end gap-4">
                 <Skeleton className="size-7" />
                 <Skeleton className="size-7" />
               </div>
@@ -446,7 +447,7 @@ export function DashboardTable({
                     Cierre: {row.deadlineLabel}
                   </GridCell>
 
-                  <GridCell className="flex justify-end gap-1">
+                  <GridCell className="flex justify-end gap-4">
                     {!isCompleted && (
                       <Button
                         variant="plain"

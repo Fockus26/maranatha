@@ -313,6 +313,23 @@ body,
   }
 }
 
+/*
+ * Área táctil mínima de 44 × 44 px (WCAG 2.5.5, QA de versión 09) sin cambiar
+ * lo que se ve: un `::after` invisible, centrado, de al menos 44 px. El
+ * elemento debe estar posicionado (`relative` o `absolute`) y no recortado
+ * por un `overflow: hidden`; entre dos vecinos hacen falta al menos 12 px de
+ * separación para que las áreas no se pisen. Se usa con `max-md:` (pantallas
+ * táctiles); con ratón basta la caja visible.
+ */
+@utility tap-target {
+  &::after {
+    content: "";
+    position: absolute;
+    /* Lo que falta para 44 px, repartido a cada lado (0 si ya los mide). */
+    inset: min(0px, calc((100% - var(--spacing) * 11) / 2));
+  }
+}
+
 @utility animate-pattern-pan {
   animation: pattern-pan var(--pattern-duration) linear infinite;
 }

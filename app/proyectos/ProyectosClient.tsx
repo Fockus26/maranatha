@@ -205,7 +205,7 @@ function ViewButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "rounded-none hover:bg-primary/8 hover:text-primary dark:hover:bg-primary/8 dark:hover:text-primary",
+        "rounded-none max-md:size-11 hover:bg-primary/8 hover:text-primary dark:hover:bg-primary/8 dark:hover:text-primary",
         active
           ? "bg-primary/8 text-primary dark:text-primary"
           : "text-muted-foreground dark:text-muted-foreground",

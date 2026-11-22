@@ -40,7 +40,7 @@ const SOCIAL_LINKS = [
 ] as const;
 
 const linkClass =
-  "inline-flex min-h-11 items-center font-body text-12 text-muted-foreground no-underline hover:text-secondary sm:min-h-0 wide:text-14";
+  "inline-flex min-h-11 items-center font-body text-12 text-muted-foreground no-underline hover:text-secondary max-md:min-w-11 md:min-h-0 wide:text-14";
 const titleClass = "font-body font-medium text-12 text-foreground wide:text-14";
 
 function FooterColumn({
@@ -53,10 +53,11 @@ function FooterColumn({
   return (
     <nav aria-label={title} className="flex flex-col gap-0.75">
       <span className={cn(titleClass, "mb-0.5")}>{title}</span>
-      <ul className="m-0 flex list-none flex-col gap-0 p-0 sm:gap-0.75">
+      <ul className="m-0 flex list-none flex-col gap-0 p-0 md:gap-0.75">
         {links.map((link) => (
           <li key={link.href}>
-            {/* Área táctil de 44px en móvil (design-qa fase 09). */}
+            {/* Área táctil de 44 px hasta `md` (design-qa fase 09 y QA de
+                versión 09): a 600–899 px también se toca con el dedo. */}
             <Link href={link.href} className={linkClass}>
               {link.label}
             </Link>
@@ -95,7 +96,7 @@ export default function Footer() {
                   asChild
                   variant="plain"
                   size="icon"
-                  className="size-11 rounded-xs border border-border text-muted-foreground hover:border-secondary hover:text-secondary sm:size-8 dark:text-muted-foreground"
+                  className="size-11 rounded-xs border border-border text-muted-foreground hover:border-secondary hover:text-secondary md:size-8 dark:text-muted-foreground"
                 >
                   <a
                     href={href}
