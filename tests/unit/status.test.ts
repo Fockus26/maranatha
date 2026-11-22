@@ -43,14 +43,21 @@ describe("copy de las pantallas de estado (D079)", () => {
     expect(errorCode("1234567890abcdef")).toBe("MRN-500-1234567890");
   });
 
-  test("hora de regreso en es-VE, en la zona indicada", () => {
-    const s = formatReturnAt(
-      new Date("2026-10-16T01:00:00Z"),
-      "America/Caracas",
-    );
-    expect(s).toContain("jueves");
-    expect(s).toContain("15 de octubre");
-  });
+  // El primer `Intl.DateTimeFormat` con zona horaria carga los datos de ICU:
+  // con la máquina cargada pasaba de los 5 s por defecto y daba un timeout
+  // falso (olas 4 y 5 de la fase shadcn). Sin carga tarda milisegundos.
+  test(
+    "hora de regreso en es-VE, en la zona indicada",
+    () => {
+      const s = formatReturnAt(
+        new Date("2026-10-16T01:00:00Z"),
+        "America/Caracas",
+      );
+      expect(s).toContain("jueves");
+      expect(s).toContain("15 de octubre");
+    },
+    { timeout: 30_000 },
+  );
 });
 
 describe("modo mantenimiento", () => {
