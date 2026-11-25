@@ -1,5 +1,38 @@
 # maranatha
 
+## 0.10.0
+
+### Minor Changes
+
+- 8fac6c8: Panel más rápido: volver a una página o a un filtro de Pagos o Agenda visitado hace poco se muestra al instante, sin recargar. Si los datos cambiaron por fuera (un pago confirmado por PayPal o Binance, otro admin), la página se actualiza sola al volver a la pestaña o a la ventana.
+- 262bff4: Interfaz completa sobre shadcn/ui: se retira MUI.
+- f8eef9a: Al cambiar de página en el panel, el esqueleto de carga ahora tiene la forma de cada página (Resumen, Proyectos, Pagos y Agenda) en vez de un bloque único a todo el ancho.
+
+### Patch Changes
+
+- f648108: La agenda muestra la hora igual en el sitio y en el panel ("7:00 p. m."), sin que "p. m." se parta entre dos líneas.
+- 3516a62: Primitivas y tokens de la interfaz completados
+- 85cf9fe: En pantallas táctiles (hasta 900 px) es más fácil tocar los enlaces del pie de página, el cambio de vista en Proyectos, el Instagram del encargado, los enlaces del acceso al panel, Editar y Eliminar de las tablas y los filtros de Pagos.
+- 43c7d78: Interfaz migrada a shadcn: estados vacíos y transiciones.
+- 93bff0b: Interfaz migrada a shadcn en pagos, agenda y proyectos del panel
+- 261d798: En el panel, si la sesión se cerró en otra pestaña, guardar un evento o confirmar un pago ahora avisa "Tu sesión expiró" en vez de "No hubo respuesta del servidor".
+- 1b1419a: Interfaz migrada a shadcn en las secciones de la página de inicio.
+- 3ed8a51: Si tienes activado "reducir movimiento", los paneles laterales, diálogos y menús desplegables ahora se abren sin deslizarse ni hacer zoom.
+- 8830610: Reporte de pago más claro:
+  - Si la conexión se corta justo al enviarlo y lo vuelves a enviar, ahora se confirma en vez de decir que la referencia ya fue reportada.
+  - El calendario solo deja elegir fechas de los últimos 60 días.
+  - Un nombre con emojis compuestos o demasiado largo se avisa en el primer paso.
+- b293847: Interfaz migrada a shadcn: selector segmentado y botón de modo
+- 4815122: Interfaz migrada a shadcn en los formularios de diezmo y aporte
+- 244466d: Con el modal de ofrenda o un panel lateral abierto ya no queda una franja clara sin oscurecer en el borde derecho, y el "Da con propósito" del modal de ofrenda se lee mejor en modo claro.
+- 34d0306: Interfaz migrada a shadcn: diálogo de confirmación
+- f0d0f17: En el panel, al eliminar un proyecto el foco pasa al proyecto siguiente en vez de perderse. El anillo de foco de "Saltar al contenido" se ve mejor en modo claro.
+- 4947eed: Interfaz migrada a shadcn en el marco del sitio y las páginas de proyectos.
+- 5dd74b3: Interfaz migrada a shadcn: campos de fecha y hora
+- b7c04b5: Si el comprobante que adjuntas está vacío, ahora se avisa en vez de enviar el reporte sin él. En el panel, una tasa de respaldo con solo espacios se guarda como "sin respaldo".
+- d28aecc: Interfaz migrada a shadcn en el acceso y el marco del panel
+- b553e6e: Después de usar "Saltar al contenido" o un enlace del menú a una sección (como Agenda), ir a otra página y pulsar Atrás vuelve a mostrar la página anterior.
+
 ## 0.9.0
 
 ### Minor Changes
