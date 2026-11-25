@@ -3,14 +3,18 @@
 // Se graba contra `qa:local` (base local, cuentas de pago ficticias), nunca contra producción.
 export const start = "/";
 
-// No se graba: oculta el indicador de desarrollo de Next y pausa el carrusel del hero
+// No se graba: oculta el indicador de desarrollo de Next y la barra de desplazamiento, y pausa el carrusel del hero
 // (cambia cada 6 s) para que el último cuadro sea igual al primero.
 export async function setup(page) {
   await page.addInitScript(() => {
     // El script corre antes de que exista <html>: el estilo espera al documento.
     document.addEventListener("DOMContentLoaded", () => {
       const style = document.createElement("style");
-      style.textContent = "nextjs-portal{display:none!important}";
+      // Sin barra de desplazamiento ni su riel: el marco es la ventana del portafolio.
+      style.textContent =
+        "nextjs-portal{display:none!important}" +
+        "html{scrollbar-gutter:auto!important;scrollbar-width:none!important}" +
+        "html::-webkit-scrollbar{display:none!important}";
       document.head.appendChild(style);
     });
     const timer = setInterval(() => {
