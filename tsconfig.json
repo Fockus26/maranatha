@@ -30,5 +30,10 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", ".claude/worktrees", ".claude/kit-reference"]
+  "exclude": [
+    "node_modules",
+    ".claude/worktrees",
+    ".claude/kit-reference",
+    "docs/showcase"
+  ]
 }
