@@ -62,3 +62,6 @@ next-env.d.ts
 
 # QA scripts and logs (web-agent-kit)
 .qa/
+
+# project-showcase: cuadros de la grabación (se regeneran)
+docs/showcase/take/
